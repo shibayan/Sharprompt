@@ -9,17 +9,18 @@ namespace Sharprompt
             _cursorVisible = cursorVisible;
         }
 
-        private readonly int _initialLeft = Console.CursorLeft;
         private readonly int _initialTop = Console.CursorTop;
 
         private readonly bool _cursorVisible;
 
-        private int _cursorBottom = Console.CursorTop + 1;
-
         public void Dispose()
         {
-            Console.CursorLeft = 0;
-            Console.CursorTop = _cursorBottom;
+            if (Console.CursorLeft != 0)
+            {
+                Console.WriteLine();
+            }
+
+            Console.ResetColor();
         }
 
         public void Beep()
@@ -45,33 +46,24 @@ namespace Sharprompt
 
             template(new ConsoleRenderer());
 
-            _cursorBottom = Console.CursorTop + 1;
-
             if (_cursorVisible)
             {
                 Console.CursorVisible = true;
             }
         }
 
-        private void Rewind()
-        {
-            Console.CursorLeft = _initialLeft;
-            Console.CursorTop = _initialTop;
-        }
-
         private void Clear()
         {
-            var space = new string(' ', Console.WindowWidth);
+            var space = new string(' ', Console.WindowWidth - 1);
 
-            for (int i = _initialTop; i < _cursorBottom; i++)
+            for (int top = Console.CursorTop; top >= _initialTop; top--)
             {
-                Console.CursorLeft = 0;
-                Console.CursorTop = i;
+                Console.SetCursorPosition(0, top);
 
                 Console.Write(space);
             }
 
-            Rewind();
+            Console.SetCursorPosition(0, _initialTop);
         }
     }
 }
