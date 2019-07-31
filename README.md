@@ -1,5 +1,8 @@
 # Sharprompt
- Interactive command line interface tookit for .NET Core
+
+[![Build Status](https://dev.azure.com/shibayan/Sharprompt/_apis/build/status/Build%20Sharprompt?branchName=master)](https://dev.azure.com/shibayan/Sharprompt/_build/latest?definitionId=34&branchName=master)
+
+Interactive command line interface tookit for .NET Core
 
 ![sharprompt](https://user-images.githubusercontent.com/1356444/62069893-43812b80-b274-11e9-83d6-150f716ec4bd.gif)
 
