@@ -49,3 +49,7 @@ Console.WriteLine("Password OK");
 var city = Prompt.Select("Select your city", new[] { "Seattle", "London", "Tokyo" });
 Console.WriteLine($"Hello, {city}!");
 ```
+
+## License
+
+This project is licensed under the [MIT License](https://github.com/shibayan/Sharprompt/blob/master/LICENSE)
