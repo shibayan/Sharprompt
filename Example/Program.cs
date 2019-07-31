@@ -8,10 +8,10 @@ namespace Example
     {
         static void Main(string[] args)
         {
-            var name = Prompt.Input("Name", "Scott");
-            var age = Prompt.Input("Age", 20);
+            var name = Prompt.Input<string>("Name", "kazuakix");
+            var age = Prompt.Input<int>("Age", 50);
 
-            var prefecture = Prompt.Select("Choose a prefecture", new[] { "Osaka", "Hyogo", "Wakayama", "Nara", "Kyoto" });
+            var prefecture = Prompt.Select("Choose a prefecture", new[] { "Osaka", "Hyogo", "Wakayama", "Nara", "Kyoto" }, "Wakayama");
 
             var ready = Prompt.Confirm("Ossan", true);
 
