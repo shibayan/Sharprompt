@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Sharprompt
 {
-    internal class Password
+    public class Password
     {
         public Password(string message)
         {
@@ -28,10 +28,14 @@ namespace Sharprompt
 
                     if (keyInfo.Key == ConsoleKey.Enter)
                     {
-                        break;
-                    }
+                        if (_buffer.Length != 0)
+                        {
+                            break;
+                        }
 
-                    if (keyInfo.Key == ConsoleKey.Backspace)
+                        scope.SetError("Value is required");
+                    }
+                    else if (keyInfo.Key == ConsoleKey.Backspace)
                     {
                         if (_buffer.Length == 0)
                         {
@@ -41,11 +45,8 @@ namespace Sharprompt
                         {
                             _buffer.Length -= 1;
                         }
-
-                        continue;
                     }
-
-                    if (!char.IsControl(keyInfo.KeyChar))
+                    else if (!char.IsControl(keyInfo.KeyChar))
                     {
                         _buffer.Append(keyInfo.KeyChar);
                     }

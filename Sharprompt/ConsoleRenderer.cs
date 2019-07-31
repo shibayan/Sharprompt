@@ -1,9 +1,44 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Sharprompt
 {
     internal class ConsoleRenderer
     {
+        public ConsoleRenderer(int initialTop)
+        {
+            _initialTop = initialTop;
+        }
+
+        private readonly int _initialTop;
+        private readonly Stack<(int left, int top)> _positions = new Stack<(int left, int top)>();
+
+        public void PushCursor()
+        {
+            _positions.Push((Console.CursorLeft, Console.CursorTop));
+        }
+
+        public void PopCursor()
+        {
+            var (left, top) = _positions.Pop();
+
+            Console.SetCursorPosition(left, top);
+        }
+
+        public void Clear()
+        {
+            var space = new string(' ', Console.WindowWidth - 1);
+
+            for (int top = Console.CursorTop; top >= _initialTop; top--)
+            {
+                Console.SetCursorPosition(0, top);
+
+                Console.Write(space);
+            }
+
+            Console.SetCursorPosition(0, _initialTop);
+        }
+
         public void Write(string value)
         {
             Console.Write(value);
@@ -29,6 +64,16 @@ namespace Sharprompt
         {
             Write("?", ConsoleColor.Green);
             Write($" {message}: ");
+        }
+
+        public void WriteErrorMessage(string errorMessage)
+        {
+            PushCursor();
+
+            WriteLine();
+            Write($">> {errorMessage}", ConsoleColor.Red);
+
+            PopCursor();
         }
     }
 }

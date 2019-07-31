@@ -10,8 +10,9 @@ namespace Sharprompt
         }
 
         private readonly int _initialTop = Console.CursorTop;
-
         private readonly bool _cursorVisible;
+
+        private string _errorMessage;
 
         public void Dispose()
         {
@@ -38,32 +39,37 @@ namespace Sharprompt
             return Console.ReadLine();
         }
 
+        public void SetError(string errorMessage)
+        {
+            _errorMessage = errorMessage;
+        }
+
+        public void SetError(Exception exception)
+        {
+            _errorMessage = exception.Message;
+        }
+
         public void Render(Action<ConsoleRenderer> template)
         {
             Console.CursorVisible = false;
 
-            Clear();
+            var renderer = new ConsoleRenderer(_initialTop);
 
-            template(new ConsoleRenderer());
+            renderer.Clear();
+
+            template(renderer);
+
+            if (_errorMessage != null)
+            {
+                renderer.WriteErrorMessage(_errorMessage);
+
+                _errorMessage = null;
+            }
 
             if (_cursorVisible)
             {
                 Console.CursorVisible = true;
             }
-        }
-
-        private void Clear()
-        {
-            var space = new string(' ', Console.WindowWidth - 1);
-
-            for (int top = Console.CursorTop; top >= _initialTop; top--)
-            {
-                Console.SetCursorPosition(0, top);
-
-                Console.Write(space);
-            }
-
-            Console.SetCursorPosition(0, _initialTop);
         }
     }
 }

@@ -5,12 +5,7 @@ namespace Sharprompt
 {
     public static class Prompt
     {
-        public static T Input<T>(string message)
-        {
-            return new Input<T>(message).Start();
-        }
-
-        public static T Input<T>(string message, T defaultValue)
+        public static T Input<T>(string message, object defaultValue = null)
         {
             return new Input<T>(message, defaultValue).Start();
         }
@@ -20,24 +15,14 @@ namespace Sharprompt
             return new Password(message).Start();
         }
 
-        public static bool Confirm(string message)
-        {
-            return new Confirm(message).Start();
-        }
-
-        public static bool Confirm(string message, bool defaultValue)
+        public static bool Confirm(string message, bool? defaultValue = null)
         {
             return new Confirm(message, defaultValue).Start();
         }
 
-        public static T Select<T>(string message, IReadOnlyList<T> items)
+        public static T Select<T>(string message, IReadOnlyList<T> items, object defaultValue = null, Func<T, string> labelSelector = null)
         {
-            return new Select<T>(message, items).Start();
-        }
-
-        public static T Select<T>(string message, IReadOnlyList<T> items, Func<T, string> labelSelector)
-        {
-            return new Select<T>(message, items, labelSelector).Start();
+            return new Select<T>(message, items, defaultValue, labelSelector).Start();
         }
     }
 }
