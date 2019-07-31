@@ -25,7 +25,7 @@ namespace Sharprompt
 
                     var input = scope.ReadLine();
 
-                    if (string.IsNullOrWhiteSpace(input))
+                    if (string.IsNullOrEmpty(input))
                     {
                         if (_defaultValue != null)
                         {
@@ -33,7 +33,7 @@ namespace Sharprompt
                             break;
                         }
 
-                        scope.SetError("Value is required");
+                        scope.SetError(new Error("Value is required"));
                     }
                     else
                     {
@@ -51,7 +51,7 @@ namespace Sharprompt
                             break;
                         }
 
-                        scope.SetError("Value is invalid");
+                        scope.SetError(new Error("Value is invalid"));
                     }
                 }
 
@@ -68,6 +68,10 @@ namespace Sharprompt
             if (_defaultValue != null)
             {
                 renderer.Write($"({(_defaultValue.Value ? "yes" : "no")}) ");
+            }
+            else
+            {
+                renderer.Write("(y/N) ");
             }
         }
 

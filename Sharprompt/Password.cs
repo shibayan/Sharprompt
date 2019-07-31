@@ -1,16 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Sharprompt
 {
     public class Password
     {
-        public Password(string message)
+        public Password(string message, IList<Func<object, Error>> validators = null)
         {
             _message = message;
+            _validators = validators;
         }
 
         private readonly string _message;
+        private readonly IList<Func<object, Error>> _validators;
 
         private StringBuilder _buffer;
 
@@ -18,7 +21,7 @@ namespace Sharprompt
         {
             using (var scope = new ConsoleScope(true))
             {
-                _buffer = new StringBuilder();
+                _buffer = new StringBuilder(64);
 
                 while (true)
                 {
@@ -28,12 +31,12 @@ namespace Sharprompt
 
                     if (keyInfo.Key == ConsoleKey.Enter)
                     {
-                        if (_buffer.Length != 0)
+                        if (scope.Validate(_buffer.ToString(), _validators))
                         {
                             break;
                         }
 
-                        scope.SetError("Value is required");
+                        _buffer.Clear();
                     }
                     else if (keyInfo.Key == ConsoleKey.Backspace)
                     {

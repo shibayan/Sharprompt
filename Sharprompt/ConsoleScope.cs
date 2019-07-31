@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Sharprompt
 {
@@ -13,6 +14,7 @@ namespace Sharprompt
         private readonly bool _cursorVisible;
 
         private string _errorMessage;
+        private int _previousBottom = Console.CursorTop;
 
         public void Dispose()
         {
@@ -39,12 +41,34 @@ namespace Sharprompt
             return Console.ReadLine();
         }
 
-        public void SetError(string errorMessage)
+        public void SetError(Error error)
         {
-            _errorMessage = errorMessage;
+            _errorMessage = error.Message;
         }
 
-        public void SetError(Exception exception)
+        public bool Validate(object input, IList<Func<object, Error>> validators)
+        {
+            if (validators == null)
+            {
+                return true;
+            }
+
+            foreach (var validator in validators)
+            {
+                var error = validator(input);
+
+                if (error != null)
+                {
+                    _errorMessage = error.Message;
+
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public void SetException(Exception exception)
         {
             _errorMessage = exception.Message;
         }
@@ -53,17 +77,21 @@ namespace Sharprompt
         {
             Console.CursorVisible = false;
 
-            var renderer = new ConsoleRenderer(_initialTop);
+            var renderer = new ConsoleRenderer(_initialTop, _previousBottom);
 
             renderer.Clear();
 
             template(renderer);
+
+            _previousBottom = Console.CursorTop;
 
             if (_errorMessage != null)
             {
                 renderer.WriteErrorMessage(_errorMessage);
 
                 _errorMessage = null;
+
+                _previousBottom += 1;
             }
 
             if (_cursorVisible)

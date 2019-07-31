@@ -8,16 +8,16 @@ namespace Example
     {
         static void Main(string[] args)
         {
-            var name = Prompt.Input<string>("Name", "kazuakix");
-            var age = Prompt.Input<int>("Age", 50);
+            var name = Prompt.Input<string>("What's your name", validators: new[] { Validators.Required(), Validators.MinLength(3) });
+            var age = Prompt.Input<int>("How old are you");
 
-            var prefecture = Prompt.Select("Choose a prefecture", new[] { "Osaka", "Hyogo", "Wakayama", "Nara", "Kyoto" }, "Wakayama");
+            var city = Prompt.Select("Choose a city", new[] { "Seattle", "London", "Tokyo" });
 
-            var ready = Prompt.Confirm("Ossan", true);
+            var password = Prompt.Password("Type new password", new[] { Validators.Required(), Validators.MinLength(8) });
 
-            var password = Prompt.Password("Enter password");
+            var ready = Prompt.Confirm("Are you ready");
 
-            Console.WriteLine($"Name: {name}, Age: {age}, Prefecture: {prefecture}\nOssan: {ready}, Password: {password}");
+            Console.WriteLine($"Name: {name}, Age: {age}, City: {city}\nPassword: {password}, Ready: {ready}");
         }
     }
 }

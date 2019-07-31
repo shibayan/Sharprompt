@@ -5,12 +5,14 @@ namespace Sharprompt
 {
     internal class ConsoleRenderer
     {
-        public ConsoleRenderer(int initialTop)
+        public ConsoleRenderer(int initialTop, int previousBottom)
         {
             _initialTop = initialTop;
+            _previousBottom = previousBottom;
         }
 
         private readonly int _initialTop;
+        private readonly int _previousBottom;
         private readonly Stack<(int left, int top)> _positions = new Stack<(int left, int top)>();
 
         public void PushCursor()
@@ -29,7 +31,7 @@ namespace Sharprompt
         {
             var space = new string(' ', Console.WindowWidth - 1);
 
-            for (int top = Console.CursorTop; top >= _initialTop; top--)
+            for (int top = _previousBottom; top >= _initialTop; top--)
             {
                 Console.SetCursorPosition(0, top);
 

@@ -39,7 +39,7 @@ namespace Sharprompt
                             break;
                         }
 
-                        scope.SetError("Value is required");
+                        scope.SetError(new Error("Value is required"));
                     }
                     else if (keyInfo.Key == ConsoleKey.DownArrow)
                     {

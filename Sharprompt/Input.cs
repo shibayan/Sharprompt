@@ -5,14 +5,16 @@ namespace Sharprompt
 {
     public class Input<T>
     {
-        public Input(string message, object defaultValue = null, IList<Func<object, bool>> validators = null)
+        public Input(string message, object defaultValue = null, IList<Func<object, Error>> validators = null)
         {
             _message = message;
             _defaultValue = defaultValue;
+            _validators = validators;
         }
 
         private readonly string _message;
         private readonly object _defaultValue;
+        private readonly IList<Func<object, Error>> _validators;
 
         private T _result;
 
@@ -26,27 +28,28 @@ namespace Sharprompt
 
                     var input = scope.ReadLine();
 
-                    if (string.IsNullOrWhiteSpace(input))
+                    if (string.IsNullOrEmpty(input))
                     {
                         if (_defaultValue != null)
                         {
                             _result = (T)_defaultValue;
                             break;
                         }
-
-                        scope.SetError("Value is required");
                     }
-                    else
+
+                    if (!scope.Validate(input, _validators))
                     {
-                        try
-                        {
-                            _result = (T)Convert.ChangeType(input, typeof(T));
-                            break;
-                        }
-                        catch (Exception ex)
-                        {
-                            scope.SetError(ex);
-                        }
+                        continue;
+                    }
+
+                    try
+                    {
+                        _result = (T)Convert.ChangeType(input, typeof(T));
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        scope.SetException(ex);
                     }
                 }
 
