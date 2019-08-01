@@ -8,7 +8,7 @@ namespace Example
     {
         static void Main(string[] args)
         {
-            var name = Prompt.Input<string>("What's your name?");
+            var name = Prompt.Input<string>("What's your name?", validators: new[] { Validators.Required() });
             Console.WriteLine($"Hello, {name}!");
 
             var city = Prompt.Select("Select your city", new[] { "Seattle", "London", "Tokyo" });

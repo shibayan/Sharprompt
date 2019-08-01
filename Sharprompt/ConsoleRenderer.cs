@@ -5,15 +5,17 @@ namespace Sharprompt
 {
     internal class ConsoleRenderer
     {
-        public ConsoleRenderer(int initialTop, int previousBottom)
+        public ConsoleRenderer(int lineCount, int previousBottom)
         {
-            _initialTop = initialTop;
+            _lineCount = lineCount;
             _previousBottom = previousBottom;
         }
 
-        private readonly int _initialTop;
+        private int _lineCount;
         private readonly int _previousBottom;
         private readonly Stack<(int left, int top)> _positions = new Stack<(int left, int top)>();
+
+        public int WrittenRowCount => _lineCount;
 
         public void PushCursor()
         {
@@ -31,14 +33,16 @@ namespace Sharprompt
         {
             var space = new string(' ', Console.WindowWidth - 1);
 
-            for (int top = _previousBottom; top >= _initialTop; top--)
+            for (int i = 0; i <= _lineCount; i++)
             {
-                Console.SetCursorPosition(0, top);
+                Console.SetCursorPosition(0, _previousBottom - i);
 
                 Console.Write(space);
             }
 
-            Console.SetCursorPosition(0, _initialTop);
+            Console.SetCursorPosition(0, _previousBottom - _lineCount);
+
+            _lineCount = 0;
         }
 
         public void Write(string value)
@@ -60,6 +64,8 @@ namespace Sharprompt
         public void WriteLine()
         {
             Console.WriteLine();
+
+            _lineCount += 1;
         }
 
         public void WriteMessage(string message)

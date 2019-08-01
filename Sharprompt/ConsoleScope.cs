@@ -10,10 +10,10 @@ namespace Sharprompt
             _cursorVisible = cursorVisible;
         }
 
-        private readonly int _initialTop = Console.CursorTop;
         private readonly bool _cursorVisible;
 
         private string _errorMessage;
+        private int _rowCount = 0;
         private int _previousBottom = Console.CursorTop;
 
         public void Dispose()
@@ -38,6 +38,15 @@ namespace Sharprompt
 
         public string ReadLine()
         {
+            if (Console.CursorTop == Console.BufferHeight - 1)
+            {
+                _rowCount += 1;
+            }
+            else
+            {
+                _rowCount += 0;
+            }
+
             return Console.ReadLine();
         }
 
@@ -77,7 +86,7 @@ namespace Sharprompt
         {
             Console.CursorVisible = false;
 
-            var renderer = new ConsoleRenderer(_initialTop, _previousBottom);
+            var renderer = new ConsoleRenderer(_rowCount, _previousBottom);
 
             renderer.Clear();
 
@@ -93,6 +102,8 @@ namespace Sharprompt
 
                 _previousBottom += 1;
             }
+
+            _rowCount = renderer.WrittenRowCount;
 
             if (_cursorVisible)
             {
