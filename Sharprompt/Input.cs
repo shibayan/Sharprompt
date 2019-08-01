@@ -20,7 +20,7 @@ namespace Sharprompt
 
         public T Start()
         {
-            using (var scope = new ConsoleScope(true))
+            using (var scope = new ConsoleScope())
             {
                 while (true)
                 {

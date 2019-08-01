@@ -22,7 +22,7 @@ namespace Sharprompt
 
         public T Start()
         {
-            using (var scope = new ConsoleScope(false))
+            using (var scope = new ConsoleScope())
             {
                 _selectedIndex = FindIndex();
 
@@ -75,6 +75,8 @@ namespace Sharprompt
         {
             renderer.WriteMessage(_message);
 
+            renderer.PushCursor();
+
             for (int i = 0; i < _options.Count; i++)
             {
                 var label = _labelSelector(_options[i]);
@@ -90,6 +92,8 @@ namespace Sharprompt
                     renderer.Write($"  {label}");
                 }
             }
+
+            renderer.PopCursor();
         }
 
         private void FinishTemplate(ConsoleRenderer renderer)

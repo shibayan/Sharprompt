@@ -19,7 +19,7 @@ namespace Sharprompt
 
         public string Start()
         {
-            using (var scope = new ConsoleScope(true))
+            using (var scope = new ConsoleScope())
             {
                 _buffer = new StringBuilder(64);
 

@@ -5,16 +5,13 @@ namespace Sharprompt
 {
     internal class ConsoleScope : IDisposable
     {
-        public ConsoleScope(bool cursorVisible)
+        public ConsoleScope()
         {
-            _cursorVisible = cursorVisible;
         }
 
-        private readonly bool _cursorVisible;
+        private readonly ConsoleRenderer _renderer = new ConsoleRenderer();
 
         private string _errorMessage;
-        private int _rowCount = 0;
-        private int _previousBottom = Console.CursorTop;
 
         public void Dispose()
         {
@@ -38,14 +35,7 @@ namespace Sharprompt
 
         public string ReadLine()
         {
-            if (Console.CursorTop == Console.BufferHeight - 1)
-            {
-                _rowCount += 1;
-            }
-            else
-            {
-                _rowCount += 0;
-            }
+            _renderer.CheckBufferBoundary();
 
             return Console.ReadLine();
         }
@@ -84,31 +74,18 @@ namespace Sharprompt
 
         public void Render(Action<ConsoleRenderer> template)
         {
-            Console.CursorVisible = false;
+            _renderer.BeginRender();
 
-            var renderer = new ConsoleRenderer(_rowCount, _previousBottom);
-
-            renderer.Clear();
-
-            template(renderer);
-
-            _previousBottom = Console.CursorTop;
+            template(_renderer);
 
             if (_errorMessage != null)
             {
-                renderer.WriteErrorMessage(_errorMessage);
+                _renderer.WriteErrorMessage(_errorMessage);
 
                 _errorMessage = null;
-
-                _previousBottom += 1;
             }
 
-            _rowCount = renderer.WrittenRowCount;
-
-            if (_cursorVisible)
-            {
-                Console.CursorVisible = true;
-            }
+            _renderer.EndRender();
         }
     }
 }

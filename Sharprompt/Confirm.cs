@@ -17,7 +17,7 @@ namespace Sharprompt
 
         public bool Start()
         {
-            using (var scope = new ConsoleScope(true))
+            using (var scope = new ConsoleScope())
             {
                 while (true)
                 {
