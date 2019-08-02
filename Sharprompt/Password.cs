@@ -4,16 +4,16 @@ using System.Text;
 
 namespace Sharprompt
 {
-    public class Password
+    internal class Password
     {
-        public Password(string message, IList<Func<object, Error>> validators = null)
+        public Password(string message, IList<Func<object, ValidationError>> validators = null)
         {
             _message = message;
             _validators = validators;
         }
 
         private readonly string _message;
-        private readonly IList<Func<object, Error>> _validators;
+        private readonly IList<Func<object, ValidationError>> _validators;
 
         private StringBuilder _buffer;
 

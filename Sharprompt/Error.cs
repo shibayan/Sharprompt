@@ -1,8 +1,8 @@
 ﻿namespace Sharprompt
 {
-    public class Error
+    public class ValidationError
     {
-        public Error(string message)
+        public ValidationError(string message)
         {
             Message = message;
         }

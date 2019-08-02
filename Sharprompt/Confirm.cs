@@ -2,7 +2,7 @@
 
 namespace Sharprompt
 {
-    public class Confirm
+    internal class Confirm
     {
         public Confirm(string message, bool? defaultValue = null)
         {
@@ -33,7 +33,7 @@ namespace Sharprompt
                             break;
                         }
 
-                        scope.SetError(new Error("Value is required"));
+                        scope.SetError(new ValidationError("Value is required"));
                     }
                     else
                     {
@@ -51,7 +51,7 @@ namespace Sharprompt
                             break;
                         }
 
-                        scope.SetError(new Error("Value is invalid"));
+                        scope.SetError(new ValidationError("Value is invalid"));
                     }
                 }
 
