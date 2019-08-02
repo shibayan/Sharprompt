@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Sharprompt
 {
@@ -7,59 +6,28 @@ namespace Sharprompt
     {
         public ConsoleRenderer()
         {
-            _previousBottom = Console.CursorTop;
         }
-
-        private readonly Stack<(int left, int top)> _positions = new Stack<(int left, int top)>();
 
         private int _lineCount;
         private int _errorLineCount;
-        private int _previousBottom;
 
-        public void PushCursor()
+        public void Reset()
         {
-            _positions.Push((Console.CursorLeft, Console.CursorTop));
-        }
-
-        public void PopCursor()
-        {
-            var (left, top) = _positions.Pop();
-
-            Console.SetCursorPosition(left, top);
-        }
-
-        public void BeginRender()
-        {
-            Console.CursorVisible = false;
-
             var space = new string(' ', Console.WindowWidth - 1);
+
+            var bottom = Console.CursorTop + _errorLineCount;
 
             for (int i = 0; i <= _lineCount + _errorLineCount; i++)
             {
-                Console.SetCursorPosition(0, _previousBottom - i);
+                Console.SetCursorPosition(0, bottom - i);
 
                 Console.Write(space);
             }
 
-            Console.SetCursorPosition(0, _previousBottom - _lineCount - _errorLineCount);
+            Console.SetCursorPosition(0, Console.CursorTop);
 
             _lineCount = 0;
             _errorLineCount = 0;
-        }
-
-        public void EndRender()
-        {
-            _previousBottom = Console.CursorTop + _lineCount + _errorLineCount;
-
-            Console.CursorVisible = true;
-        }
-
-        public void CheckBufferBoundary()
-        {
-            if (_previousBottom == Console.BufferHeight - 1)
-            {
-                _lineCount += 1;
-            }
         }
 
         public void Write(string value)
@@ -93,16 +61,14 @@ namespace Sharprompt
 
         public void WriteErrorMessage(string errorMessage)
         {
-            PushCursor();
-
-            Console.SetCursorPosition(0, Console.CursorTop + _lineCount);
+            var left = Console.CursorLeft;
 
             Console.WriteLine();
             Write($">> {errorMessage}", ConsoleColor.Red);
 
-            _errorLineCount += 1;
+            Console.SetCursorPosition(left, Console.CursorTop - 1);
 
-            PopCursor();
+            _errorLineCount = 1;
         }
     }
 }
