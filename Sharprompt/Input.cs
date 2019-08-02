@@ -10,11 +10,13 @@ namespace Sharprompt
             _message = message;
             _defaultValue = defaultValue;
             _validators = validators;
+            _targetType = typeof(T);
         }
 
         private readonly string _message;
         private readonly object _defaultValue;
         private readonly IList<Func<object, ValidationError>> _validators;
+        private readonly Type _targetType;
 
         private T _result;
 
@@ -28,23 +30,20 @@ namespace Sharprompt
 
                     var input = scope.ReadLine();
 
-                    if (string.IsNullOrEmpty(input))
-                    {
-                        if (_defaultValue != null)
-                        {
-                            _result = (T)_defaultValue;
-                            break;
-                        }
-                    }
-
                     if (!scope.Validate(input, _validators))
                     {
                         continue;
                     }
 
+                    if (string.IsNullOrEmpty(input))
+                    {
+                        _result = (T)_defaultValue;
+                        break;
+                    }
+
                     try
                     {
-                        _result = (T)Convert.ChangeType(input, typeof(T));
+                        _result = (T)Convert.ChangeType(input, Nullable.GetUnderlyingType(_targetType) ?? _targetType);
                         break;
                     }
                     catch (Exception ex)
