@@ -5,16 +5,15 @@ namespace Sharprompt
 {
     internal class ConsoleScope : IDisposable
     {
-        public ConsoleScope(bool cursorVisible)
+        public ConsoleScope(bool cursorVisible = true)
         {
             _cursorVisible = cursorVisible;
         }
 
-        private readonly int _initialTop = Console.CursorTop;
         private readonly bool _cursorVisible;
+        private readonly ConsoleRenderer _renderer = new ConsoleRenderer();
 
         private string _errorMessage;
-        private int _previousBottom = Console.CursorTop;
 
         public void Dispose()
         {
@@ -24,6 +23,7 @@ namespace Sharprompt
             }
 
             Console.ResetColor();
+            Console.CursorVisible = true;
         }
 
         public void Beep()
@@ -38,7 +38,14 @@ namespace Sharprompt
 
         public string ReadLine()
         {
-            return Console.ReadLine();
+            var line = Console.ReadLine();
+
+            if (line != null)
+            {
+                Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop - 1);
+            }
+
+            return line;
         }
 
         public void SetError(Error error)
@@ -77,27 +84,18 @@ namespace Sharprompt
         {
             Console.CursorVisible = false;
 
-            var renderer = new ConsoleRenderer(_initialTop, _previousBottom);
+            _renderer.Reset();
 
-            renderer.Clear();
-
-            template(renderer);
-
-            _previousBottom = Console.CursorTop;
+            template(_renderer);
 
             if (_errorMessage != null)
             {
-                renderer.WriteErrorMessage(_errorMessage);
+                _renderer.WriteErrorMessage(_errorMessage);
 
                 _errorMessage = null;
-
-                _previousBottom += 1;
             }
 
-            if (_cursorVisible)
-            {
-                Console.CursorVisible = true;
-            }
+            Console.CursorVisible = _cursorVisible;
         }
     }
 }
