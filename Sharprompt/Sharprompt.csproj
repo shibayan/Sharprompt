@@ -7,7 +7,7 @@
   <PropertyGroup>
     <Authors>shibayan</Authors>
     <Company>shibayan</Company>
-    <Description>Interactive command line interface tookit for .NET Core</Description>
+    <Description>Interactive command line interface toolkit for .NET Core</Description>
     <PackageReleaseNotes>https://github.com/shibayan/Sharprompt/releases</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/shibayan/Sharprompt</RepositoryUrl>
