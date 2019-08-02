@@ -5,12 +5,12 @@ namespace Sharprompt
 {
     public static class Prompt
     {
-        public static T Input<T>(string message, object defaultValue = null, IList<Func<object, Error>> validators = null)
+        public static T Input<T>(string message, object defaultValue = null, IList<Func<object, ValidationError>> validators = null)
         {
             return new Input<T>(message, defaultValue, validators).Start();
         }
 
-        public static string Password(string message, IList<Func<object, Error>> validators = null)
+        public static string Password(string message, IList<Func<object, ValidationError>> validators = null)
         {
             return new Password(message, validators).Start();
         }

@@ -5,7 +5,7 @@ namespace Sharprompt
 {
     public static class Validators
     {
-        public static Func<object, Error> Required()
+        public static Func<object, ValidationError> Required()
         {
             return input =>
             {
@@ -14,11 +14,11 @@ namespace Sharprompt
                     return null;
                 }
 
-                return new Error("Value is required");
+                return new ValidationError("Value is required");
             };
         }
 
-        public static Func<object, Error> MinLength(int length)
+        public static Func<object, ValidationError> MinLength(int length)
         {
             return input =>
             {
@@ -32,11 +32,11 @@ namespace Sharprompt
                     return null;
                 }
 
-                return new Error("Value is too short");
+                return new ValidationError("Value is too short");
             };
         }
 
-        public static Func<object, Error> MaxLength(int length)
+        public static Func<object, ValidationError> MaxLength(int length)
         {
             return input =>
             {
@@ -50,11 +50,11 @@ namespace Sharprompt
                     return null;
                 }
 
-                return new Error("Value is too long");
+                return new ValidationError("Value is too long");
             };
         }
 
-        public static Func<object, Error> RegularExpression(string pattern)
+        public static Func<object, ValidationError> RegularExpression(string pattern)
         {
             return input =>
             {
@@ -68,7 +68,7 @@ namespace Sharprompt
                     return null;
                 }
 
-                return new Error("Value is not match pattern");
+                return new ValidationError("Value is not match pattern");
             };
         }
     }

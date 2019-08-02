@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace Sharprompt
 {
-    public class Input<T>
+    internal class Input<T>
     {
-        public Input(string message, object defaultValue = null, IList<Func<object, Error>> validators = null)
+        public Input(string message, object defaultValue = null, IList<Func<object, ValidationError>> validators = null)
         {
             _message = message;
             _defaultValue = defaultValue;
@@ -14,7 +14,7 @@ namespace Sharprompt
 
         private readonly string _message;
         private readonly object _defaultValue;
-        private readonly IList<Func<object, Error>> _validators;
+        private readonly IList<Func<object, ValidationError>> _validators;
 
         private T _result;
 

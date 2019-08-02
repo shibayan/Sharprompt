@@ -48,12 +48,12 @@ namespace Sharprompt
             return line;
         }
 
-        public void SetError(Error error)
+        public void SetError(ValidationError error)
         {
             _errorMessage = error.Message;
         }
 
-        public bool Validate(object input, IList<Func<object, Error>> validators)
+        public bool Validate(object input, IList<Func<object, ValidationError>> validators)
         {
             if (validators == null)
             {

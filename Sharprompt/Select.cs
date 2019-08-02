@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Sharprompt
 {
-    public class Select<T>
+    internal class Select<T>
     {
         public Select(string message, IReadOnlyList<T> options, object defaultValue = null, Func<T, string> labelSelector = null)
         {
@@ -39,7 +39,7 @@ namespace Sharprompt
                             break;
                         }
 
-                        scope.SetError(new Error("Value is required"));
+                        scope.SetError(new ValidationError("Value is required"));
                     }
                     else if (keyInfo.Key == ConsoleKey.DownArrow)
                     {
