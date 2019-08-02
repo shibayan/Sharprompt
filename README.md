@@ -3,7 +3,7 @@
 [![Build Status](https://dev.azure.com/shibayan/Sharprompt/_apis/build/status/Build%20Sharprompt?branchName=master)](https://dev.azure.com/shibayan/Sharprompt/_build/latest?definitionId=34&branchName=master)
 [![License](https://img.shields.io/github/license/shibayan/Sharprompt.svg)](https://github.com/shibayan/Sharprompt/blob/master/LICENSE)
 
-Interactive command line interface tookit for .NET Core
+Interactive command line interface toolkit for .NET Core
 
 ![sharprompt](https://user-images.githubusercontent.com/1356444/62227794-87506e00-b3f7-11e9-84ae-06c9a900448b.gif)
 
