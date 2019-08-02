@@ -1,19 +1,26 @@
 # Sharprompt
 
 [![Build Status](https://dev.azure.com/shibayan/Sharprompt/_apis/build/status/Build%20Sharprompt?branchName=master)](https://dev.azure.com/shibayan/Sharprompt/_build/latest?definitionId=34&branchName=master)
+[![License](https://img.shields.io/github/license/shibayan/Sharprompt.svg)](https://github.com/shibayan/Sharprompt/blob/master/LICENSE)
 
 Interactive command line interface tookit for .NET Core
 
 ![sharprompt](https://user-images.githubusercontent.com/1356444/62227794-87506e00-b3f7-11e9-84ae-06c9a900448b.gif)
 
+## NuGet Package
+
+Package Name | Target Framework | NuGet
+---|---|---
+Sharprompt | .NET Standard 2.0 | [![NuGet](https://img.shields.io/nuget/v/Sharprompt.svg)](https://www.nuget.org/packages/Sharprompt)
+
 ## Install
 
 ```
-Install-Package Sharprompt -Version 1.0.0-preview
+Install-Package Sharprompt -Version 1.0.0-preview2
 ```
 
 ```
-dotnet add package Sharprompt --version 1.0.0-preview
+dotnet add package Sharprompt --version 1.0.0-preview2
 ```
 
 ## Usage
@@ -66,6 +73,13 @@ Console.WriteLine($"Hello, {city}!");
 ```
 
 ![select](https://user-images.githubusercontent.com/1356444/62228719-2de93e80-b3f9-11e9-8be5-f19e6ef58aeb.gif)
+
+## Platforms
+
+- Windows
+  - Cmd / PowerShell / Windows Terminal (Preview)
+- Ubuntu 18.04
+  - Bash
 
 ## License
 
