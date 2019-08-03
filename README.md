@@ -78,7 +78,9 @@ Console.WriteLine($"Hello, {city}!");
 
 - Windows
   - Cmd / PowerShell / Windows Terminal (Preview)
-- Ubuntu 18.04
+- Ubuntu
+  - Bash
+- macOS
   - Bash
 
 ## License
