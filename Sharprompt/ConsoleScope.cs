@@ -80,13 +80,13 @@ namespace Sharprompt
             _errorMessage = exception.Message;
         }
 
-        public void Render(Action<ConsoleRenderer> template)
+        public void Render<TModel>(Action<ConsoleRenderer, TModel> template, TModel model)
         {
             Console.CursorVisible = false;
 
             _renderer.Reset();
 
-            template(_renderer);
+            template(_renderer, model);
 
             if (_errorMessage != null)
             {

@@ -6,44 +6,39 @@ namespace Sharprompt
 {
     internal class Select<T>
     {
-        public Select(string message, IReadOnlyList<T> options, object defaultValue = null, Func<T, string> valueSelector = null)
+        public Select(string message, IEnumerable<T> options, object defaultValue, Func<T, string> valueSelector)
         {
             _message = message;
-            _baseOptions = options;
+            _baseOptions = options.Select(x => new Option(valueSelector(x), x)).ToArray();
             _defaultValue = defaultValue;
-            _valueSelector = valueSelector ?? (x => x.ToString());
             _filtering = (filter, value) => value.IndexOf(filter, StringComparison.OrdinalIgnoreCase) != -1;
-
-            UpdateOptions();
         }
 
         private readonly string _message;
-        private readonly IReadOnlyList<T> _baseOptions;
+        private readonly IReadOnlyList<Option> _baseOptions;
         private readonly object _defaultValue;
-        private readonly Func<T, string> _valueSelector;
         private readonly Func<string, string, bool> _filtering;
-
-        private int _selectedIndex;
-        private string _filter = "";
-        private IReadOnlyList<T> _options;
 
         public T Start()
         {
             using (var scope = new ConsoleScope(false))
             {
-                _selectedIndex = FindIndex();
-
+                var filter = "";
                 var prevFilter = "";
+
+                var options = _baseOptions;
+
+                var selectedIndex = FindDefaultIndex(options, _defaultValue);
 
                 while (true)
                 {
-                    scope.Render(Template);
+                    scope.Render(Template, new TemplateModel { Message = _message, Filter = filter, SelectedIndex = selectedIndex, Options = options });
 
                     var keyInfo = scope.ReadKey();
 
                     if (keyInfo.Key == ConsoleKey.Enter)
                     {
-                        if (_selectedIndex != -1)
+                        if (selectedIndex != -1)
                         {
                             break;
                         }
@@ -52,94 +47,67 @@ namespace Sharprompt
                     }
                     else if (keyInfo.Key == ConsoleKey.DownArrow)
                     {
-                        if (_selectedIndex >= _options.Count - 1)
+                        if (selectedIndex >= options.Count - 1)
                         {
-                            _selectedIndex = 0;
+                            selectedIndex = 0;
                         }
                         else
                         {
-                            _selectedIndex++;
+                            selectedIndex++;
                         }
                     }
                     else if (keyInfo.Key == ConsoleKey.UpArrow)
                     {
-                        if (_selectedIndex <= 0)
+                        if (selectedIndex <= 0)
                         {
-                            _selectedIndex = _options.Count - 1;
+                            selectedIndex = options.Count - 1;
                         }
                         else
                         {
-                            _selectedIndex--;
+                            selectedIndex--;
                         }
                     }
                     else if (keyInfo.Key == ConsoleKey.Backspace)
                     {
-                        if (_filter.Length == 0)
+                        if (filter.Length == 0)
                         {
                             scope.Beep();
                         }
                         else
                         {
-                            _filter = _filter.Remove(_filter.Length - 1, 1);
+                            filter = filter.Remove(filter.Length - 1, 1);
                         }
                     }
                     else if (!char.IsControl(keyInfo.KeyChar))
                     {
-                        _filter += keyInfo.KeyChar;
+                        filter += keyInfo.KeyChar;
                     }
 
-                    if (_filter != prevFilter)
+                    if (filter != prevFilter)
                     {
-                        UpdateOptions();
+                        options = _baseOptions.Where(x => _filtering(filter, x.Value)).ToArray();
 
-                        prevFilter = _filter;
+                        prevFilter = filter;
+                        selectedIndex = -1;
                     }
                 }
 
-                scope.Render(FinishTemplate);
+                scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, SelectedIndex = selectedIndex, Options = options });
 
-                return _options[_selectedIndex];
+                return options[selectedIndex].Item;
             }
         }
 
-        private void Template(ConsoleRenderer renderer)
+        private int FindDefaultIndex(IReadOnlyList<Option> list, object item)
         {
-            renderer.WriteMessage(_message);
-            renderer.Write(_filter);
-
-            for (int i = 0; i < _options.Count; i++)
-            {
-                var label = _valueSelector(_options[i]);
-
-                renderer.WriteLine();
-
-                if (_selectedIndex == i)
-                {
-                    renderer.Write($"> {label}", ConsoleColor.Green);
-                }
-                else
-                {
-                    renderer.Write($"  {label}");
-                }
-            }
-        }
-
-        private void FinishTemplate(ConsoleRenderer renderer)
-        {
-            renderer.WriteMessage(_message);
-            renderer.Write(_valueSelector(_options[_selectedIndex]), ConsoleColor.Cyan);
-        }
-
-        private int FindIndex()
-        {
-            if (_defaultValue == null)
+            if (item == null)
             {
                 return -1;
             }
 
-            for (int i = 0; i < _options.Count; i++)
+            for (int i = 0; i < list.Count; i++)
             {
-                if (_defaultValue.Equals(_options[i]))
+                if (EqualityComparer<T>.Default.Equals((T)item, list[i].Item))
                 {
                     return i;
                 }
@@ -148,19 +116,59 @@ namespace Sharprompt
             return -1;
         }
 
-        private void UpdateOptions()
+        private void Template(ConsoleRenderer renderer, TemplateModel model)
         {
-            if (string.IsNullOrEmpty(_filter))
+            renderer.WriteMessage(model.Message);
+            renderer.Write(model.Filter);
+
+            for (int i = 0; i < model.Options.Count; i++)
             {
-                _options = _baseOptions;
+                var value = model.Options[i].Value;
+
+                renderer.WriteLine();
+
+                if (model.SelectedIndex == i)
+                {
+                    renderer.Write($"> {value}", ConsoleColor.Green);
+                }
+                else
+                {
+                    renderer.Write($"  {value}");
+                }
             }
-            else
+        }
+
+        private void FinishTemplate(ConsoleRenderer renderer, FinishTemplateModel model)
+        {
+            renderer.WriteMessage(model.Message);
+            renderer.Write(model.Options[model.SelectedIndex].Value, ConsoleColor.Cyan);
+        }
+
+        private class TemplateModel
+        {
+            public string Message { get; set; }
+            public string Filter { get; set; }
+            public IReadOnlyList<Option> Options { get; set; }
+            public int SelectedIndex { get; set; }
+        }
+
+        private class FinishTemplateModel
+        {
+            public string Message { get; set; }
+            public IReadOnlyList<Option> Options { get; set; }
+            public int SelectedIndex { get; set; }
+        }
+
+        private struct Option
+        {
+            public Option(string value, T item)
             {
-                _options = _baseOptions.Where(x => _filtering(_filter, _valueSelector(x)))
-                                       .ToArray();
+                Value = value;
+                Item = item;
             }
 
-            _selectedIndex = -1;
+            public string Value { get; }
+            public T Item { get; }
         }
     }
 }
