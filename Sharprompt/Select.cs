@@ -32,14 +32,6 @@ namespace Sharprompt
 
                 while (true)
                 {
-                    if (filter != prevFilter)
-                    {
-                        options = _baseOptions.Where(x => _filtering(filter, x.value)).ToArray();
-
-                        prevFilter = filter;
-                        selectedIndex = -1;
-                    }
-
                     scope.Render(Template, new TemplateModel { Message = _message, Filter = filter, SelectedIndex = selectedIndex, Options = options });
 
                     var keyInfo = scope.ReadKey();
@@ -89,6 +81,14 @@ namespace Sharprompt
                     else if (!char.IsControl(keyInfo.KeyChar))
                     {
                         filter += keyInfo.KeyChar;
+                    }
+
+                    if (filter != prevFilter)
+                    {
+                        options = _baseOptions.Where(x => _filtering(filter, x.value)).ToArray();
+
+                        prevFilter = filter;
+                        selectedIndex = -1;
                     }
                 }
 
