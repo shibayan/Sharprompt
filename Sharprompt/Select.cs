@@ -9,13 +9,13 @@ namespace Sharprompt
         public Select(string message, IEnumerable<T> options, object defaultValue, Func<T, string> valueSelector)
         {
             _message = message;
-            _baseOptions = options.Select(x => (valueSelector(x), x)).ToArray();
+            _baseOptions = options.Select(x => new Option(valueSelector(x), x)).ToArray();
             _defaultValue = defaultValue;
             _filtering = (filter, value) => value.IndexOf(filter, StringComparison.OrdinalIgnoreCase) != -1;
         }
 
         private readonly string _message;
-        private readonly IReadOnlyList<(string value, T item)> _baseOptions;
+        private readonly IReadOnlyList<Option> _baseOptions;
         private readonly object _defaultValue;
         private readonly Func<string, string, bool> _filtering;
 
@@ -28,7 +28,7 @@ namespace Sharprompt
 
                 var options = _baseOptions;
 
-                var selectedIndex = options.FindIndex(_defaultValue);
+                var selectedIndex = FindDefaultIndex(options, _defaultValue);
 
                 while (true)
                 {
@@ -85,7 +85,7 @@ namespace Sharprompt
 
                     if (filter != prevFilter)
                     {
-                        options = _baseOptions.Where(x => _filtering(filter, x.value)).ToArray();
+                        options = _baseOptions.Where(x => _filtering(filter, x.Value)).ToArray();
 
                         prevFilter = filter;
                         selectedIndex = -1;
@@ -94,8 +94,26 @@ namespace Sharprompt
 
                 scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, SelectedIndex = selectedIndex, Options = options });
 
-                return options[selectedIndex].item;
+                return options[selectedIndex].Item;
             }
+        }
+
+        private int FindDefaultIndex(IReadOnlyList<Option> list, object item)
+        {
+            if (item == null)
+            {
+                return -1;
+            }
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (EqualityComparer<T>.Default.Equals((T)item, list[i].Item))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         private void Template(ConsoleRenderer renderer, TemplateModel model)
@@ -105,7 +123,7 @@ namespace Sharprompt
 
             for (int i = 0; i < model.Options.Count; i++)
             {
-                var value = model.Options[i].value;
+                var value = model.Options[i].Value;
 
                 renderer.WriteLine();
 
@@ -123,43 +141,34 @@ namespace Sharprompt
         private void FinishTemplate(ConsoleRenderer renderer, FinishTemplateModel model)
         {
             renderer.WriteMessage(model.Message);
-            renderer.Write(model.Options[model.SelectedIndex].value, ConsoleColor.Cyan);
+            renderer.Write(model.Options[model.SelectedIndex].Value, ConsoleColor.Cyan);
         }
 
         private class TemplateModel
         {
             public string Message { get; set; }
             public string Filter { get; set; }
-            public IReadOnlyList<(string value, T item)> Options { get; set; }
+            public IReadOnlyList<Option> Options { get; set; }
             public int SelectedIndex { get; set; }
         }
 
         private class FinishTemplateModel
         {
             public string Message { get; set; }
-            public IReadOnlyList<(string value, T item)> Options { get; set; }
+            public IReadOnlyList<Option> Options { get; set; }
             public int SelectedIndex { get; set; }
         }
-    }
 
-    internal static class Extensions
-    {
-        public static int FindIndex<T>(this IReadOnlyList<(string value, T item)> list, object item)
+        private struct Option
         {
-            if (item == null)
+            public Option(string value, T item)
             {
-                return -1;
+                Value = value;
+                Item = item;
             }
 
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (item.Equals(list[i].value))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
+            public string Value { get; }
+            public T Item { get; }
         }
     }
 }
