@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Sharprompt
 {
     internal class Password
     {
-        public Password(string message, IList<Func<object, ValidationError>> validators = null)
+        public Password(string message, IList<Func<object, ValidationError>> validators)
         {
             _message = message;
             _validators = validators;
@@ -15,55 +14,58 @@ namespace Sharprompt
         private readonly string _message;
         private readonly IList<Func<object, ValidationError>> _validators;
 
-        private StringBuilder _buffer;
-
         public string Start()
         {
             using (var scope = new ConsoleScope())
             {
-                _buffer = new StringBuilder(64);
+                var result = "";
 
                 while (true)
                 {
-                    scope.Render(Template);
+                    scope.Render(Template, new TemplateModel { Message = _message, InputLength = result.Length });
 
                     var keyInfo = scope.ReadKey();
 
                     if (keyInfo.Key == ConsoleKey.Enter)
                     {
-                        if (scope.Validate(_buffer.ToString(), _validators))
+                        if (scope.Validate(result, _validators))
                         {
                             break;
                         }
 
-                        _buffer.Clear();
+                        result = "";
                     }
                     else if (keyInfo.Key == ConsoleKey.Backspace)
                     {
-                        if (_buffer.Length == 0)
+                        if (result.Length == 0)
                         {
                             scope.Beep();
                         }
                         else
                         {
-                            _buffer.Length -= 1;
+                            result = result.Remove(result.Length - 1, 1);
                         }
                     }
                     else if (!char.IsControl(keyInfo.KeyChar))
                     {
-                        _buffer.Append(keyInfo.KeyChar);
+                        result += keyInfo.KeyChar;
                     }
                 }
 
-                return _buffer.ToString();
+                return result;
             }
         }
 
-        private void Template(ConsoleRenderer renderer)
+        private void Template(ConsoleRenderer renderer, TemplateModel model)
         {
-            renderer.WriteMessage(_message);
+            renderer.WriteMessage(model.Message);
+            renderer.Write(new string('*', model.InputLength));
+        }
 
-            renderer.Write(new string('*', _buffer.Length));
+        private class TemplateModel
+        {
+            public string Message { get; set; }
+            public int InputLength { get; set; }
         }
     }
 }

@@ -4,7 +4,7 @@ namespace Sharprompt
 {
     internal class Confirm
     {
-        public Confirm(string message, bool? defaultValue = null)
+        public Confirm(string message, bool? defaultValue)
         {
             _message = message;
             _defaultValue = defaultValue;
@@ -13,15 +13,15 @@ namespace Sharprompt
         private readonly string _message;
         private readonly bool? _defaultValue;
 
-        private bool _result;
-
         public bool Start()
         {
             using (var scope = new ConsoleScope())
             {
+                bool result;
+
                 while (true)
                 {
-                    scope.Render(Template);
+                    scope.Render(Template, new TemplateModel { Message = _message, DefaultValue = _defaultValue });
 
                     var input = scope.ReadLine();
 
@@ -29,7 +29,7 @@ namespace Sharprompt
                     {
                         if (_defaultValue != null)
                         {
-                            _result = _defaultValue.Value;
+                            result = _defaultValue.Value;
                             break;
                         }
 
@@ -41,13 +41,13 @@ namespace Sharprompt
 
                         if (lowerInput == "y" || lowerInput == "yes")
                         {
-                            _result = true;
+                            result = true;
                             break;
                         }
 
                         if (lowerInput == "n" || lowerInput == "no")
                         {
-                            _result = false;
+                            result = false;
                             break;
                         }
 
@@ -55,19 +55,19 @@ namespace Sharprompt
                     }
                 }
 
-                scope.Render(FinishTemplate);
+                scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, Result = result });
 
-                return _result;
+                return result;
             }
         }
 
-        private void Template(ConsoleRenderer renderer)
+        private void Template(ConsoleRenderer renderer, TemplateModel model)
         {
-            renderer.WriteMessage(_message);
+            renderer.WriteMessage(model.Message);
 
-            if (_defaultValue != null)
+            if (model.DefaultValue != null)
             {
-                renderer.Write($"({(_defaultValue.Value ? "yes" : "no")}) ");
+                renderer.Write($"({(model.DefaultValue.Value ? "yes" : "no")}) ");
             }
             else
             {
@@ -75,10 +75,22 @@ namespace Sharprompt
             }
         }
 
-        private void FinishTemplate(ConsoleRenderer renderer)
+        private void FinishTemplate(ConsoleRenderer renderer, FinishTemplateModel model)
         {
-            renderer.WriteMessage(_message);
-            renderer.Write(_result ? "Yes" : "No", ConsoleColor.Cyan);
+            renderer.WriteMessage(model.Message);
+            renderer.Write(model.Result ? "Yes" : "No", ConsoleColor.Cyan);
+        }
+
+        private class TemplateModel
+        {
+            public string Message { get; set; }
+            public bool? DefaultValue { get; set; }
+        }
+
+        private class FinishTemplateModel
+        {
+            public string Message { get; set; }
+            public bool Result { get; set; }
         }
     }
 }

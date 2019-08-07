@@ -5,7 +5,7 @@ namespace Sharprompt
 {
     internal class Input<T>
     {
-        public Input(string message, object defaultValue = null, IList<Func<object, ValidationError>> validators = null)
+        public Input(string message, object defaultValue, IList<Func<object, ValidationError>> validators)
         {
             _message = message;
             _defaultValue = defaultValue;
@@ -18,15 +18,15 @@ namespace Sharprompt
         private readonly IList<Func<object, ValidationError>> _validators;
         private readonly Type _targetType;
 
-        private T _result;
-
         public T Start()
         {
             using (var scope = new ConsoleScope())
             {
+                T result;
+
                 while (true)
                 {
-                    scope.Render(Template);
+                    scope.Render(Template, new TemplateModel { Message = _message, DefaultValue = _defaultValue });
 
                     var input = scope.ReadLine();
 
@@ -37,13 +37,13 @@ namespace Sharprompt
 
                     if (string.IsNullOrEmpty(input))
                     {
-                        _result = (T)_defaultValue;
+                        result = (T)_defaultValue;
                         break;
                     }
 
                     try
                     {
-                        _result = (T)Convert.ChangeType(input, Nullable.GetUnderlyingType(_targetType) ?? _targetType);
+                        result = (T)Convert.ChangeType(input, Nullable.GetUnderlyingType(_targetType) ?? _targetType);
                         break;
                     }
                     catch (Exception ex)
@@ -52,26 +52,38 @@ namespace Sharprompt
                     }
                 }
 
-                scope.Render(FinishTemplate);
+                scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, Result = result });
 
-                return _result;
+                return result;
             }
         }
 
-        private void Template(ConsoleRenderer renderer)
+        private void Template(ConsoleRenderer renderer, TemplateModel model)
         {
-            renderer.WriteMessage(_message);
+            renderer.WriteMessage(model.Message);
 
-            if (_defaultValue != null)
+            if (model.DefaultValue != null)
             {
-                renderer.Write($"({_defaultValue}) ");
+                renderer.Write($"({model.DefaultValue}) ");
             }
         }
 
-        private void FinishTemplate(ConsoleRenderer renderer)
+        private void FinishTemplate(ConsoleRenderer renderer, FinishTemplateModel model)
         {
-            renderer.WriteMessage(_message);
-            renderer.Write(_result.ToString(), ConsoleColor.Cyan);
+            renderer.WriteMessage(model.Message);
+            renderer.Write(model.Result.ToString(), ConsoleColor.Cyan);
+        }
+
+        private class TemplateModel
+        {
+            public string Message { get; set; }
+            public object DefaultValue { get; set; }
+        }
+
+        private class FinishTemplateModel
+        {
+            public string Message { get; set; }
+            public T Result { get; set; }
         }
     }
 }
