@@ -26,6 +26,7 @@ namespace Sharprompt
             using (var scope = new ConsoleScope(false))
             {
                 var options = _baseOptions;
+                var filteredOptions = _baseOptions;
 
                 var selectedIndex = FindDefaultIndex(options, _defaultValue);
 
@@ -38,25 +39,26 @@ namespace Sharprompt
 
                 while (true)
                 {
-                    if (filter != prevFilter || currentPage != prevPage)
+                    if (filter != prevFilter)
                     {
-                        var filteredOptions = _baseOptions.Where(x => _filtering(filter, x.Value))
-                                                          .ToArray();
+                        filteredOptions = _baseOptions.Where(x => _filtering(filter, x.Value))
+                                                      .ToArray();
 
-                        if (filter != prevFilter)
-                        {
-                            prevFilter = filter;
+                        prevFilter = filter;
 
-                            currentPage = 0;
-                            pageCount = (filteredOptions.Length - 1) / _pageSize + 1;
-                        }
+                        currentPage = 0;
+                        prevPage = -1;
+                        pageCount = (filteredOptions.Count - 1) / _pageSize + 1;
+                    }
 
+                    if (currentPage != prevPage)
+                    {
                         options = filteredOptions.Skip(currentPage * _pageSize)
                                                  .Take(_pageSize)
                                                  .ToArray();
 
-                        selectedIndex = -1;
                         prevPage = currentPage;
+                        selectedIndex = -1;
                     }
 
                     scope.Render(Template, new TemplateModel { Message = _message, Filter = filter, SelectedIndex = selectedIndex, Options = options });
