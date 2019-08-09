@@ -17,12 +17,8 @@ namespace Sharprompt
 
         public void Dispose()
         {
-            if (Console.CursorLeft != 0)
-            {
-                Console.WriteLine();
-            }
+            _renderer.Close();
 
-            Console.ResetColor();
             Console.CursorVisible = true;
         }
 
@@ -38,11 +34,13 @@ namespace Sharprompt
 
         public string ReadLine()
         {
+            var left = Console.CursorLeft;
+
             var line = Console.ReadLine();
 
             if (line != null)
             {
-                Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop - 1);
+                Console.SetCursorPosition(left, Console.CursorTop - 1);
             }
 
             return line;
