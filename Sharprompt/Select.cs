@@ -6,32 +6,61 @@ namespace Sharprompt
 {
     internal class Select<T>
     {
-        public Select(string message, IEnumerable<T> options, object defaultValue, Func<T, string> valueSelector)
+        public Select(string message, IEnumerable<T> options, object defaultValue, int pageSize, Func<T, string> valueSelector)
         {
             _message = message;
             _baseOptions = options.Select(x => new Option(valueSelector(x), x)).ToArray();
             _defaultValue = defaultValue;
+            _pageSize = pageSize;
             _filtering = (filter, value) => value.IndexOf(filter, StringComparison.OrdinalIgnoreCase) != -1;
         }
 
         private readonly string _message;
         private readonly IReadOnlyList<Option> _baseOptions;
         private readonly object _defaultValue;
+        private readonly int _pageSize;
         private readonly Func<string, string, bool> _filtering;
 
         public T Start()
         {
             using (var scope = new ConsoleScope(false))
             {
-                var filter = "";
-                var prevFilter = "";
-
                 var options = _baseOptions;
+                var filteredOptions = _baseOptions;
 
                 var selectedIndex = FindDefaultIndex(options, _defaultValue);
 
+                var filter = "";
+                var prevFilter = "";
+
+                var currentPage = 0;
+                var prevPage = -1;
+                var pageCount = (options.Count - 1) / _pageSize + 1;
+
                 while (true)
                 {
+                    if (filter != prevFilter)
+                    {
+                        filteredOptions = _baseOptions.Where(x => _filtering(filter, x.Value))
+                                                      .ToArray();
+
+                        prevFilter = filter;
+
+                        currentPage = 0;
+                        prevPage = -1;
+                        pageCount = (filteredOptions.Count - 1) / _pageSize + 1;
+                    }
+
+                    if (currentPage != prevPage)
+                    {
+                        options = filteredOptions.Skip(currentPage * _pageSize)
+                                                 .Take(_pageSize)
+                                                 .ToArray();
+
+                        prevPage = currentPage;
+                        selectedIndex = -1;
+                    }
+
                     scope.Render(Template, new TemplateModel { Message = _message, Filter = filter, SelectedIndex = selectedIndex, Options = options });
 
                     var keyInfo = scope.ReadKey();
@@ -45,6 +74,17 @@ namespace Sharprompt
 
                         scope.SetError(new ValidationError("Value is required"));
                     }
+                    else if (keyInfo.Key == ConsoleKey.UpArrow)
+                    {
+                        if (selectedIndex <= 0)
+                        {
+                            selectedIndex = options.Count - 1;
+                        }
+                        else
+                        {
+                            selectedIndex--;
+                        }
+                    }
                     else if (keyInfo.Key == ConsoleKey.DownArrow)
                     {
                         if (selectedIndex >= options.Count - 1)
@@ -56,15 +96,26 @@ namespace Sharprompt
                             selectedIndex++;
                         }
                     }
-                    else if (keyInfo.Key == ConsoleKey.UpArrow)
+                    else if (keyInfo.Key == ConsoleKey.LeftArrow)
                     {
-                        if (selectedIndex <= 0)
+                        if (currentPage <= 0)
                         {
-                            selectedIndex = options.Count - 1;
+                            currentPage = pageCount - 1;
                         }
                         else
                         {
-                            selectedIndex--;
+                            currentPage--;
+                        }
+                    }
+                    else if (keyInfo.Key == ConsoleKey.RightArrow)
+                    {
+                        if (currentPage >= pageCount - 1)
+                        {
+                            currentPage = 0;
+                        }
+                        else
+                        {
+                            currentPage++;
                         }
                     }
                     else if (keyInfo.Key == ConsoleKey.Backspace)
@@ -81,14 +132,6 @@ namespace Sharprompt
                     else if (!char.IsControl(keyInfo.KeyChar))
                     {
                         filter += keyInfo.KeyChar;
-                    }
-
-                    if (filter != prevFilter)
-                    {
-                        options = _baseOptions.Where(x => _filtering(filter, x.Value)).ToArray();
-
-                        prevFilter = filter;
-                        selectedIndex = -1;
                     }
                 }
 

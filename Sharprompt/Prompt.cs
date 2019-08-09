@@ -20,9 +20,9 @@ namespace Sharprompt
             return new Confirm(message, defaultValue).Start();
         }
 
-        public static T Select<T>(string message, IEnumerable<T> items, object defaultValue = null, Func<T, string> valueSelector = null)
+        public static T Select<T>(string message, IEnumerable<T> items, object defaultValue = null, int pageSize = 10, Func<T, string> valueSelector = null)
         {
-            return new Select<T>(message, items, defaultValue, valueSelector ?? (x => x.ToString())).Start();
+            return new Select<T>(message, items, defaultValue, pageSize, valueSelector ?? (x => x.ToString())).Start();
         }
     }
 }
