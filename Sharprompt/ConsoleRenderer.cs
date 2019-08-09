@@ -11,6 +11,16 @@ namespace Sharprompt
         private int _lineCount;
         private int _errorLineCount;
 
+        public void Close()
+        {
+            Console.ResetColor();
+
+            if (Console.CursorLeft != 0)
+            {
+                Console.WriteLine();
+            }
+        }
+
         public void Reset()
         {
             var space = new string(' ', Console.WindowWidth - 1);
