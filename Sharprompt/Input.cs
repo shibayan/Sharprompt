@@ -11,12 +11,14 @@ namespace Sharprompt
             _defaultValue = defaultValue;
             _validators = validators;
             _targetType = typeof(T);
+            _underlyingType = Nullable.GetUnderlyingType(_targetType);
         }
 
         private readonly string _message;
         private readonly object _defaultValue;
         private readonly IList<Func<object, ValidationError>> _validators;
         private readonly Type _targetType;
+        private readonly Type _underlyingType;
 
         public T Start()
         {
@@ -37,13 +39,21 @@ namespace Sharprompt
 
                     if (string.IsNullOrEmpty(input))
                     {
+                        if (_targetType.IsValueType && _underlyingType == null && _defaultValue == null)
+                        {
+                            scope.SetError(new ValidationError("Value is required"));
+
+                            continue;
+                        }
+
                         result = (T)_defaultValue;
+
                         break;
                     }
 
                     try
                     {
-                        result = (T)Convert.ChangeType(input, Nullable.GetUnderlyingType(_targetType) ?? _targetType);
+                        result = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
                         break;
                     }
                     catch (Exception ex)
@@ -71,7 +81,11 @@ namespace Sharprompt
         private void FinishTemplate(ConsoleRenderer renderer, FinishTemplateModel model)
         {
             renderer.WriteMessage(model.Message);
-            renderer.Write(model.Result.ToString(), ConsoleColor.Cyan);
+
+            if (model.Result != null)
+            {
+                renderer.Write(model.Result.ToString(), ConsoleColor.Cyan);
+            }
         }
 
         private class TemplateModel
