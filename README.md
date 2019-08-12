@@ -16,11 +16,11 @@ Sharprompt | .NET Standard 2.0 | [![NuGet](https://img.shields.io/nuget/v/Sharpr
 ## Install
 
 ```
-Install-Package Sharprompt -Version 1.0.0
+Install-Package Sharprompt
 ```
 
 ```
-dotnet add package Sharprompt --version 1.0.0
+dotnet add package Sharprompt
 ```
 
 ## Usage
