@@ -36,7 +36,7 @@ namespace Sharprompt
                 int prevPage = -1;
                 var pageCount = (options.Count - 1) / _pageSize + 1;
 
-                int currentPage = selectedIndex == -1 ? 0 : GetPageFromIndex(options, selectedIndex);
+                int currentPage = selectedIndex == 0 ? 0 : GetPageFromIndex(options, selectedIndex);
 
                 while (true)
                 {
@@ -58,7 +58,7 @@ namespace Sharprompt
                                                  .Take(_pageSize)
                                                  .ToArray();
 
-                        selectedIndex = prevPage == -1 && selectedIndex != -1 ? FindDefaultIndex(options, _baseOptions[selectedIndex].Item) : -1;
+                        selectedIndex = prevPage == -1 && selectedIndex != -1 ? FindDefaultIndex(options, _baseOptions[selectedIndex].Item) : 0;
 
                         prevPage = currentPage;
                     }
@@ -147,7 +147,7 @@ namespace Sharprompt
         {
             if (item == null)
             {
-                return -1;
+                return 0;
             }
 
             for (int i = 0; i < list.Count; i++)
