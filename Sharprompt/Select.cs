@@ -28,14 +28,15 @@ namespace Sharprompt
                 var options = _baseOptions;
                 var filteredOptions = _baseOptions;
 
-                var selectedIndex = FindDefaultIndex(options, _defaultValue);
+                int selectedIndex = FindDefaultIndex(options, _defaultValue);
 
                 var filter = "";
                 var prevFilter = "";
 
-                var currentPage = 0;
-                var prevPage = -1;
+                int prevPage = -1;
                 var pageCount = (options.Count - 1) / _pageSize + 1;
+                // When the default selected option is not the first one, try to resolve which page we need to "jump" to.
+                int currentPage = (selectedIndex == 0  || selectedIndex == -1) ? 0 : GetPageFromIndex(options, selectedIndex);
 
                 while (true)
                 {
@@ -56,9 +57,10 @@ namespace Sharprompt
                         options = filteredOptions.Skip(currentPage * _pageSize)
                                                  .Take(_pageSize)
                                                  .ToArray();
+                        // The previous page is only -1 once.
+                        selectedIndex = prevPage == -1 && selectedIndex != -1 ? FindDefaultIndex(options, _baseOptions[selectedIndex].Item) : 0;
 
                         prevPage = currentPage;
-                        selectedIndex = -1;
                     }
 
                     scope.Render(Template, new TemplateModel { Message = _message, Filter = filter, SelectedIndex = selectedIndex, Options = options });
@@ -145,7 +147,7 @@ namespace Sharprompt
         {
             if (item == null)
             {
-                return -1;
+                return 0;
             }
 
             for (int i = 0; i < list.Count; i++)
@@ -157,6 +159,18 @@ namespace Sharprompt
             }
 
             return -1;
+        }
+
+        private int GetPageFromIndex(IReadOnlyList<Option> list, int index)
+        {
+            int total = list.Count - 1;
+            int currentPage = 0;
+
+            for (int i = _pageSize; i <= total; i += _pageSize)
+            {
+                currentPage++;
+            }
+            return currentPage;
         }
 
         private void Template(ConsoleRenderer renderer, TemplateModel model)
