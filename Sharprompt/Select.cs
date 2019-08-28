@@ -35,7 +35,7 @@ namespace Sharprompt
 
                 int prevPage = -1;
                 var pageCount = (options.Count - 1) / _pageSize + 1;
-                // When the default selected option is not the first one, try to resolve which page we need to "jump" to.
+                // Only resolve the page number when the option is neither 0 nor negative.
                 int currentPage = (selectedIndex == 0  || selectedIndex == -1) ? 0 : GetPageFromIndex(options, selectedIndex);
 
                 while (true)
@@ -57,7 +57,7 @@ namespace Sharprompt
                         options = filteredOptions.Skip(currentPage * _pageSize)
                                                  .Take(_pageSize)
                                                  .ToArray();
-                        // The previous page is only -1 once.
+                        // Initially, we need to check for the default index. After moving the page or default index this becomes irrelevant.
                         selectedIndex = prevPage == -1 && selectedIndex != -1 ? FindDefaultIndex(options, _baseOptions[selectedIndex].Item) : 0;
 
                         prevPage = currentPage;
