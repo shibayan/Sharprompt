@@ -36,7 +36,7 @@ namespace Sharprompt
                 int prevPage = -1;
                 var pageCount = (options.Count - 1) / _pageSize + 1;
                 // Only resolve the page number when the option is neither 0 nor negative.
-                int currentPage = (selectedIndex == 0  || selectedIndex == -1) ? 0 : GetPageFromIndex(options, selectedIndex);
+                int currentPage = (selectedIndex == 0 || selectedIndex == -1) ? 0 : GetPageFromIndex(options, selectedIndex);
 
                 while (true)
                 {
