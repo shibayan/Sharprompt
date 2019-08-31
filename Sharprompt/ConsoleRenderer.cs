@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace Sharprompt
 {
@@ -23,15 +24,11 @@ namespace Sharprompt
 
         public void Reset()
         {
-            var space = new string(' ', Console.WindowWidth - 1);
-
             var bottom = Console.CursorTop + _errorLineCount;
 
             for (int i = 0; i <= _lineCount + _errorLineCount; i++)
             {
-                Console.SetCursorPosition(0, bottom - i);
-
-                Console.Write(space);
+                EraseLine(bottom - i);
             }
 
             Console.SetCursorPosition(0, Console.CursorTop);
@@ -42,6 +39,8 @@ namespace Sharprompt
 
         public void Write(string value)
         {
+            _lineCount += (Console.CursorLeft + value.Length) / Console.BufferWidth;
+
             Console.Write(value);
         }
 
@@ -51,7 +50,7 @@ namespace Sharprompt
 
             Console.ForegroundColor = color;
 
-            Console.Write(value);
+            Write(value);
 
             Console.ForegroundColor = previousColor;
         }
@@ -79,6 +78,33 @@ namespace Sharprompt
             Console.SetCursorPosition(left, Console.CursorTop - 1);
 
             _errorLineCount = 1;
+        }
+
+        public void EraseLine(int y)
+        {
+            Console.SetCursorPosition(0, y);
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                FillConsoleOutputCharacter(GetStdHandle(-11), ' ', Console.BufferWidth, new COORD { x = 0, y = (short)y }, out _);
+            }
+            else
+            {
+                Console.Write("\x1b[2K");
+            }
+        }
+
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr GetStdHandle(int nStdHandle);
+
+        [DllImport("kernel32.dll")]
+        private static extern int FillConsoleOutputCharacter(IntPtr hConsoleOutput, char cCharactor, int nLength, COORD dwWriteCoord, out int lpNumberOfCharsWritten);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct COORD
+        {
+            public short x;
+            public short y;
         }
     }
 }
