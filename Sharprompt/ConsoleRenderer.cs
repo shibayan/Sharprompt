@@ -7,10 +7,25 @@ namespace Sharprompt
     {
         public ConsoleRenderer()
         {
+            Console.CancelKeyPress += (object o, ConsoleCancelEventArgs args) =>
+            {
+                // For some reason even if the cancellation args are set to true, application still executes last minute code.
+                // This is why I introduced an internal boolean which keeps track whether the cancellation event has fired.
+                _exitRequested = true;
+
+                Console.ResetColor();
+                Console.CursorVisible = true;
+
+                if (Console.CursorLeft != 0)
+                {
+                    Console.WriteLine();
+                }
+            };
         }
 
         private int _lineCount;
         private int _errorLineCount;
+        private bool _exitRequested;
 
         public void Close()
         {
@@ -39,6 +54,8 @@ namespace Sharprompt
 
         public void Write(string value)
         {
+            if (_exitRequested) return;
+
             _lineCount += (Console.CursorLeft + value.Length) / Console.BufferWidth;
 
             Console.Write(value);
@@ -46,6 +63,8 @@ namespace Sharprompt
 
         public void Write(string value, ConsoleColor color)
         {
+            if (_exitRequested) return;
+
             var previousColor = Console.ForegroundColor;
 
             Console.ForegroundColor = color;
@@ -57,6 +76,8 @@ namespace Sharprompt
 
         public void WriteLine()
         {
+            if (_exitRequested) return;
+
             Console.WriteLine();
 
             _lineCount += 1;
@@ -64,12 +85,16 @@ namespace Sharprompt
 
         public void WriteMessage(string message)
         {
+            if (_exitRequested) return;
+
             Write("?", ConsoleColor.Green);
             Write($" {message}: ");
         }
 
         public void WriteErrorMessage(string errorMessage)
         {
+            if (_exitRequested) return;
+
             var left = Console.CursorLeft;
 
             Console.WriteLine();
@@ -82,6 +107,8 @@ namespace Sharprompt
 
         public void EraseLine(int y)
         {
+            if (_exitRequested) return;
+
             Console.SetCursorPosition(0, y);
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
