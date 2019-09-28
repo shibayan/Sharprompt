@@ -74,7 +74,7 @@ Console.WriteLine($"Hello, {city}!");
 
 ![select](https://user-images.githubusercontent.com/1356444/62228719-2de93e80-b3f9-11e9-8be5-f19e6ef58aeb.gif)
 
-## ComboBox
+### ComboBox
 ```csharp
 var cities = Prompt.ComboBox("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3);
 Console.WriteLine($"You picked {string.Join(", ", options)}");
