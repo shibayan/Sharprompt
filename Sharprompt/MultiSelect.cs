@@ -25,7 +25,7 @@ namespace Sharprompt
         private readonly int _pageSize;
         private readonly Func<string, string, bool> _filtering;
         private readonly IReadOnlyList<Option> _baseOptions;
-        private const string ARROW_RIGHT = "\u0010";
+        private const string _arrowRight = "\u0010";
 
         private IReadOnlyList<Option> _disabledByLimit = new List<Option>();
 
@@ -201,12 +201,12 @@ namespace Sharprompt
 
                 if (model.SelectedOptions.Contains(currentOption) && model.CurrentIndex != i && currentOption.Enabled)
                 {
-                    renderer.Write($"  {ARROW_RIGHT} ", ConsoleColor.Green);
+                    renderer.Write($"  {_arrowRight} ", ConsoleColor.Green);
                     renderer.Write($"{value}");
                 }
                 else if (model.CurrentIndex == i && currentOption.Enabled && !_disabledByLimit.Contains(currentOption))
                 {
-                    renderer.Write($"  {ARROW_RIGHT} {value}", ConsoleColor.Green);
+                    renderer.Write($"  {_arrowRight} {value}", ConsoleColor.Green);
                 }
                 // Check whether this option was disabled by default or whether it was disabled by the limiter
                 else if (!currentOption.Enabled || _disabledByLimit.Contains(currentOption))
