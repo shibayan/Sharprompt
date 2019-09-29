@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace Sharprompt
 {
-    internal class ComboBox<T>
+    internal class MultiSelect<T>
     {
-        public ComboBox(string message, IEnumerable<T> options, int limit, int min, int pageSize, Func<T, string> valueSelector)
+        public MultiSelect(string message, IEnumerable<T> options, int limit, int min, int pageSize, Func<T, string> valueSelector)
         {
             // throw early when invalid options are passed
             if (limit != -1 && limit < min) throw new ArgumentException($"The limit ({limit}) is not valid when min is set to ({min})", "limit");
@@ -82,7 +82,7 @@ namespace Sharprompt
 
                     if (keyInfo.Key == ConsoleKey.Enter)
                     {
-                        Option currentOption = _options.ElementAt(currentIndex);
+                        Option currentOption = _options[currentIndex];
                         if (!selectedOptions.Contains(currentOption))
                         {
                             selectedOptions.Add(_options[currentIndex]);
@@ -159,7 +159,7 @@ namespace Sharprompt
                         if (_options.All(o => _disabledByLimit.Contains(o))) continue;
 
                         currentIndex = (currentIndex <= 0) ? _baseOptions.Count - 1 : currentIndex -= 1;
-                        while (!_baseOptions.ElementAt(currentIndex).Enabled || _disabledByLimit.Contains(_baseOptions.ElementAt(currentIndex)))
+                        while (!_baseOptions[currentIndex].Enabled || _disabledByLimit.Contains(_baseOptions[currentIndex]))
                         {
                             currentIndex = (currentIndex <= 0) ? _options.Count - 1 : currentIndex -= 1;
                         };
@@ -169,7 +169,7 @@ namespace Sharprompt
                         if (_options.All(o => _disabledByLimit.Contains(o))) continue;
 
                         currentIndex = (currentIndex >= _options.Count - 1) ? 0 : currentIndex += 1;
-                        while (!_options.ElementAt(currentIndex).Enabled || _disabledByLimit.Contains(_options.ElementAt(currentIndex)))
+                        while (!_options[currentIndex].Enabled || _disabledByLimit.Contains(_options[currentIndex]))
                         {
                             currentIndex = currentIndex >= _options.Count - 1 ? 0 : currentIndex += 1;
                         };
@@ -194,7 +194,7 @@ namespace Sharprompt
 
             for (int i = 0; i < model.Options.Count; i++)
             {
-                Option currentOption = model.Options.ElementAt(i);
+                Option currentOption = model.Options[i];
                 var value = currentOption.Value;
 
                 renderer.WriteLine();
