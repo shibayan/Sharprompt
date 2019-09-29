@@ -70,8 +70,8 @@ namespace Sharprompt
                         _options = (filteredOptions).Skip(currentPage * _pageSize)
                                                  .Take(_pageSize)
                                                  .ToArray();
-                        // Initially, we need to check for the default index. After moving the page or default index this becomes irrelevant.
-                        currentIndex = 0;//prevPage == -1 && selectedIndex != -1 ? FindDefaultIndex(options, _baseOptions[selectedIndex].Item) : 0;
+
+                        currentIndex = 0;
 
                         prevPage = currentPage;
                     }
