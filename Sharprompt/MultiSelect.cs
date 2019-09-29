@@ -82,6 +82,9 @@ namespace Sharprompt
 
                     if (keyInfo.Key == ConsoleKey.Enter)
                     {
+                        // Prevents selecting when filter does not match any items
+                        if(_options.Count == 0) continue;
+
                         Option currentOption = _options[currentIndex];
                         if (!selectedOptions.Contains(currentOption))
                         {
