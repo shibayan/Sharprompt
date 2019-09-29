@@ -144,7 +144,7 @@ namespace Sharprompt
                             filter = filter.Remove(filter.Length - 1, 1);
                         }
                     }
-                    else if (!char.IsControl(keyInfo.KeyChar) && !_showConfirm)
+                    else if (!char.IsControl(keyInfo.KeyChar))
                     {
                         filter += keyInfo.KeyChar;
                     }
@@ -190,7 +190,7 @@ namespace Sharprompt
         {
             renderer.WriteMessage(model.Message);
             renderer.Write(model.Filter);
-            if (_showConfirm)
+            if (_showConfirm && string.IsNullOrEmpty(model.Filter))
             {
                 renderer.Write(" Press Tab to confirm", ConsoleColor.Cyan);
             }
