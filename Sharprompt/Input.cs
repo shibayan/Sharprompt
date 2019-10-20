@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Sharprompt
 {
@@ -20,8 +21,10 @@ namespace Sharprompt
         private readonly Type _targetType;
         private readonly Type _underlyingType;
 
-        public T Start()
+        public T Start(CancellationToken? cancellationToken = null)
         {
+            var token = cancellationToken ?? CancellationToken.None;
+
             using (var scope = new ConsoleScope())
             {
                 T result;
@@ -30,7 +33,7 @@ namespace Sharprompt
                 {
                     scope.Render(Template, new TemplateModel { Message = _message, DefaultValue = _defaultValue });
 
-                    var input = scope.ReadLine();
+                    var input = scope.ReadLine(token);
 
                     if (!scope.Validate(input, _validators))
                     {

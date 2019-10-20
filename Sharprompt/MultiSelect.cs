@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Sharprompt
 {
@@ -40,8 +41,10 @@ namespace Sharprompt
             return (bool)boxed;
         }
 
-        public IEnumerable<T> Start()
+        public IEnumerable<T> Start(CancellationToken? cancellationToken = null)
         {
+            var token = cancellationToken ?? CancellationToken.None;
+
             using (var scope = new ConsoleScope(false))
             {
                 // Defaults
@@ -78,7 +81,7 @@ namespace Sharprompt
 
                     scope.Render(Template, new TemplateModel { Message = _message, Filter = filter, SelectedOptions = selectedOptions, Options = _options, CurrentIndex = currentIndex });
 
-                    var keyInfo = scope.ReadKey();
+                    var keyInfo = scope.ReadKey(token);
 
                     if (keyInfo.Key == ConsoleKey.Enter)
                     {

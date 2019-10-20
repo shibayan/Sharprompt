@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Sharprompt
 {
@@ -14,8 +15,10 @@ namespace Sharprompt
         private readonly string _message;
         private readonly IList<Func<object, ValidationError>> _validators;
 
-        public string Start()
+        public string Start(CancellationToken? cancellationToken = null)
         {
+            var token = cancellationToken ?? CancellationToken.None;
+
             using (var scope = new ConsoleScope())
             {
                 var result = "";
@@ -24,7 +27,7 @@ namespace Sharprompt
                 {
                     scope.Render(Template, new TemplateModel { Message = _message, InputLength = result.Length });
 
-                    var keyInfo = scope.ReadKey();
+                    var keyInfo = scope.ReadKey(token);
 
                     if (keyInfo.Key == ConsoleKey.Enter)
                     {

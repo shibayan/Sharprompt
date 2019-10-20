@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace Sharprompt
 {
@@ -13,8 +14,10 @@ namespace Sharprompt
         private readonly string _message;
         private readonly bool? _defaultValue;
 
-        public bool Start()
+        public bool Start(CancellationToken? cancellationToken = null)
         {
+            var token = cancellationToken ?? CancellationToken.None;
+
             using (var scope = new ConsoleScope())
             {
                 bool result;
@@ -23,7 +26,7 @@ namespace Sharprompt
                 {
                     scope.Render(Template, new TemplateModel { Message = _message, DefaultValue = _defaultValue });
 
-                    var input = scope.ReadLine();
+                    var input = scope.ReadLine(token);
 
                     if (string.IsNullOrEmpty(input))
                     {

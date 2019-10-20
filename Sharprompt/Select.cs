@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Sharprompt
 {
@@ -21,8 +22,10 @@ namespace Sharprompt
         private readonly int _pageSize;
         private readonly Func<string, string, bool> _filtering;
 
-        public T Start()
+        public T Start(CancellationToken? cancellationToken = null)
         {
+            var token = cancellationToken ?? CancellationToken.None;
+
             using (var scope = new ConsoleScope(false))
             {
                 var options = _baseOptions;
@@ -65,7 +68,7 @@ namespace Sharprompt
 
                     scope.Render(Template, new TemplateModel { Message = _message, Filter = filter, SelectedIndex = selectedIndex, Options = options });
 
-                    var keyInfo = scope.ReadKey();
+                    var keyInfo = scope.ReadKey(token);
 
                     if (keyInfo.Key == ConsoleKey.Enter)
                     {

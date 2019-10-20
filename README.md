@@ -80,6 +80,15 @@ var cities = Prompt.MultiSelect("Which cities would you like to visit?", new[] {
 Console.WriteLine($"You picked {string.Join(", ", options)}");
 ```
 
+### Cancel prompts
+```csharp
+using (var tokenSource = new CancellationTokenSource(5000))
+{
+    var name = Prompt.Input<string>("What's your name? - Hurry up!", cancellationToken: tokenSource.Token);
+    Console.WriteLine($"Hello, {name}!");
+}
+```
+
 ## Platforms
 
 - Windows
