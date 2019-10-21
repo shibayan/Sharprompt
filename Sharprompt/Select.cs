@@ -186,7 +186,7 @@ namespace Sharprompt
 
                 if (model.SelectedIndex == i)
                 {
-                    renderer.Write($"> {value}", ConsoleColor.Green);
+                    renderer.Write($"> {value}", Prompt.ColorSchema.Select);
                 }
                 else
                 {
@@ -198,7 +198,7 @@ namespace Sharprompt
         private void FinishTemplate(ConsoleRenderer renderer, FinishTemplateModel model)
         {
             renderer.WriteMessage(model.Message);
-            renderer.Write(model.Options[model.SelectedIndex].Value, ConsoleColor.Cyan);
+            renderer.Write(model.Options[model.SelectedIndex].Value, Prompt.ColorSchema.Answer);
         }
 
         private class TemplateModel

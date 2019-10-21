@@ -80,6 +80,16 @@ var cities = Prompt.MultiSelect("Which cities would you like to visit?", new[] {
 Console.WriteLine($"You picked {string.Join(", ", options)}");
 ```
 
+## Custom Prompter
+```csharp
+Prompt.ColorSchema.Answer = ConsoleColor.DarkRed;
+Prompt.ColorSchema.Select = ConsoleColor.DarkCyan;
+Prompt.ColorSchema.DisabledOption = ConsoleColor.DarkGray;
+
+var name = Prompt.Input<string>("What's your name?");
+Console.WriteLine($"Hello, {name}!");
+```
+
 ## Platforms
 
 - Windows

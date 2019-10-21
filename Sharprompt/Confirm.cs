@@ -78,7 +78,7 @@ namespace Sharprompt
         private void FinishTemplate(ConsoleRenderer renderer, FinishTemplateModel model)
         {
             renderer.WriteMessage(model.Message);
-            renderer.Write(model.Result ? "Yes" : "No", ConsoleColor.Cyan);
+            renderer.Write(model.Result ? "Yes" : "No", Prompt.ColorSchema.Answer);
         }
 
         private class TemplateModel
