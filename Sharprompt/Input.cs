@@ -84,7 +84,7 @@ namespace Sharprompt
 
             if (model.Result != null)
             {
-                renderer.Write(model.Result.ToString(), ConsoleColor.Cyan);
+                renderer.Write(model.Result.ToString(), Prompt.ColorSchema.Answer);
             }
         }
 

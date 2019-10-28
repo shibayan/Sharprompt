@@ -192,7 +192,7 @@ namespace Sharprompt
             renderer.Write(model.Filter);
             if (_showConfirm && string.IsNullOrEmpty(model.Filter))
             {
-                renderer.Write(" Press Tab to confirm", ConsoleColor.Cyan);
+                renderer.Write(" Press Tab to confirm", Prompt.ColorSchema.Answer);
             }
 
             for (int i = 0; i < model.Options.Count; i++)
@@ -204,17 +204,17 @@ namespace Sharprompt
 
                 if (model.SelectedOptions.Contains(currentOption) && model.CurrentIndex != i && currentOption.Enabled)
                 {
-                    renderer.Write($"  {_arrowRight} ", ConsoleColor.Green);
+                    renderer.Write($"  {_arrowRight} ", Prompt.ColorSchema.Select);
                     renderer.Write($"{value}");
                 }
                 else if (model.CurrentIndex == i && currentOption.Enabled && !_disabledByLimit.Contains(currentOption))
                 {
-                    renderer.Write($"  {_arrowRight} {value}", ConsoleColor.Green);
+                    renderer.Write($"  {_arrowRight} {value}", Prompt.ColorSchema.Select);
                 }
                 // Check whether this option was disabled by default or whether it was disabled by the limiter
                 else if (!currentOption.Enabled || _disabledByLimit.Contains(currentOption))
                 {
-                    renderer.Write($"    {value} (disabled)", ConsoleColor.DarkCyan);
+                    renderer.Write($"    {value} (disabled)", Prompt.ColorSchema.DisabledOption);
                 }
                 else
                 {
@@ -228,7 +228,7 @@ namespace Sharprompt
         {
             renderer.WriteMessage(model.Message);
             string joined = string.Join(", ", model.SelectedOptions.Select(res => res.Value));
-            renderer.Write(joined, ConsoleColor.Cyan);
+            renderer.Write(joined, Prompt.ColorSchema.Answer);
         }
 
         private class TemplateModel
