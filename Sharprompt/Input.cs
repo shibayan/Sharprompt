@@ -22,50 +22,49 @@ namespace Sharprompt
 
         public T Start()
         {
-            using (var scope = new ConsoleScope())
+            using var scope = new ConsoleScope();
+
+            T result;
+
+            while (true)
             {
-                T result;
+                scope.Render(Template, new TemplateModel { Message = _message, DefaultValue = _defaultValue });
 
-                while (true)
+                var input = scope.ReadLine();
+
+                if (!scope.Validate(input, _validators))
                 {
-                    scope.Render(Template, new TemplateModel { Message = _message, DefaultValue = _defaultValue });
+                    continue;
+                }
 
-                    var input = scope.ReadLine();
-
-                    if (!scope.Validate(input, _validators))
+                if (string.IsNullOrEmpty(input))
+                {
+                    if (_targetType.IsValueType && _underlyingType == null && _defaultValue == null)
                     {
+                        scope.SetError(new ValidationError("Value is required"));
+
                         continue;
                     }
 
-                    if (string.IsNullOrEmpty(input))
-                    {
-                        if (_targetType.IsValueType && _underlyingType == null && _defaultValue == null)
-                        {
-                            scope.SetError(new ValidationError("Value is required"));
+                    result = (T)_defaultValue;
 
-                            continue;
-                        }
-
-                        result = (T)_defaultValue;
-
-                        break;
-                    }
-
-                    try
-                    {
-                        result = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        scope.SetException(ex);
-                    }
+                    break;
                 }
 
-                scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, Result = result });
-
-                return result;
+                try
+                {
+                    result = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    scope.SetException(ex);
+                }
             }
+
+            scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, Result = result });
+
+            return result;
         }
 
         private void Template(ConsoleRenderer renderer, TemplateModel model)

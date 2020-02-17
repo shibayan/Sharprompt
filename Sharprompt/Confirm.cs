@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Sharprompt
+﻿namespace Sharprompt
 {
     internal class Confirm
     {
@@ -15,50 +13,49 @@ namespace Sharprompt
 
         public bool Start()
         {
-            using (var scope = new ConsoleScope())
+            using var scope = new ConsoleScope();
+
+            bool result;
+
+            while (true)
             {
-                bool result;
+                scope.Render(Template, new TemplateModel { Message = _message, DefaultValue = _defaultValue });
 
-                while (true)
+                var input = scope.ReadLine();
+
+                if (string.IsNullOrEmpty(input))
                 {
-                    scope.Render(Template, new TemplateModel { Message = _message, DefaultValue = _defaultValue });
-
-                    var input = scope.ReadLine();
-
-                    if (string.IsNullOrEmpty(input))
+                    if (_defaultValue != null)
                     {
-                        if (_defaultValue != null)
-                        {
-                            result = _defaultValue.Value;
-                            break;
-                        }
-
-                        scope.SetError(new ValidationError("Value is required"));
+                        result = _defaultValue.Value;
+                        break;
                     }
-                    else
-                    {
-                        var lowerInput = input.ToLower();
 
-                        if (lowerInput == "y" || lowerInput == "yes")
-                        {
-                            result = true;
-                            break;
-                        }
-
-                        if (lowerInput == "n" || lowerInput == "no")
-                        {
-                            result = false;
-                            break;
-                        }
-
-                        scope.SetError(new ValidationError("Value is invalid"));
-                    }
+                    scope.SetError(new ValidationError("Value is required"));
                 }
+                else
+                {
+                    var lowerInput = input.ToLower();
 
-                scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, Result = result });
+                    if (lowerInput == "y" || lowerInput == "yes")
+                    {
+                        result = true;
+                        break;
+                    }
 
-                return result;
+                    if (lowerInput == "n" || lowerInput == "no")
+                    {
+                        result = false;
+                        break;
+                    }
+
+                    scope.SetError(new ValidationError("Value is invalid"));
+                }
             }
+
+            scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, Result = result });
+
+            return result;
         }
 
         private void Template(ConsoleRenderer renderer, TemplateModel model)
