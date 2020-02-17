@@ -16,44 +16,43 @@ namespace Sharprompt
 
         public string Start()
         {
-            using (var scope = new ConsoleScope())
+            using var scope = new ConsoleScope();
+
+            var result = "";
+
+            while (true)
             {
-                var result = "";
+                scope.Render(Template, new TemplateModel { Message = _message, InputLength = result.Length });
 
-                while (true)
+                var keyInfo = scope.ReadKey();
+
+                if (keyInfo.Key == ConsoleKey.Enter)
                 {
-                    scope.Render(Template, new TemplateModel { Message = _message, InputLength = result.Length });
-
-                    var keyInfo = scope.ReadKey();
-
-                    if (keyInfo.Key == ConsoleKey.Enter)
+                    if (scope.Validate(result, _validators))
                     {
-                        if (scope.Validate(result, _validators))
-                        {
-                            break;
-                        }
-
-                        result = "";
+                        break;
                     }
-                    else if (keyInfo.Key == ConsoleKey.Backspace)
+
+                    result = "";
+                }
+                else if (keyInfo.Key == ConsoleKey.Backspace)
+                {
+                    if (result.Length == 0)
                     {
-                        if (result.Length == 0)
-                        {
-                            scope.Beep();
-                        }
-                        else
-                        {
-                            result = result.Remove(result.Length - 1, 1);
-                        }
+                        scope.Beep();
                     }
-                    else if (!char.IsControl(keyInfo.KeyChar))
+                    else
                     {
-                        result += keyInfo.KeyChar;
+                        result = result.Remove(result.Length - 1, 1);
                     }
                 }
-
-                return result;
+                else if (!char.IsControl(keyInfo.KeyChar))
+                {
+                    result += keyInfo.KeyChar;
+                }
             }
+
+            return result;
         }
 
         private void Template(ConsoleRenderer renderer, TemplateModel model)

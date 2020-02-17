@@ -23,124 +23,96 @@ namespace Sharprompt
 
         public T Start()
         {
-            using (var scope = new ConsoleScope(false))
+            using var scope = new ConsoleScope(false);
+
+            var options = _baseOptions;
+            var filteredOptions = _baseOptions;
+
+            int selectedIndex = FindDefaultIndex(options, _defaultValue);
+
+            var filter = "";
+            var prevFilter = "";
+
+            int prevPage = -1;
+            var pageCount = (options.Count - 1) / _pageSize + 1;
+            // Only resolve the page number when the option is neither 0 nor negative.
+            int currentPage = (selectedIndex == 0 || selectedIndex == -1) ? 0 : GetPageFromIndex(options, selectedIndex);
+
+            while (true)
             {
-                var options = _baseOptions;
-                var filteredOptions = _baseOptions;
-
-                int selectedIndex = FindDefaultIndex(options, _defaultValue);
-
-                var filter = "";
-                var prevFilter = "";
-
-                int prevPage = -1;
-                var pageCount = (options.Count - 1) / _pageSize + 1;
-                // Only resolve the page number when the option is neither 0 nor negative.
-                int currentPage = (selectedIndex == 0 || selectedIndex == -1) ? 0 : GetPageFromIndex(options, selectedIndex);
-
-                while (true)
+                if (filter != prevFilter)
                 {
-                    if (filter != prevFilter)
-                    {
-                        filteredOptions = _baseOptions.Where(x => _filtering(filter, x.Value))
-                                                      .ToArray();
+                    filteredOptions = _baseOptions.Where(x => _filtering(filter, x.Value))
+                                                  .ToArray();
 
-                        prevFilter = filter;
+                    prevFilter = filter;
 
-                        currentPage = 0;
-                        prevPage = -1;
-                        pageCount = (filteredOptions.Count - 1) / _pageSize + 1;
-                    }
-
-                    if (currentPage != prevPage)
-                    {
-                        options = filteredOptions.Skip(currentPage * _pageSize)
-                                                 .Take(_pageSize)
-                                                 .ToArray();
-                        // Initially, we need to check for the default index. After moving the page or default index this becomes irrelevant.
-                        selectedIndex = prevPage == -1 && selectedIndex != -1 ? FindDefaultIndex(options, _baseOptions[selectedIndex].Item) : 0;
-
-                        prevPage = currentPage;
-                    }
-
-                    scope.Render(Template, new TemplateModel { Message = _message, Filter = filter, SelectedIndex = selectedIndex, Options = options });
-
-                    var keyInfo = scope.ReadKey();
-
-                    if (keyInfo.Key == ConsoleKey.Enter)
-                    {
-                        if (selectedIndex != -1)
-                        {
-                            break;
-                        }
-
-                        scope.SetError(new ValidationError("Value is required"));
-                    }
-                    else if (keyInfo.Key == ConsoleKey.UpArrow)
-                    {
-                        if (selectedIndex <= 0)
-                        {
-                            selectedIndex = options.Count - 1;
-                        }
-                        else
-                        {
-                            selectedIndex--;
-                        }
-                    }
-                    else if (keyInfo.Key == ConsoleKey.DownArrow)
-                    {
-                        if (selectedIndex >= options.Count - 1)
-                        {
-                            selectedIndex = 0;
-                        }
-                        else
-                        {
-                            selectedIndex++;
-                        }
-                    }
-                    else if (keyInfo.Key == ConsoleKey.LeftArrow)
-                    {
-                        if (currentPage <= 0)
-                        {
-                            currentPage = pageCount - 1;
-                        }
-                        else
-                        {
-                            currentPage--;
-                        }
-                    }
-                    else if (keyInfo.Key == ConsoleKey.RightArrow)
-                    {
-                        if (currentPage >= pageCount - 1)
-                        {
-                            currentPage = 0;
-                        }
-                        else
-                        {
-                            currentPage++;
-                        }
-                    }
-                    else if (keyInfo.Key == ConsoleKey.Backspace)
-                    {
-                        if (filter.Length == 0)
-                        {
-                            scope.Beep();
-                        }
-                        else
-                        {
-                            filter = filter.Remove(filter.Length - 1, 1);
-                        }
-                    }
-                    else if (!char.IsControl(keyInfo.KeyChar))
-                    {
-                        filter += keyInfo.KeyChar;
-                    }
+                    currentPage = 0;
+                    prevPage = -1;
+                    pageCount = (filteredOptions.Count - 1) / _pageSize + 1;
                 }
 
-                scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, SelectedIndex = selectedIndex, Options = options });
+                if (currentPage != prevPage)
+                {
+                    options = filteredOptions.Skip(currentPage * _pageSize)
+                                             .Take(_pageSize)
+                                             .ToArray();
 
-                return options[selectedIndex].Item;
+                    // Initially, we need to check for the default index. After moving the page or default index this becomes irrelevant.
+                    selectedIndex = prevPage == -1 && selectedIndex != -1 ? FindDefaultIndex(options, _baseOptions[selectedIndex].Item) : 0;
+
+                    prevPage = currentPage;
+                }
+
+                scope.Render(Template, new TemplateModel { Message = _message, Filter = filter, SelectedIndex = selectedIndex, Options = options });
+
+                var keyInfo = scope.ReadKey();
+
+                if (keyInfo.Key == ConsoleKey.Enter)
+                {
+                    if (selectedIndex != -1)
+                    {
+                        break;
+                    }
+
+                    scope.SetError(new ValidationError("Value is required"));
+                }
+                else if (keyInfo.Key == ConsoleKey.UpArrow)
+                {
+                    selectedIndex = selectedIndex <= 0 ? options.Count - 1 : selectedIndex - 1;
+                }
+                else if (keyInfo.Key == ConsoleKey.DownArrow)
+                {
+                    selectedIndex = selectedIndex >= options.Count - 1 ? 0 : selectedIndex + 1;
+                }
+                else if (keyInfo.Key == ConsoleKey.LeftArrow)
+                {
+                    currentPage = currentPage <= 0 ? pageCount - 1 : currentPage - 1;
+                }
+                else if (keyInfo.Key == ConsoleKey.RightArrow)
+                {
+                    currentPage = currentPage >= pageCount - 1 ? 0 : currentPage + 1;
+                }
+                else if (keyInfo.Key == ConsoleKey.Backspace)
+                {
+                    if (filter.Length == 0)
+                    {
+                        scope.Beep();
+                    }
+                    else
+                    {
+                        filter = filter.Remove(filter.Length - 1, 1);
+                    }
+                }
+                else if (!char.IsControl(keyInfo.KeyChar))
+                {
+                    filter += keyInfo.KeyChar;
+                }
             }
+
+            scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, SelectedIndex = selectedIndex, Options = options });
+
+            return options[selectedIndex].Item;
         }
 
         private int FindDefaultIndex(IReadOnlyList<Option> list, object item)
