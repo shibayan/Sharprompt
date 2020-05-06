@@ -11,13 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.201
+
     - name: Install .NET Core format tool
       run: dotnet tool update -g dotnet-format
+
     - name: Build project
       run: dotnet build -c Release
+
     - name: Lint C# code
       run: dotnet format --dry-run --check --verbosity diagnostic
