@@ -18,6 +18,6 @@ jobs:
     - name: Install .NET Core format tool
       run: dotnet tool update -g dotnet-format
     - name: Build project
-      run: dotnet build -c Release --no-restore
+      run: dotnet build -c Release
     - name: Lint C# code
       run: dotnet format --dry-run --check --verbosity diagnostic
