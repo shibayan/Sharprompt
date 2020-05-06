@@ -1,6 +1,6 @@
 # Sharprompt
 
-[![Build Status](https://dev.azure.com/shibayan/Sharprompt/_apis/build/status/Build%20Sharprompt?branchName=master)](https://dev.azure.com/shibayan/Sharprompt/_build/latest?definitionId=34&branchName=master)
+![Build](https://github.com/shibayan/Sharprompt/workflows/Build/badge.svg)
 [![License](https://img.shields.io/github/license/shibayan/Sharprompt.svg)](https://github.com/shibayan/Sharprompt/blob/master/LICENSE)
 
 Interactive command line interface toolkit for .NET Core
