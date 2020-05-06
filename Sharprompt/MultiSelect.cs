@@ -9,7 +9,15 @@ namespace Sharprompt
         public MultiSelect(string message, IEnumerable<T> options, int limit, int min, int pageSize, Func<T, string> valueSelector)
         {
             // throw early when invalid options are passed
-            if (limit != -1 && limit < min) throw new ArgumentException($"The limit ({limit}) is not valid when min is set to ({min})", nameof(limit));
+            if (min < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(min), $"The min ({min}) is not valid");
+            }
+
+            if (limit != -1 && limit < min)
+            {
+                throw new ArgumentException($"The limit ({limit}) is not valid when min is set to ({min})", nameof(limit));
+            }
 
             _message = message;
             _limit = limit;
@@ -139,12 +147,12 @@ namespace Sharprompt
                 }
                 else if (keyInfo.Key == ConsoleKey.Tab)
                 {
-                    if (selectedOptions.Count > 0 && selectedOptions.Count >= _min)
+                    if (selectedOptions.Count >= _min)
                     {
                         break;
                     }
 
-                    scope.SetError(new ValidationError($"A minimum selection of {(_min > -1 ? _min : 1)} items is required"));
+                    scope.SetError(new ValidationError($"A minimum selection of {_min} items is required"));
                 }
                 else if (keyInfo.Key == ConsoleKey.UpArrow)
                 {
