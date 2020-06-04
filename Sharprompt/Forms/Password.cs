@@ -55,7 +55,7 @@ namespace Sharprompt.Forms
             return result;
         }
 
-        private void Template(ConsoleRenderer renderer, TemplateModel model)
+        private void Template(IConsoleRenderer renderer, TemplateModel model)
         {
             renderer.WriteMessage(model.Message);
             renderer.Write(new string('*', model.InputLength));

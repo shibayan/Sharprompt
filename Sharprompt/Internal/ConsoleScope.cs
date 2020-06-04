@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Sharprompt.Internal
 {
@@ -8,10 +9,12 @@ namespace Sharprompt.Internal
         public ConsoleScope(bool cursorVisible = true)
         {
             _cursorVisible = cursorVisible;
+
+            _renderer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? new WindowsConsoleRenderer() : new DefaultConsoleRenderer();
         }
 
         private readonly bool _cursorVisible;
-        private readonly ConsoleRenderer _renderer = new ConsoleRenderer();
+        private readonly IConsoleRenderer _renderer;
 
         private string _errorMessage;
 
@@ -78,7 +81,7 @@ namespace Sharprompt.Internal
             _errorMessage = exception.Message;
         }
 
-        public void Render<TModel>(Action<ConsoleRenderer, TModel> template, TModel model)
+        public void Render<TModel>(Action<IConsoleRenderer, TModel> template, TModel model)
         {
             Console.CursorVisible = false;
 

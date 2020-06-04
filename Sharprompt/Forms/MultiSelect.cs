@@ -182,7 +182,7 @@ namespace Sharprompt.Forms
             return _baseOptions.Where(o => selectedOptions.Contains(o)).Select(x => x.Item);
         }
 
-        private void Template(ConsoleRenderer renderer, TemplateModel model)
+        private void Template(IConsoleRenderer renderer, TemplateModel model)
         {
             renderer.WriteMessage(model.Message);
             renderer.Write(model.Filter);
@@ -220,7 +220,7 @@ namespace Sharprompt.Forms
             }
         }
 
-        private void FinishTemplate(ConsoleRenderer renderer, FinishTemplateModel model)
+        private void FinishTemplate(IConsoleRenderer renderer, FinishTemplateModel model)
         {
             renderer.WriteMessage(model.Message);
             var joined = string.Join(", ", model.SelectedOptions.Select(res => res.Value));

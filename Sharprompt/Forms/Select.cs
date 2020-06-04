@@ -146,7 +146,7 @@ namespace Sharprompt.Forms
             return currentPage;
         }
 
-        private void Template(ConsoleRenderer renderer, TemplateModel model)
+        private void Template(IConsoleRenderer renderer, TemplateModel model)
         {
             renderer.WriteMessage(model.Message);
             renderer.Write(model.Filter);
@@ -168,7 +168,7 @@ namespace Sharprompt.Forms
             }
         }
 
-        private void FinishTemplate(ConsoleRenderer renderer, FinishTemplateModel model)
+        private void FinishTemplate(IConsoleRenderer renderer, FinishTemplateModel model)
         {
             renderer.WriteMessage(model.Message);
             renderer.Write(model.Options[model.SelectedIndex].Value, Prompt.ColorSchema.Answer);

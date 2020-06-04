@@ -67,7 +67,7 @@ namespace Sharprompt.Forms
             return result;
         }
 
-        private void Template(ConsoleRenderer renderer, TemplateModel model)
+        private void Template(IConsoleRenderer renderer, TemplateModel model)
         {
             renderer.WriteMessage(model.Message);
 
@@ -77,7 +77,7 @@ namespace Sharprompt.Forms
             }
         }
 
-        private void FinishTemplate(ConsoleRenderer renderer, FinishTemplateModel model)
+        private void FinishTemplate(IConsoleRenderer renderer, FinishTemplateModel model)
         {
             renderer.WriteMessage(model.Message);
 

@@ -1,8 +1,10 @@
-﻿using Sharprompt.Internal;
+﻿using System;
+
+using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
 {
-    internal abstract class FormBase<T>
+    internal abstract class FormBase<T> : IDisposable
     {
         protected FormBase(bool cursorVisible = true)
         {
@@ -12,5 +14,10 @@ namespace Sharprompt.Forms
         protected ConsoleScope Scope { get; }
 
         public abstract T Start();
+
+        public void Dispose()
+        {
+            Scope.Dispose();
+        }
     }
 }

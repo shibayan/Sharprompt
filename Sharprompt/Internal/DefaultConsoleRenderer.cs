@@ -2,7 +2,7 @@
 
 namespace Sharprompt.Internal
 {
-    internal class DefaultConsoleRenderer
+    internal class DefaultConsoleRenderer : IConsoleRenderer
     {
         private int _lineCount;
         private int _errorLineCount;
