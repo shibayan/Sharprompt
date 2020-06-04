@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Sharprompt
+using Sharprompt.Internal;
+
+namespace Sharprompt.Forms
 {
-    internal class MultiSelect<T>
+    internal class MultiSelect<T> : FormBase<IEnumerable<T>>
     {
         public MultiSelect(string message, IEnumerable<T> options, int limit, int min, int pageSize, Func<T, string> valueSelector)
+            : base(false)
         {
             // throw early when invalid options are passed
             if (min < 0)
@@ -48,10 +51,8 @@ namespace Sharprompt
             return (bool)boxed;
         }
 
-        public IEnumerable<T> Start()
+        public override IEnumerable<T> Start()
         {
-            using var scope = new ConsoleScope(false);
-
             // Defaults
             var selectedOptions = new List<Option>();
             var options = _baseOptions;
@@ -85,9 +86,9 @@ namespace Sharprompt
                     prevPage = currentPage;
                 }
 
-                scope.Render(Template, new TemplateModel { Message = _message, Filter = filter, SelectedOptions = selectedOptions, Options = options, CurrentIndex = currentIndex });
+                Scope.Render(Template, new TemplateModel { Message = _message, Filter = filter, SelectedOptions = selectedOptions, Options = options, CurrentIndex = currentIndex });
 
-                var keyInfo = scope.ReadKey();
+                var keyInfo = Scope.ReadKey();
 
                 if (keyInfo.Key == ConsoleKey.Enter)
                 {
@@ -134,7 +135,7 @@ namespace Sharprompt
                 {
                     if (filter.Length == 0)
                     {
-                        scope.Beep();
+                        Scope.Beep();
                     }
                     else
                     {
@@ -152,7 +153,7 @@ namespace Sharprompt
                         break;
                     }
 
-                    scope.SetError(new ValidationError($"A minimum selection of {_min} items is required"));
+                    Scope.SetError(new ValidationError($"A minimum selection of {_min} items is required"));
                 }
                 else if (keyInfo.Key == ConsoleKey.UpArrow)
                 {
@@ -176,7 +177,7 @@ namespace Sharprompt
                 }
             }
 
-            scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, SelectedOptions = selectedOptions, Options = options, CurrentIndex = currentIndex });
+            Scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, SelectedOptions = selectedOptions, Options = options, CurrentIndex = currentIndex });
 
             return _baseOptions.Where(o => selectedOptions.Contains(o)).Select(x => x.Item);
         }

@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Sharprompt
+using Sharprompt.Internal;
+
+namespace Sharprompt.Forms
 {
-    internal class Select<T>
+    internal class Select<T> : FormBase<T>
     {
         public Select(string message, IEnumerable<T> options, object defaultValue, int pageSize, Func<T, string> valueSelector)
+        : base(false)
         {
             _message = message;
             _baseOptions = options.Select(x => new Option(valueSelector(x), x)).ToArray();
@@ -21,10 +24,8 @@ namespace Sharprompt
         private readonly int _pageSize;
         private readonly Func<string, string, bool> _filtering;
 
-        public T Start()
+        public override T Start()
         {
-            using var scope = new ConsoleScope(false);
-
             var options = _baseOptions;
             var filteredOptions = _baseOptions;
 
@@ -64,9 +65,9 @@ namespace Sharprompt
                     prevPage = currentPage;
                 }
 
-                scope.Render(Template, new TemplateModel { Message = _message, Filter = filter, SelectedIndex = selectedIndex, Options = options });
+                Scope.Render(Template, new TemplateModel { Message = _message, Filter = filter, SelectedIndex = selectedIndex, Options = options });
 
-                var keyInfo = scope.ReadKey();
+                var keyInfo = Scope.ReadKey();
 
                 if (keyInfo.Key == ConsoleKey.Enter)
                 {
@@ -75,7 +76,7 @@ namespace Sharprompt
                         break;
                     }
 
-                    scope.SetError(new ValidationError("Value is required"));
+                    Scope.SetError(new ValidationError("Value is required"));
                 }
                 else if (keyInfo.Key == ConsoleKey.UpArrow)
                 {
@@ -97,7 +98,7 @@ namespace Sharprompt
                 {
                     if (filter.Length == 0)
                     {
-                        scope.Beep();
+                        Scope.Beep();
                     }
                     else
                     {
@@ -110,7 +111,7 @@ namespace Sharprompt
                 }
             }
 
-            scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, SelectedIndex = selectedIndex, Options = options });
+            Scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, SelectedIndex = selectedIndex, Options = options });
 
             return options[selectedIndex].Item;
         }

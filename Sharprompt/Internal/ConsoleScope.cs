@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Sharprompt
+namespace Sharprompt.Internal
 {
     internal class ConsoleScope : IDisposable
     {

@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 
-namespace Sharprompt
+namespace Sharprompt.Internal
 {
-    internal class ConsoleRenderer
+    internal class DefaultConsoleRenderer
     {
-        public ConsoleRenderer()
-        {
-        }
-
         private int _lineCount;
         private int _errorLineCount;
 
-        public void Close()
+        public virtual void Close()
         {
             Console.ResetColor();
 
@@ -22,7 +17,7 @@ namespace Sharprompt
             }
         }
 
-        public void Reset()
+        public virtual void Reset()
         {
             var bottom = Console.CursorTop + _errorLineCount;
 
@@ -37,14 +32,14 @@ namespace Sharprompt
             _errorLineCount = 0;
         }
 
-        public void Write(string value)
+        public virtual void Write(string value)
         {
             _lineCount += (Console.CursorLeft + value.Length) / Console.BufferWidth;
 
             Console.Write(value);
         }
 
-        public void Write(string value, ConsoleColor color)
+        public virtual void Write(string value, ConsoleColor color)
         {
             var previousColor = Console.ForegroundColor;
 
@@ -55,20 +50,14 @@ namespace Sharprompt
             Console.ForegroundColor = previousColor;
         }
 
-        public void WriteLine()
+        public virtual void WriteLine()
         {
             Console.WriteLine();
 
             _lineCount += 1;
         }
 
-        public void WriteMessage(string message)
-        {
-            Write("?", ConsoleColor.Green);
-            Write($" {message}: ");
-        }
-
-        public void WriteErrorMessage(string errorMessage)
+        public virtual void WriteErrorMessage(string errorMessage)
         {
             var left = Console.CursorLeft;
 
@@ -80,31 +69,11 @@ namespace Sharprompt
             _errorLineCount = 1;
         }
 
-        public void EraseLine(int y)
+        public virtual void EraseLine(int y)
         {
             Console.SetCursorPosition(0, y);
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                FillConsoleOutputCharacter(GetStdHandle(-11), ' ', Console.BufferWidth, new COORD { x = 0, y = (short)y }, out _);
-            }
-            else
-            {
-                Console.Write("\x1b[2K");
-            }
-        }
-
-        [DllImport("kernel32.dll")]
-        private static extern IntPtr GetStdHandle(int nStdHandle);
-
-        [DllImport("kernel32.dll")]
-        private static extern int FillConsoleOutputCharacter(IntPtr hConsoleOutput, char cCharactor, int nLength, COORD dwWriteCoord, out int lpNumberOfCharsWritten);
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct COORD
-        {
-            public short x;
-            public short y;
+            Console.Write("\x1b[2K");
         }
     }
 }

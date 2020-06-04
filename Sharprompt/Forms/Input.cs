@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Sharprompt
+using Sharprompt.Internal;
+
+namespace Sharprompt.Forms
 {
-    internal class Input<T>
+    internal class Input<T> : FormBase<T>
     {
         public Input(string message, object defaultValue, IList<Func<object, ValidationError>> validators)
         {
@@ -20,19 +22,17 @@ namespace Sharprompt
         private readonly Type _targetType;
         private readonly Type _underlyingType;
 
-        public T Start()
+        public override T Start()
         {
-            using var scope = new ConsoleScope();
-
             T result;
 
             while (true)
             {
-                scope.Render(Template, new TemplateModel { Message = _message, DefaultValue = _defaultValue });
+                Scope.Render(Template, new TemplateModel { Message = _message, DefaultValue = _defaultValue });
 
-                var input = scope.ReadLine();
+                var input = Scope.ReadLine();
 
-                if (!scope.Validate(input, _validators))
+                if (!Scope.Validate(input, _validators))
                 {
                     continue;
                 }
@@ -41,7 +41,7 @@ namespace Sharprompt
                 {
                     if (_targetType.IsValueType && _underlyingType == null && _defaultValue == null)
                     {
-                        scope.SetError(new ValidationError("Value is required"));
+                        Scope.SetError(new ValidationError("Value is required"));
 
                         continue;
                     }
@@ -58,11 +58,11 @@ namespace Sharprompt
                 }
                 catch (Exception ex)
                 {
-                    scope.SetException(ex);
+                    Scope.SetException(ex);
                 }
             }
 
-            scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, Result = result });
+            Scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, Result = result });
 
             return result;
         }

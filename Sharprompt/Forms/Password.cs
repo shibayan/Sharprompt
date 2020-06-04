@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Sharprompt
+using Sharprompt.Internal;
+
+namespace Sharprompt.Forms
 {
-    internal class Password
+    internal class Password : FormBase<string>
     {
         public Password(string message, IList<Func<object, ValidationError>> validators)
         {
@@ -14,21 +16,19 @@ namespace Sharprompt
         private readonly string _message;
         private readonly IList<Func<object, ValidationError>> _validators;
 
-        public string Start()
+        public override string Start()
         {
-            using var scope = new ConsoleScope();
-
             var result = "";
 
             while (true)
             {
-                scope.Render(Template, new TemplateModel { Message = _message, InputLength = result.Length });
+                Scope.Render(Template, new TemplateModel { Message = _message, InputLength = result.Length });
 
-                var keyInfo = scope.ReadKey();
+                var keyInfo = Scope.ReadKey();
 
                 if (keyInfo.Key == ConsoleKey.Enter)
                 {
-                    if (scope.Validate(result, _validators))
+                    if (Scope.Validate(result, _validators))
                     {
                         break;
                     }
@@ -39,7 +39,7 @@ namespace Sharprompt
                 {
                     if (result.Length == 0)
                     {
-                        scope.Beep();
+                        Scope.Beep();
                     }
                     else
                     {

@@ -1,6 +1,8 @@
-﻿namespace Sharprompt
+﻿using Sharprompt.Internal;
+
+namespace Sharprompt.Forms
 {
-    internal class Confirm
+    internal class Confirm : FormBase<bool>
     {
         public Confirm(string message, bool? defaultValue)
         {
@@ -11,17 +13,15 @@
         private readonly string _message;
         private readonly bool? _defaultValue;
 
-        public bool Start()
+        public override bool Start()
         {
-            using var scope = new ConsoleScope();
-
             bool result;
 
             while (true)
             {
-                scope.Render(Template, new TemplateModel { Message = _message, DefaultValue = _defaultValue });
+                Scope.Render(Template, new TemplateModel { Message = _message, DefaultValue = _defaultValue });
 
-                var input = scope.ReadLine();
+                var input = Scope.ReadLine();
 
                 if (string.IsNullOrEmpty(input))
                 {
@@ -31,7 +31,7 @@
                         break;
                     }
 
-                    scope.SetError(new ValidationError("Value is required"));
+                    Scope.SetError(new ValidationError("Value is required"));
                 }
                 else
                 {
@@ -49,11 +49,11 @@
                         break;
                     }
 
-                    scope.SetError(new ValidationError("Value is invalid"));
+                    Scope.SetError(new ValidationError("Value is invalid"));
                 }
             }
 
-            scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, Result = result });
+            Scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, Result = result });
 
             return result;
         }

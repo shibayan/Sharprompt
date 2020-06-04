@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using Sharprompt.Forms;
+
 namespace Sharprompt
 {
     public static class Prompt
