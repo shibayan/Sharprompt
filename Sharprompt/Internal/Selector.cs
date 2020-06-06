@@ -6,7 +6,7 @@ namespace Sharprompt.Internal
 {
     public class Selector<T>
     {
-        public Selector(IEnumerable<T> source, int pageSize, T defaultValue = default, Func<T, string> valueSelector = null)
+        public Selector(IEnumerable<T> source, int pageSize, object defaultValue, Func<T, string> valueSelector)
         {
             _source = source.ToArray();
             _pageSize = pageSize;
@@ -76,13 +76,18 @@ namespace Sharprompt.Internal
             _pageCount = (_filteredSource.Length - 1) / _pageSize + 1;
         }
 
-        private void InitializeDefaults(T defaultValue)
+        private void InitializeDefaults(object defaultValue)
         {
             InitializeCollection();
 
+            if (defaultValue == null)
+            {
+                return;
+            }
+
             for (int i = 0; i < _filteredSource.Length; i++)
             {
-                if (EqualityComparer<T>.Default.Equals(_filteredSource[i], defaultValue))
+                if (EqualityComparer<T>.Default.Equals(_filteredSource[i], (T)defaultValue))
                 {
                     _currentIndex = i % _pageSize;
                     _currentPage = i / _pageSize;

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 
 using Sharprompt.Drivers;
-using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
 {

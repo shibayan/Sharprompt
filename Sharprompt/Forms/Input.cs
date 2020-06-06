@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 
 using Sharprompt.Drivers;
-using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
 {
@@ -13,15 +12,14 @@ namespace Sharprompt.Forms
             _message = message;
             _defaultValue = defaultValue;
             _validators = validators;
-            _targetType = typeof(T);
-            _underlyingType = Nullable.GetUnderlyingType(_targetType);
         }
 
         private readonly string _message;
         private readonly object _defaultValue;
         private readonly IList<Func<object, ValidationError>> _validators;
-        private readonly Type _targetType;
-        private readonly Type _underlyingType;
+
+        private readonly Type _targetType = typeof(T);
+        private readonly Type _underlyingType = Nullable.GetUnderlyingType(typeof(T));
 
         protected override bool TryGetResult(out T result)
         {

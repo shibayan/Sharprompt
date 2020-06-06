@@ -28,7 +28,7 @@ namespace Sharprompt
             return form.Start();
         }
 
-        public static T Select<T>(string message, IEnumerable<T> items, int pageSize = 10, T defaultValue = default, Func<T, string> valueSelector = null)
+        public static T Select<T>(string message, IEnumerable<T> items, int pageSize = 10, object defaultValue = null, Func<T, string> valueSelector = null)
         {
             using var form = new Select<T>(message, items, pageSize, defaultValue, valueSelector ?? (x => x.ToString()));
 

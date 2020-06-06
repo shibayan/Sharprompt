@@ -10,31 +10,31 @@ namespace Sharprompt.Forms
 {
     internal class MultiSelect<T> : FormBase<IEnumerable<T>>
     {
-        public MultiSelect(string message, IEnumerable<T> options, int min, int max, int pageSize, Func<T, string> valueSelector)
+        public MultiSelect(string message, IEnumerable<T> options, int minimum, int maximum, int pageSize, Func<T, string> valueSelector)
             : base(false)
         {
             // throw early when invalid options are passed
-            if (min < 0)
+            if (minimum < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(min), $"The min ({min}) is not valid");
+                throw new ArgumentOutOfRangeException(nameof(minimum), $"The minimum ({minimum}) is not valid");
             }
 
-            if (max != -1 && max < min)
+            if (maximum != -1 && maximum < minimum)
             {
-                throw new ArgumentException($"The limit ({max}) is not valid when min is set to ({min})", nameof(max));
+                throw new ArgumentException($"The maximum ({maximum}) is not valid when minimum is set to ({minimum})", nameof(maximum));
             }
 
             _message = message;
-            _selector = new Selector<T>(options.ToArray(), pageSize, valueSelector: valueSelector);
-            _min = min;
-            _max = max;
+            _selector = new Selector<T>(options.ToArray(), pageSize, null, valueSelector);
+            _minimum = minimum;
+            _maximum = maximum;
             _valueSelector = valueSelector;
         }
 
         private readonly string _message;
         private readonly Selector<T> _selector;
-        private readonly int _min;
-        private readonly int _max;
+        private readonly int _minimum;
+        private readonly int _maximum;
         private readonly Func<T, string> _valueSelector;
 
         private readonly IList<T> _selectedItems = new List<T>();
@@ -67,25 +67,25 @@ namespace Sharprompt.Forms
                 }
 
                 // If we have reached the limit, determine which items should not be selected anymore
-                if (_max == _selectedItems.Count)
+                if (_maximum == _selectedItems.Count)
                 {
                     _showConfirm = true;
                 }
                 else
                 {
-                    _showConfirm = _selectedItems.Count >= _min;
+                    _showConfirm = _selectedItems.Count >= _minimum;
                 }
             }
             else if (keyInfo.Key == ConsoleKey.Tab)
             {
-                if (_selectedItems.Count >= _min)
+                if (_selectedItems.Count >= _minimum)
                 {
                     result = _selectedItems;
 
                     return true;
                 }
 
-                Renderer.SetError(new ValidationError($"A minimum selection of {_min} items is required"));
+                Renderer.SetError(new ValidationError($"A minimum selection of {_minimum} items is required"));
             }
             else if (keyInfo.Key == ConsoleKey.UpArrow)
             {

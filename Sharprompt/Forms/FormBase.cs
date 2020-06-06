@@ -1,7 +1,6 @@
 ﻿using System;
 
 using Sharprompt.Drivers;
-using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
 {
