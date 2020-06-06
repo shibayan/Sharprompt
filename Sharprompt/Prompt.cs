@@ -28,14 +28,14 @@ namespace Sharprompt
             return form.Start();
         }
 
-        public static T Select<T>(string message, IEnumerable<T> items, T defaultValue = default, int pageSize = 10, Func<T, string> valueSelector = null)
+        public static T Select<T>(string message, IEnumerable<T> items, int pageSize = 10, T defaultValue = default, Func<T, string> valueSelector = null)
         {
-            using var form = new Select<T>(message, items, defaultValue, pageSize, valueSelector ?? (x => x.ToString()));
+            using var form = new Select<T>(message, items, pageSize, defaultValue, valueSelector ?? (x => x.ToString()));
 
             return form.Start();
         }
 
-        public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items, object defaultValue = null, int pageSize = 10, int limit = -1, int min = 1, Func<T, string> valueSelector = null)
+        public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items, int pageSize = 10, int limit = -1, int min = 1, Func<T, string> valueSelector = null)
         {
             using var form = new MultiSelect<T>(message, items, limit, min, pageSize, valueSelector ?? (x => x.ToString()));
 

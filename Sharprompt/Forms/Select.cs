@@ -9,7 +9,7 @@ namespace Sharprompt.Forms
 {
     internal class Select<T> : FormBase<T>
     {
-        public Select(string message, IEnumerable<T> options, T defaultValue, int pageSize, Func<T, string> valueSelector)
+        public Select(string message, IEnumerable<T> options, int pageSize, T defaultValue, Func<T, string> valueSelector)
             : base(false)
         {
             _message = message;
