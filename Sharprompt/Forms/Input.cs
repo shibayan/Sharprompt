@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using Sharprompt.Drivers;
-
 namespace Sharprompt.Forms
 {
     internal class Input<T> : FormBase<T>
@@ -64,23 +62,23 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(IConsoleDriver consoleDriver)
+        protected override void InputTemplate(FormRenderer formRenderer)
         {
-            consoleDriver.WriteMessage(_message);
+            formRenderer.WriteMessage(_message);
 
             if (_defaultValue != null)
             {
-                consoleDriver.Write($"({_defaultValue}) ");
+                formRenderer.Write($"({_defaultValue}) ");
             }
         }
 
-        protected override void FinishTemplate(IConsoleDriver consoleDriver, T result)
+        protected override void FinishTemplate(FormRenderer formRenderer, T result)
         {
-            consoleDriver.WriteMessage(_message);
+            formRenderer.WriteMessage(_message);
 
             if (result != null)
             {
-                consoleDriver.Write(result.ToString(), Prompt.ColorSchema.Answer);
+                formRenderer.Write(result.ToString(), Prompt.ColorSchema.Answer);
             }
         }
     }

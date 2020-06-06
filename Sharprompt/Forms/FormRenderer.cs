@@ -36,6 +36,27 @@ namespace Sharprompt.Forms
 
         public string ReadLine() => _consoleDriver.ReadLine();
 
+        public void Write(string value)
+        {
+            _consoleDriver.Write(value);
+        }
+
+        public void Write(string value, ConsoleColor color)
+        {
+            _consoleDriver.Write(value, color);
+        }
+
+        public void WriteMessage(string message)
+        {
+            _consoleDriver.Write("?", ConsoleColor.Green);
+            _consoleDriver.Write($" {message}: ");
+        }
+
+        public void WriteLine()
+        {
+            _consoleDriver.WriteLine();
+        }
+
         public void SetError(ValidationError error)
         {
             _errorMessage = error.Message;
@@ -68,13 +89,13 @@ namespace Sharprompt.Forms
             _errorMessage = exception.Message;
         }
 
-        public void Render(Action<IConsoleDriver> template)
+        public void Render(Action<FormRenderer> template)
         {
             _consoleDriver.CursorVisible = false;
 
-            _consoleDriver.Reset();
+            _consoleDriver.Clear();
 
-            template(_consoleDriver);
+            template(this);
 
             if (_errorMessage != null)
             {
@@ -86,13 +107,13 @@ namespace Sharprompt.Forms
             _consoleDriver.CursorVisible = _cursorVisible;
         }
 
-        public void Render<TModel>(Action<IConsoleDriver, TModel> template, TModel model)
+        public void Render<TModel>(Action<FormRenderer, TModel> template, TModel model)
         {
             _consoleDriver.CursorVisible = false;
 
-            _consoleDriver.Reset();
+            _consoleDriver.Clear();
 
-            template(_consoleDriver, model);
+            template(this, model);
 
             _consoleDriver.CursorVisible = _cursorVisible;
         }

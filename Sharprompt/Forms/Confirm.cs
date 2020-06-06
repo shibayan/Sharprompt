@@ -1,6 +1,4 @@
-﻿using Sharprompt.Drivers;
-
-namespace Sharprompt.Forms
+﻿namespace Sharprompt.Forms
 {
     internal class Confirm : FormBase<bool>
     {
@@ -54,24 +52,24 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(IConsoleDriver consoleDriver)
+        protected override void InputTemplate(FormRenderer formRenderer)
         {
-            consoleDriver.WriteMessage(_message);
+            formRenderer.WriteMessage(_message);
 
             if (_defaultValue != null)
             {
-                consoleDriver.Write($"({(_defaultValue.Value ? "yes" : "no")}) ");
+                formRenderer.Write($"({(_defaultValue.Value ? "yes" : "no")}) ");
             }
             else
             {
-                consoleDriver.Write("(y/N) ");
+                formRenderer.Write("(y/N) ");
             }
         }
 
-        protected override void FinishTemplate(IConsoleDriver consoleDriver, bool result)
+        protected override void FinishTemplate(FormRenderer formRenderer, bool result)
         {
-            consoleDriver.WriteMessage(_message);
-            consoleDriver.Write(result ? "Yes" : "No", Prompt.ColorSchema.Answer);
+            formRenderer.WriteMessage(_message);
+            formRenderer.Write(result ? "Yes" : "No", Prompt.ColorSchema.Answer);
         }
     }
 }

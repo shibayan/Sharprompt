@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Sharprompt.Drivers;
 using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
@@ -80,10 +79,10 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(IConsoleDriver consoleDriver)
+        protected override void InputTemplate(FormRenderer formRenderer)
         {
-            consoleDriver.WriteMessage(_message);
-            consoleDriver.Write(_selector.FilterTerm);
+            formRenderer.WriteMessage(_message);
+            formRenderer.Write(_selector.FilterTerm);
 
             var subset = _selector.ToSubset();
 
@@ -91,23 +90,23 @@ namespace Sharprompt.Forms
             {
                 var value = _valueSelector(item);
 
-                consoleDriver.WriteLine();
+                formRenderer.WriteLine();
 
                 if (EqualityComparer<T>.Default.Equals(item, _selector.CurrentItem))
                 {
-                    consoleDriver.Write($"> {value}", Prompt.ColorSchema.Select);
+                    formRenderer.Write($"> {value}", Prompt.ColorSchema.Select);
                 }
                 else
                 {
-                    consoleDriver.Write($"  {value}");
+                    formRenderer.Write($"  {value}");
                 }
             }
         }
 
-        protected override void FinishTemplate(IConsoleDriver consoleDriver, T result)
+        protected override void FinishTemplate(FormRenderer formRenderer, T result)
         {
-            consoleDriver.WriteMessage(_message);
-            consoleDriver.Write(_valueSelector(result), Prompt.ColorSchema.Answer);
+            formRenderer.WriteMessage(_message);
+            formRenderer.Write(_valueSelector(result), Prompt.ColorSchema.Answer);
         }
     }
 }

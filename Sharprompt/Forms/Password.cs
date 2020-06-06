@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 
-using Sharprompt.Drivers;
-
 namespace Sharprompt.Forms
 {
     internal class Password : FormBase<string>
@@ -55,10 +53,10 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(IConsoleDriver consoleDriver)
+        protected override void InputTemplate(FormRenderer formRenderer)
         {
-            consoleDriver.WriteMessage(_message);
-            consoleDriver.Write(new string('*', _inputBuffer.Length));
+            formRenderer.WriteMessage(_message);
+            formRenderer.Write(new string('*', _inputBuffer.Length));
         }
     }
 }

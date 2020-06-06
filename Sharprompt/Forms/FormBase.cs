@@ -1,7 +1,5 @@
 ﻿using System;
 
-using Sharprompt.Drivers;
-
 namespace Sharprompt.Forms
 {
     internal abstract class FormBase<T> : IDisposable
@@ -37,11 +35,11 @@ namespace Sharprompt.Forms
 
         protected abstract bool TryGetResult(out T result);
 
-        protected virtual void InputTemplate(IConsoleDriver consoleDriver)
+        protected virtual void InputTemplate(FormRenderer formRenderer)
         {
         }
 
-        protected virtual void FinishTemplate(IConsoleDriver consoleDriver, T result)
+        protected virtual void FinishTemplate(FormRenderer formRenderer, T result)
         {
         }
     }

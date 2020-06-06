@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Sharprompt.Drivers;
 using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
@@ -128,14 +127,14 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(IConsoleDriver consoleDriver)
+        protected override void InputTemplate(FormRenderer formRenderer)
         {
-            consoleDriver.WriteMessage(_message);
-            consoleDriver.Write(_selector.FilterTerm);
+            formRenderer.WriteMessage(_message);
+            formRenderer.Write(_selector.FilterTerm);
 
             if (_showConfirm && string.IsNullOrEmpty(_selector.FilterTerm))
             {
-                consoleDriver.Write(" Press Tab to confirm", Prompt.ColorSchema.Answer);
+                formRenderer.Write(" Press Tab to confirm", Prompt.ColorSchema.Answer);
             }
 
             var subset = _selector.ToSubset();
@@ -144,34 +143,34 @@ namespace Sharprompt.Forms
             {
                 var value = _valueSelector(item);
 
-                consoleDriver.WriteLine();
+                formRenderer.WriteLine();
 
                 if (EqualityComparer<T>.Default.Equals(item, _selector.CurrentItem))
                 {
                     if (_selectedItems.Contains(item))
                     {
-                        consoleDriver.Write($"> [x] {value}", Prompt.ColorSchema.Select);
+                        formRenderer.Write($"> [x] {value}", Prompt.ColorSchema.Select);
                     }
                     else
                     {
-                        consoleDriver.Write($"> [ ] {value}", Prompt.ColorSchema.Select);
+                        formRenderer.Write($"> [ ] {value}", Prompt.ColorSchema.Select);
                     }
                 }
                 else if (_selectedItems.Contains(item))
                 {
-                    consoleDriver.Write($"  [x] {value}", Prompt.ColorSchema.Select);
+                    formRenderer.Write($"  [x] {value}", Prompt.ColorSchema.Select);
                 }
                 else
                 {
-                    consoleDriver.Write($"  [ ] {value}");
+                    formRenderer.Write($"  [ ] {value}");
                 }
             }
         }
 
-        protected override void FinishTemplate(IConsoleDriver consoleDriver, IEnumerable<T> result)
+        protected override void FinishTemplate(FormRenderer formRenderer, IEnumerable<T> result)
         {
-            consoleDriver.WriteMessage(_message);
-            consoleDriver.Write(result.Select(_valueSelector).Join(", "), Prompt.ColorSchema.Answer);
+            formRenderer.WriteMessage(_message);
+            formRenderer.Write(result.Select(_valueSelector).Join(", "), Prompt.ColorSchema.Answer);
         }
     }
 }

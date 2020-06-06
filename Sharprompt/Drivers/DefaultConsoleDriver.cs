@@ -25,7 +25,7 @@ namespace Sharprompt.Drivers
 
         public void Beep() => Console.Beep();
 
-        public virtual void Reset()
+        public virtual void Clear()
         {
             var bottom = Console.CursorTop + _errorLineCount;
 
@@ -99,6 +99,13 @@ namespace Sharprompt.Drivers
             _errorLineCount = 1;
         }
 
+        public virtual void EraseLine(int y)
+        {
+            Console.SetCursorPosition(0, y);
+
+            Console.Write("\x1b[2K");
+        }
+
         public bool CursorVisible
         {
             get => Console.CursorVisible;
@@ -106,12 +113,5 @@ namespace Sharprompt.Drivers
         }
 
         #endregion
-
-        protected virtual void EraseLine(int y)
-        {
-            Console.SetCursorPosition(0, y);
-
-            Console.Write("\x1b[2K");
-        }
     }
 }
