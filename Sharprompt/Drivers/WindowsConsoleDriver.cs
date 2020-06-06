@@ -5,7 +5,7 @@ namespace Sharprompt.Drivers
 {
     internal class WindowsConsoleDriver : DefaultConsoleDriver
     {
-        public override void EraseLine(int y)
+        protected override void EraseLine(int y)
         {
             Console.SetCursorPosition(0, y);
 

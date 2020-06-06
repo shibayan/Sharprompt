@@ -2,13 +2,16 @@
 
 namespace Sharprompt.Drivers
 {
-    internal interface IConsoleDriver
+    internal interface IConsoleDriver : IDisposable
     {
-        void Close();
+        void Beep();
         void Reset();
-        void Write(string value);
-        void Write(string value, ConsoleColor color);
+        ConsoleKeyInfo ReadKey();
+        string ReadLine();
+        int Write(string value);
+        int Write(string value, ConsoleColor color);
         void WriteLine();
         void WriteErrorMessage(string errorMessage);
+        bool CursorVisible { get; set; }
     }
 }

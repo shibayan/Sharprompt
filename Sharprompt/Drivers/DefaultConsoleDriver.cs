@@ -7,7 +7,9 @@ namespace Sharprompt.Drivers
         private int _lineCount;
         private int _errorLineCount;
 
-        public virtual void Close()
+        #region IDisposable
+
+        public virtual void Dispose()
         {
             Console.ResetColor();
 
@@ -16,6 +18,12 @@ namespace Sharprompt.Drivers
                 Console.WriteLine();
             }
         }
+
+        #endregion
+
+        #region IConsoleDriver
+
+        public void Beep() => Console.Beep();
 
         public virtual void Reset()
         {
@@ -32,22 +40,44 @@ namespace Sharprompt.Drivers
             _errorLineCount = 0;
         }
 
-        public virtual void Write(string value)
-        {
-            _lineCount += (Console.CursorLeft + value.Length) / Console.BufferWidth;
+        public ConsoleKeyInfo ReadKey() => Console.ReadKey(true);
 
-            Console.Write(value);
+        public string ReadLine()
+        {
+            var left = Console.CursorLeft;
+
+            var line = Console.ReadLine();
+
+            if (line != null)
+            {
+                Console.SetCursorPosition(left, Console.CursorTop - 1);
+            }
+
+            return line;
         }
 
-        public virtual void Write(string value, ConsoleColor color)
+        public virtual int Write(string value)
+        {
+            var writtenLines = (Console.CursorLeft + value.Length) / Console.BufferWidth;
+
+            _lineCount += writtenLines;
+
+            Console.Write(value);
+
+            return writtenLines;
+        }
+
+        public virtual int Write(string value, ConsoleColor color)
         {
             var previousColor = Console.ForegroundColor;
 
             Console.ForegroundColor = color;
 
-            Write(value);
+            var writtenLines = Write(value);
 
             Console.ForegroundColor = previousColor;
+
+            return writtenLines;
         }
 
         public virtual void WriteLine()
@@ -69,7 +99,15 @@ namespace Sharprompt.Drivers
             _errorLineCount = 1;
         }
 
-        public virtual void EraseLine(int y)
+        public bool CursorVisible
+        {
+            get => Console.CursorVisible;
+            set => Console.CursorVisible = value;
+        }
+
+        #endregion
+
+        protected virtual void EraseLine(int y)
         {
             Console.SetCursorPosition(0, y);
 

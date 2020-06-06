@@ -22,34 +22,19 @@ namespace Sharprompt.Forms
 
         public void Dispose()
         {
-            _consoleDriver.Close();
+            _consoleDriver.CursorVisible = true;
 
-            Console.CursorVisible = true;
+            _consoleDriver.Dispose();
         }
 
         public void Beep()
         {
-            Console.Beep();
+            _consoleDriver.Beep();
         }
 
-        public ConsoleKeyInfo ReadKey()
-        {
-            return Console.ReadKey(true);
-        }
+        public ConsoleKeyInfo ReadKey() => _consoleDriver.ReadKey();
 
-        public string ReadLine()
-        {
-            var left = Console.CursorLeft;
-
-            var line = Console.ReadLine();
-
-            if (line != null)
-            {
-                Console.SetCursorPosition(left, Console.CursorTop - 1);
-            }
-
-            return line;
-        }
+        public string ReadLine() => _consoleDriver.ReadLine();
 
         public void SetError(ValidationError error)
         {
@@ -85,7 +70,7 @@ namespace Sharprompt.Forms
 
         public void Render(Action<IConsoleDriver> template)
         {
-            Console.CursorVisible = false;
+            _consoleDriver.CursorVisible = false;
 
             _consoleDriver.Reset();
 
@@ -98,18 +83,18 @@ namespace Sharprompt.Forms
                 _errorMessage = null;
             }
 
-            Console.CursorVisible = _cursorVisible;
+            _consoleDriver.CursorVisible = _cursorVisible;
         }
 
         public void Render<TModel>(Action<IConsoleDriver, TModel> template, TModel model)
         {
-            Console.CursorVisible = false;
+            _consoleDriver.CursorVisible = false;
 
             _consoleDriver.Reset();
 
             template(_consoleDriver, model);
 
-            Console.CursorVisible = _cursorVisible;
+            _consoleDriver.CursorVisible = _cursorVisible;
         }
     }
 }
