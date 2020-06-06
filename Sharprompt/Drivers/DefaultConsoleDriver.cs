@@ -23,7 +23,7 @@ namespace Sharprompt.Drivers
 
         #region IConsoleDriver
 
-        public void Beep() => Console.Beep();
+        public virtual void Beep() => Console.Beep();
 
         public virtual void Clear()
         {
@@ -40,9 +40,9 @@ namespace Sharprompt.Drivers
             _errorLineCount = 0;
         }
 
-        public ConsoleKeyInfo ReadKey() => Console.ReadKey(true);
+        public virtual ConsoleKeyInfo ReadKey() => Console.ReadKey(true);
 
-        public string ReadLine()
+        public virtual string ReadLine()
         {
             var left = Console.CursorLeft;
 
@@ -106,7 +106,7 @@ namespace Sharprompt.Drivers
             Console.Write("\x1b[2K");
         }
 
-        public bool CursorVisible
+        public virtual bool CursorVisible
         {
             get => Console.CursorVisible;
             set => Console.CursorVisible = value;
