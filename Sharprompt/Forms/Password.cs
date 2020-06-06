@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 using Sharprompt.Internal;
 
@@ -16,55 +17,48 @@ namespace Sharprompt.Forms
         private readonly string _message;
         private readonly IList<Func<object, ValidationError>> _validators;
 
-        public override string Start()
+        private readonly StringBuilder _inputBuffer = new StringBuilder();
+
+        protected override bool TryGetResult(out string result)
         {
-            var result = "";
+            var keyInfo = Scope.ReadKey();
 
-            while (true)
+            if (keyInfo.Key == ConsoleKey.Enter)
             {
-                Scope.Render(Template, new TemplateModel { Message = _message, InputLength = result.Length });
+                result = _inputBuffer.ToString();
 
-                var keyInfo = Scope.ReadKey();
-
-                if (keyInfo.Key == ConsoleKey.Enter)
+                if (Scope.Validate(result, _validators))
                 {
-                    if (Scope.Validate(result, _validators))
-                    {
-                        break;
-                    }
-
-                    result = "";
+                    return true;
                 }
-                else if (keyInfo.Key == ConsoleKey.Backspace)
+
+                _inputBuffer.Clear();
+            }
+            else if (keyInfo.Key == ConsoleKey.Backspace)
+            {
+                if (_inputBuffer.Length == 0)
                 {
-                    if (result.Length == 0)
-                    {
-                        Scope.Beep();
-                    }
-                    else
-                    {
-                        result = result.Remove(result.Length - 1, 1);
-                    }
+                    Scope.Beep();
                 }
-                else if (!char.IsControl(keyInfo.KeyChar))
+                else
                 {
-                    result += keyInfo.KeyChar;
+                    _inputBuffer.Length -= 1;
                 }
             }
+            else if (!char.IsControl(keyInfo.KeyChar))
+            {
+                _inputBuffer.Append(keyInfo.KeyChar);
+            }
 
-            return result;
+            result = null;
+
+            return false;
         }
 
-        private void Template(IConsoleRenderer renderer, TemplateModel model)
+        protected override void InputTemplate(IConsoleRenderer consoleRenderer)
         {
-            renderer.WriteMessage(model.Message);
-            renderer.Write(new string('*', model.InputLength));
-        }
-
-        private class TemplateModel
-        {
-            public string Message { get; set; }
-            public int InputLength { get; set; }
+            consoleRenderer.WriteMessage(_message);
+            consoleRenderer.Write(new string('*', _inputBuffer.Length));
         }
     }
 }

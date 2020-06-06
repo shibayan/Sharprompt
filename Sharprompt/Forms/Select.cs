@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 using Sharprompt.Internal;
 
@@ -8,197 +9,104 @@ namespace Sharprompt.Forms
 {
     internal class Select<T> : FormBase<T>
     {
-        public Select(string message, IEnumerable<T> options, object defaultValue, int pageSize, Func<T, string> valueSelector)
-        : base(false)
+        public Select(string message, IEnumerable<T> options, T defaultValue, int pageSize, Func<T, string> valueSelector)
+            : base(false)
         {
             _message = message;
-            _baseOptions = options.Select(x => new Option(valueSelector(x), x)).ToArray();
-            _defaultValue = defaultValue;
-            _pageSize = pageSize;
-            _filtering = (filter, value) => value.IndexOf(filter, StringComparison.OrdinalIgnoreCase) != -1;
+            _selector = new Selector<T>(options.ToArray(), pageSize, defaultValue, valueSelector);
+            _valueSelector = valueSelector;
         }
 
         private readonly string _message;
-        private readonly IReadOnlyList<Option> _baseOptions;
-        private readonly object _defaultValue;
-        private readonly int _pageSize;
-        private readonly Func<string, string, bool> _filtering;
+        private readonly Selector<T> _selector;
+        private readonly Func<T, string> _valueSelector;
 
-        public override T Start()
+        private readonly StringBuilder _filterBuffer = new StringBuilder();
+
+        protected override bool TryGetResult(out T result)
         {
-            var options = _baseOptions;
-            var filteredOptions = _baseOptions;
+            var keyInfo = Scope.ReadKey();
 
-            int selectedIndex = FindDefaultIndex(options, _defaultValue);
-
-            var filter = "";
-            var prevFilter = "";
-
-            int prevPage = -1;
-            var pageCount = (options.Count - 1) / _pageSize + 1;
-            // Only resolve the page number when the option is neither 0 nor negative.
-            int currentPage = (selectedIndex == 0 || selectedIndex == -1) ? 0 : GetPageFromIndex(options, selectedIndex);
-
-            while (true)
+            if (keyInfo.Key == ConsoleKey.Enter)
             {
-                if (filter != prevFilter)
+                if (_selector.CurrentItem != null)
                 {
-                    filteredOptions = _baseOptions.Where(x => _filtering(filter, x.Value))
-                                                  .ToArray();
+                    result = _selector.CurrentItem;
 
-                    prevFilter = filter;
-
-                    currentPage = 0;
-                    prevPage = -1;
-                    pageCount = (filteredOptions.Count - 1) / _pageSize + 1;
+                    return true;
                 }
 
-                if (currentPage != prevPage)
-                {
-                    options = filteredOptions.Skip(currentPage * _pageSize)
-                                             .Take(_pageSize)
-                                             .ToArray();
-
-                    // Initially, we need to check for the default index. After moving the page or default index this becomes irrelevant.
-                    selectedIndex = prevPage == -1 && selectedIndex != -1 ? FindDefaultIndex(options, _baseOptions[selectedIndex].Item) : 0;
-
-                    prevPage = currentPage;
-                }
-
-                Scope.Render(Template, new TemplateModel { Message = _message, Filter = filter, SelectedIndex = selectedIndex, Options = options });
-
-                var keyInfo = Scope.ReadKey();
-
-                if (keyInfo.Key == ConsoleKey.Enter)
-                {
-                    if (selectedIndex != -1)
-                    {
-                        break;
-                    }
-
-                    Scope.SetError(new ValidationError("Value is required"));
-                }
-                else if (keyInfo.Key == ConsoleKey.UpArrow)
-                {
-                    selectedIndex = selectedIndex <= 0 ? options.Count - 1 : selectedIndex - 1;
-                }
-                else if (keyInfo.Key == ConsoleKey.DownArrow)
-                {
-                    selectedIndex = selectedIndex >= options.Count - 1 ? 0 : selectedIndex + 1;
-                }
-                else if (keyInfo.Key == ConsoleKey.LeftArrow)
-                {
-                    currentPage = currentPage <= 0 ? pageCount - 1 : currentPage - 1;
-                }
-                else if (keyInfo.Key == ConsoleKey.RightArrow)
-                {
-                    currentPage = currentPage >= pageCount - 1 ? 0 : currentPage + 1;
-                }
-                else if (keyInfo.Key == ConsoleKey.Backspace)
-                {
-                    if (filter.Length == 0)
-                    {
-                        Scope.Beep();
-                    }
-                    else
-                    {
-                        filter = filter.Remove(filter.Length - 1, 1);
-                    }
-                }
-                else if (!char.IsControl(keyInfo.KeyChar))
-                {
-                    filter += keyInfo.KeyChar;
-                }
+                Scope.SetError(new ValidationError("Value is required"));
             }
-
-            Scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, SelectedIndex = selectedIndex, Options = options });
-
-            return options[selectedIndex].Item;
-        }
-
-        private int FindDefaultIndex(IReadOnlyList<Option> list, object item)
-        {
-            if (item == null)
+            else if (keyInfo.Key == ConsoleKey.UpArrow)
             {
-                return 0;
+                _selector.PreviousItem();
             }
-
-            for (int i = 0; i < list.Count; i++)
+            else if (keyInfo.Key == ConsoleKey.DownArrow)
             {
-                if (EqualityComparer<T>.Default.Equals((T)item, list[i].Item))
+                _selector.NextItem();
+            }
+            else if (keyInfo.Key == ConsoleKey.LeftArrow)
+            {
+                _selector.PreviousPage();
+            }
+            else if (keyInfo.Key == ConsoleKey.RightArrow)
+            {
+                _selector.NextPage();
+            }
+            else if (keyInfo.Key == ConsoleKey.Backspace)
+            {
+                if (_filterBuffer.Length == 0)
                 {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        private int GetPageFromIndex(IReadOnlyList<Option> list, int index)
-        {
-            int total = list.Count - 1;
-            int currentPage = 0;
-
-            for (int i = _pageSize; i <= total; i += _pageSize)
-            {
-                currentPage++;
-            }
-            return currentPage;
-        }
-
-        private void Template(IConsoleRenderer renderer, TemplateModel model)
-        {
-            renderer.WriteMessage(model.Message);
-            renderer.Write(model.Filter);
-
-            for (int i = 0; i < model.Options.Count; i++)
-            {
-                var value = model.Options[i].Value;
-
-                renderer.WriteLine();
-
-                if (model.SelectedIndex == i)
-                {
-                    renderer.Write($"> {value}", Prompt.ColorSchema.Select);
+                    Scope.Beep();
                 }
                 else
                 {
-                    renderer.Write($"  {value}");
+                    _filterBuffer.Length -= 1;
+
+                    _selector.UpdateFilter(_filterBuffer.ToString());
+                }
+            }
+            else if (!char.IsControl(keyInfo.KeyChar))
+            {
+                _filterBuffer.Append(keyInfo.KeyChar);
+
+                _selector.UpdateFilter(_filterBuffer.ToString());
+            }
+
+            result = default;
+
+            return false;
+        }
+
+        protected override void InputTemplate(IConsoleRenderer consoleRenderer)
+        {
+            consoleRenderer.WriteMessage(_message);
+            consoleRenderer.Write(_selector.FilterTerm);
+
+            var subset = _selector.ToSubset();
+
+            foreach (T item in subset)
+            {
+                var value = _valueSelector(item);
+
+                consoleRenderer.WriteLine();
+
+                if (EqualityComparer<T>.Default.Equals(item, _selector.CurrentItem))
+                {
+                    consoleRenderer.Write($"> {value}", Prompt.ColorSchema.Select);
+                }
+                else
+                {
+                    consoleRenderer.Write($"  {value}");
                 }
             }
         }
 
-        private void FinishTemplate(IConsoleRenderer renderer, FinishTemplateModel model)
+        protected override void FinishTemplate(IConsoleRenderer consoleRenderer, T result)
         {
-            renderer.WriteMessage(model.Message);
-            renderer.Write(model.Options[model.SelectedIndex].Value, Prompt.ColorSchema.Answer);
-        }
-
-        private class TemplateModel
-        {
-            public string Message { get; set; }
-            public string Filter { get; set; }
-            public IReadOnlyList<Option> Options { get; set; }
-            public int SelectedIndex { get; set; }
-        }
-
-        private class FinishTemplateModel
-        {
-            public string Message { get; set; }
-            public IReadOnlyList<Option> Options { get; set; }
-            public int SelectedIndex { get; set; }
-        }
-
-        private struct Option
-        {
-            public Option(string value, T item)
-            {
-                Value = value;
-                Item = item;
-            }
-
-            public string Value { get; }
-            public T Item { get; }
+            consoleRenderer.WriteMessage(_message);
+            consoleRenderer.Write(_valueSelector(result), Prompt.ColorSchema.Answer);
         }
     }
 }

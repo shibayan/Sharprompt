@@ -22,81 +22,67 @@ namespace Sharprompt.Forms
         private readonly Type _targetType;
         private readonly Type _underlyingType;
 
-        public override T Start()
+        protected override bool TryGetResult(out T result)
         {
-            T result;
+            var input = Scope.ReadLine();
 
-            while (true)
+            if (!Scope.Validate(input, _validators))
             {
-                Scope.Render(Template, new TemplateModel { Message = _message, DefaultValue = _defaultValue });
+                result = default;
 
-                var input = Scope.ReadLine();
-
-                if (!Scope.Validate(input, _validators))
-                {
-                    continue;
-                }
-
-                if (string.IsNullOrEmpty(input))
-                {
-                    if (_targetType.IsValueType && _underlyingType == null && _defaultValue == null)
-                    {
-                        Scope.SetError(new ValidationError("Value is required"));
-
-                        continue;
-                    }
-
-                    result = (T)_defaultValue;
-
-                    break;
-                }
-
-                try
-                {
-                    result = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    Scope.SetException(ex);
-                }
+                return false;
             }
 
-            Scope.Render(FinishTemplate, new FinishTemplateModel { Message = _message, Result = result });
+            if (string.IsNullOrEmpty(input))
+            {
+                if (_targetType.IsValueType && _underlyingType == null && _defaultValue == null)
+                {
+                    Scope.SetError(new ValidationError("Value is required"));
 
-            return result;
+                    result = default;
+
+                    return false;
+                }
+
+                result = (T)_defaultValue;
+
+                return true;
+            }
+
+            try
+            {
+                result = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Scope.SetException(ex);
+            }
+
+            result = default;
+
+            return false;
         }
 
-        private void Template(IConsoleRenderer renderer, TemplateModel model)
+        protected override void InputTemplate(IConsoleRenderer consoleRenderer)
         {
-            renderer.WriteMessage(model.Message);
+            consoleRenderer.WriteMessage(_message);
 
-            if (model.DefaultValue != null)
+            if (_defaultValue != null)
             {
-                renderer.Write($"({model.DefaultValue}) ");
+                consoleRenderer.Write($"({_defaultValue}) ");
             }
         }
 
-        private void FinishTemplate(IConsoleRenderer renderer, FinishTemplateModel model)
+        protected override void FinishTemplate(IConsoleRenderer consoleRenderer, T result)
         {
-            renderer.WriteMessage(model.Message);
+            consoleRenderer.WriteMessage(_message);
 
-            if (model.Result != null)
+            if (result != null)
             {
-                renderer.Write(model.Result.ToString(), Prompt.ColorSchema.Answer);
+                consoleRenderer.Write(result.ToString(), Prompt.ColorSchema.Answer);
             }
-        }
-
-        private class TemplateModel
-        {
-            public string Message { get; set; }
-            public object DefaultValue { get; set; }
-        }
-
-        private class FinishTemplateModel
-        {
-            public string Message { get; set; }
-            public T Result { get; set; }
         }
     }
 }

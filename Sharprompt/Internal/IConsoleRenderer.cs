@@ -10,6 +10,5 @@ namespace Sharprompt.Internal
         void Write(string value, ConsoleColor color);
         void WriteLine();
         void WriteErrorMessage(string errorMessage);
-        void EraseLine(int y);
     }
 }

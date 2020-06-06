@@ -81,6 +81,25 @@ namespace Sharprompt.Internal
             _errorMessage = exception.Message;
         }
 
+
+        public void Render(Action<IConsoleRenderer> template)
+        {
+            Console.CursorVisible = false;
+
+            _renderer.Reset();
+
+            template(_renderer);
+
+            if (_errorMessage != null)
+            {
+                _renderer.WriteErrorMessage(_errorMessage);
+
+                _errorMessage = null;
+            }
+
+            Console.CursorVisible = _cursorVisible;
+        }
+
         public void Render<TModel>(Action<IConsoleRenderer, TModel> template, TModel model)
         {
             Console.CursorVisible = false;
