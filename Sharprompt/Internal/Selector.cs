@@ -22,7 +22,7 @@ namespace Sharprompt.Internal
         private T[] _filteredSource;
         private int _pageCount;
 
-        private int _currentIndex;
+        private int _currentIndex = -1;
         private int _currentPage;
 
         public int Count => Math.Min(_filteredSource.Length - (_pageSize * _currentPage), _pageSize);
