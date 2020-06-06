@@ -2,25 +2,27 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace Sharprompt.Internal
+using Sharprompt.Drivers;
+
+namespace Sharprompt.Forms
 {
-    internal class ConsoleScope : IDisposable
+    internal class FormRenderer : IDisposable
     {
-        public ConsoleScope(bool cursorVisible = true)
+        public FormRenderer(bool cursorVisible = true)
         {
             _cursorVisible = cursorVisible;
 
-            _renderer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? new WindowsConsoleRenderer() : new DefaultConsoleRenderer();
+            _consoleDriver = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? new WindowsConsoleDriver() : new DefaultConsoleDriver();
         }
 
         private readonly bool _cursorVisible;
-        private readonly IConsoleRenderer _renderer;
+        private readonly IConsoleDriver _consoleDriver;
 
         private string _errorMessage;
 
         public void Dispose()
         {
-            _renderer.Close();
+            _consoleDriver.Close();
 
             Console.CursorVisible = true;
         }
@@ -81,18 +83,17 @@ namespace Sharprompt.Internal
             _errorMessage = exception.Message;
         }
 
-
-        public void Render(Action<IConsoleRenderer> template)
+        public void Render(Action<IConsoleDriver> template)
         {
             Console.CursorVisible = false;
 
-            _renderer.Reset();
+            _consoleDriver.Reset();
 
-            template(_renderer);
+            template(_consoleDriver);
 
             if (_errorMessage != null)
             {
-                _renderer.WriteErrorMessage(_errorMessage);
+                _consoleDriver.WriteErrorMessage(_errorMessage);
 
                 _errorMessage = null;
             }
@@ -100,20 +101,13 @@ namespace Sharprompt.Internal
             Console.CursorVisible = _cursorVisible;
         }
 
-        public void Render<TModel>(Action<IConsoleRenderer, TModel> template, TModel model)
+        public void Render<TModel>(Action<IConsoleDriver, TModel> template, TModel model)
         {
             Console.CursorVisible = false;
 
-            _renderer.Reset();
+            _consoleDriver.Reset();
 
-            template(_renderer, model);
-
-            if (_errorMessage != null)
-            {
-                _renderer.WriteErrorMessage(_errorMessage);
-
-                _errorMessage = null;
-            }
+            template(_consoleDriver, model);
 
             Console.CursorVisible = _cursorVisible;
         }

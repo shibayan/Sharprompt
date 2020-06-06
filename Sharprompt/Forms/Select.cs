@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Sharprompt.Drivers;
 using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
@@ -25,7 +26,7 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out T result)
         {
-            var keyInfo = Scope.ReadKey();
+            var keyInfo = Renderer.ReadKey();
 
             if (keyInfo.Key == ConsoleKey.Enter)
             {
@@ -36,7 +37,7 @@ namespace Sharprompt.Forms
                     return true;
                 }
 
-                Scope.SetError(new ValidationError("Value is required"));
+                Renderer.SetError(new ValidationError("Value is required"));
             }
             else if (keyInfo.Key == ConsoleKey.UpArrow)
             {
@@ -58,7 +59,7 @@ namespace Sharprompt.Forms
             {
                 if (_filterBuffer.Length == 0)
                 {
-                    Scope.Beep();
+                    Renderer.Beep();
                 }
                 else
                 {
@@ -79,10 +80,10 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(IConsoleRenderer consoleRenderer)
+        protected override void InputTemplate(IConsoleDriver consoleDriver)
         {
-            consoleRenderer.WriteMessage(_message);
-            consoleRenderer.Write(_selector.FilterTerm);
+            consoleDriver.WriteMessage(_message);
+            consoleDriver.Write(_selector.FilterTerm);
 
             var subset = _selector.ToSubset();
 
@@ -90,23 +91,23 @@ namespace Sharprompt.Forms
             {
                 var value = _valueSelector(item);
 
-                consoleRenderer.WriteLine();
+                consoleDriver.WriteLine();
 
                 if (EqualityComparer<T>.Default.Equals(item, _selector.CurrentItem))
                 {
-                    consoleRenderer.Write($"> {value}", Prompt.ColorSchema.Select);
+                    consoleDriver.Write($"> {value}", Prompt.ColorSchema.Select);
                 }
                 else
                 {
-                    consoleRenderer.Write($"  {value}");
+                    consoleDriver.Write($"  {value}");
                 }
             }
         }
 
-        protected override void FinishTemplate(IConsoleRenderer consoleRenderer, T result)
+        protected override void FinishTemplate(IConsoleDriver consoleDriver, T result)
         {
-            consoleRenderer.WriteMessage(_message);
-            consoleRenderer.Write(_valueSelector(result), Prompt.ColorSchema.Answer);
+            consoleDriver.WriteMessage(_message);
+            consoleDriver.Write(_valueSelector(result), Prompt.ColorSchema.Answer);
         }
     }
 }

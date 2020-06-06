@@ -1,4 +1,5 @@
-﻿using Sharprompt.Internal;
+﻿using Sharprompt.Drivers;
+using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
 {
@@ -15,7 +16,7 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out bool result)
         {
-            var input = Scope.ReadLine();
+            var input = Renderer.ReadLine();
 
             if (string.IsNullOrEmpty(input))
             {
@@ -26,7 +27,7 @@ namespace Sharprompt.Forms
                     return true;
                 }
 
-                Scope.SetError(new ValidationError("Value is required"));
+                Renderer.SetError(new ValidationError("Value is required"));
             }
             else
             {
@@ -46,7 +47,7 @@ namespace Sharprompt.Forms
                     return true;
                 }
 
-                Scope.SetError(new ValidationError("Value is invalid"));
+                Renderer.SetError(new ValidationError("Value is invalid"));
             }
 
             result = default;
@@ -54,24 +55,24 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(IConsoleRenderer consoleRenderer)
+        protected override void InputTemplate(IConsoleDriver consoleDriver)
         {
-            consoleRenderer.WriteMessage(_message);
+            consoleDriver.WriteMessage(_message);
 
             if (_defaultValue != null)
             {
-                consoleRenderer.Write($"({(_defaultValue.Value ? "yes" : "no")}) ");
+                consoleDriver.Write($"({(_defaultValue.Value ? "yes" : "no")}) ");
             }
             else
             {
-                consoleRenderer.Write("(y/N) ");
+                consoleDriver.Write("(y/N) ");
             }
         }
 
-        protected override void FinishTemplate(IConsoleRenderer consoleRenderer, bool result)
+        protected override void FinishTemplate(IConsoleDriver consoleDriver, bool result)
         {
-            consoleRenderer.WriteMessage(_message);
-            consoleRenderer.Write(result ? "Yes" : "No", Prompt.ColorSchema.Answer);
+            consoleDriver.WriteMessage(_message);
+            consoleDriver.Write(result ? "Yes" : "No", Prompt.ColorSchema.Answer);
         }
     }
 }

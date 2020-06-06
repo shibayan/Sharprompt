@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Sharprompt.Drivers;
 using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
 {
     internal class MultiSelect<T> : FormBase<IEnumerable<T>>
     {
-        public MultiSelect(string message, IEnumerable<T> options, int limit, int min, int pageSize, Func<T, string> valueSelector)
+        public MultiSelect(string message, IEnumerable<T> options, int min, int max, int pageSize, Func<T, string> valueSelector)
             : base(false)
         {
             // throw early when invalid options are passed
@@ -18,22 +19,22 @@ namespace Sharprompt.Forms
                 throw new ArgumentOutOfRangeException(nameof(min), $"The min ({min}) is not valid");
             }
 
-            if (limit != -1 && limit < min)
+            if (max != -1 && max < min)
             {
-                throw new ArgumentException($"The limit ({limit}) is not valid when min is set to ({min})", nameof(limit));
+                throw new ArgumentException($"The limit ({max}) is not valid when min is set to ({min})", nameof(max));
             }
 
             _message = message;
             _selector = new Selector<T>(options.ToArray(), pageSize, valueSelector: valueSelector);
-            _limit = limit;
             _min = min;
+            _max = max;
             _valueSelector = valueSelector;
         }
 
         private readonly string _message;
         private readonly Selector<T> _selector;
-        private readonly int _limit;
         private readonly int _min;
+        private readonly int _max;
         private readonly Func<T, string> _valueSelector;
 
         private readonly IList<T> _selectedItems = new List<T>();
@@ -43,7 +44,7 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out IEnumerable<T> result)
         {
-            var keyInfo = Scope.ReadKey();
+            var keyInfo = Renderer.ReadKey();
 
             if (keyInfo.Key == ConsoleKey.Enter)
             {
@@ -66,7 +67,7 @@ namespace Sharprompt.Forms
                 }
 
                 // If we have reached the limit, determine which items should not be selected anymore
-                if (_limit == _selectedItems.Count)
+                if (_max == _selectedItems.Count)
                 {
                     _showConfirm = true;
                 }
@@ -84,7 +85,7 @@ namespace Sharprompt.Forms
                     return true;
                 }
 
-                Scope.SetError(new ValidationError($"A minimum selection of {_min} items is required"));
+                Renderer.SetError(new ValidationError($"A minimum selection of {_min} items is required"));
             }
             else if (keyInfo.Key == ConsoleKey.UpArrow)
             {
@@ -106,7 +107,7 @@ namespace Sharprompt.Forms
             {
                 if (_filterBuffer.Length == 0)
                 {
-                    Scope.Beep();
+                    Renderer.Beep();
                 }
                 else
                 {
@@ -127,14 +128,14 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(IConsoleRenderer consoleRenderer)
+        protected override void InputTemplate(IConsoleDriver consoleDriver)
         {
-            consoleRenderer.WriteMessage(_message);
-            consoleRenderer.Write(_selector.FilterTerm);
+            consoleDriver.WriteMessage(_message);
+            consoleDriver.Write(_selector.FilterTerm);
 
             if (_showConfirm && string.IsNullOrEmpty(_selector.FilterTerm))
             {
-                consoleRenderer.Write(" Press Tab to confirm", Prompt.ColorSchema.Answer);
+                consoleDriver.Write(" Press Tab to confirm", Prompt.ColorSchema.Answer);
             }
 
             var subset = _selector.ToSubset();
@@ -143,34 +144,34 @@ namespace Sharprompt.Forms
             {
                 var value = _valueSelector(item);
 
-                consoleRenderer.WriteLine();
+                consoleDriver.WriteLine();
 
                 if (EqualityComparer<T>.Default.Equals(item, _selector.CurrentItem))
                 {
                     if (_selectedItems.Contains(item))
                     {
-                        consoleRenderer.Write($"> [x] {value}", Prompt.ColorSchema.Select);
+                        consoleDriver.Write($"> [x] {value}", Prompt.ColorSchema.Select);
                     }
                     else
                     {
-                        consoleRenderer.Write($"> [ ] {value}", Prompt.ColorSchema.Select);
+                        consoleDriver.Write($"> [ ] {value}", Prompt.ColorSchema.Select);
                     }
                 }
                 else if (_selectedItems.Contains(item))
                 {
-                    consoleRenderer.Write($"  [x] {value}", Prompt.ColorSchema.Select);
+                    consoleDriver.Write($"  [x] {value}", Prompt.ColorSchema.Select);
                 }
                 else
                 {
-                    consoleRenderer.Write($"  [ ] {value}");
+                    consoleDriver.Write($"  [ ] {value}");
                 }
             }
         }
 
-        protected override void FinishTemplate(IConsoleRenderer consoleRenderer, IEnumerable<T> result)
+        protected override void FinishTemplate(IConsoleDriver consoleDriver, IEnumerable<T> result)
         {
-            consoleRenderer.WriteMessage(_message);
-            consoleRenderer.Write(result.Select(_valueSelector).Join(", "), Prompt.ColorSchema.Answer);
+            consoleDriver.WriteMessage(_message);
+            consoleDriver.Write(result.Select(_valueSelector).Join(", "), Prompt.ColorSchema.Answer);
         }
     }
 }

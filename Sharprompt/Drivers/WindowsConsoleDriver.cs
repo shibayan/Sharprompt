@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Sharprompt.Internal
+namespace Sharprompt.Drivers
 {
-    internal class WindowsConsoleRenderer : DefaultConsoleRenderer
+    internal class WindowsConsoleDriver : DefaultConsoleDriver
     {
         public override void EraseLine(int y)
         {

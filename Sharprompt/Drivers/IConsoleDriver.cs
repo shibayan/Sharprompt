@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Sharprompt.Internal
+namespace Sharprompt.Drivers
 {
-    internal interface IConsoleRenderer
+    internal interface IConsoleDriver
     {
         void Close();
         void Reset();

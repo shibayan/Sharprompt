@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Sharprompt.Internal
+namespace Sharprompt.Drivers
 {
-    internal class DefaultConsoleRenderer : IConsoleRenderer
+    internal class DefaultConsoleDriver : IConsoleDriver
     {
         private int _lineCount;
         private int _errorLineCount;

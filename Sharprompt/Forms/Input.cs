@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using Sharprompt.Drivers;
 using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
@@ -24,9 +25,9 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out T result)
         {
-            var input = Scope.ReadLine();
+            var input = Renderer.ReadLine();
 
-            if (!Scope.Validate(input, _validators))
+            if (!Renderer.Validate(input, _validators))
             {
                 result = default;
 
@@ -37,7 +38,7 @@ namespace Sharprompt.Forms
             {
                 if (_targetType.IsValueType && _underlyingType == null && _defaultValue == null)
                 {
-                    Scope.SetError(new ValidationError("Value is required"));
+                    Renderer.SetError(new ValidationError("Value is required"));
 
                     result = default;
 
@@ -57,7 +58,7 @@ namespace Sharprompt.Forms
             }
             catch (Exception ex)
             {
-                Scope.SetException(ex);
+                Renderer.SetException(ex);
             }
 
             result = default;
@@ -65,23 +66,23 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(IConsoleRenderer consoleRenderer)
+        protected override void InputTemplate(IConsoleDriver consoleDriver)
         {
-            consoleRenderer.WriteMessage(_message);
+            consoleDriver.WriteMessage(_message);
 
             if (_defaultValue != null)
             {
-                consoleRenderer.Write($"({_defaultValue}) ");
+                consoleDriver.Write($"({_defaultValue}) ");
             }
         }
 
-        protected override void FinishTemplate(IConsoleRenderer consoleRenderer, T result)
+        protected override void FinishTemplate(IConsoleDriver consoleDriver, T result)
         {
-            consoleRenderer.WriteMessage(_message);
+            consoleDriver.WriteMessage(_message);
 
             if (result != null)
             {
-                consoleRenderer.Write(result.ToString(), Prompt.ColorSchema.Answer);
+                consoleDriver.Write(result.ToString(), Prompt.ColorSchema.Answer);
             }
         }
     }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
+using Sharprompt.Drivers;
 using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
@@ -21,13 +22,13 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out string result)
         {
-            var keyInfo = Scope.ReadKey();
+            var keyInfo = Renderer.ReadKey();
 
             if (keyInfo.Key == ConsoleKey.Enter)
             {
                 result = _inputBuffer.ToString();
 
-                if (Scope.Validate(result, _validators))
+                if (Renderer.Validate(result, _validators))
                 {
                     return true;
                 }
@@ -38,7 +39,7 @@ namespace Sharprompt.Forms
             {
                 if (_inputBuffer.Length == 0)
                 {
-                    Scope.Beep();
+                    Renderer.Beep();
                 }
                 else
                 {
@@ -55,10 +56,10 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(IConsoleRenderer consoleRenderer)
+        protected override void InputTemplate(IConsoleDriver consoleDriver)
         {
-            consoleRenderer.WriteMessage(_message);
-            consoleRenderer.Write(new string('*', _inputBuffer.Length));
+            consoleDriver.WriteMessage(_message);
+            consoleDriver.Write(new string('*', _inputBuffer.Length));
         }
     }
 }

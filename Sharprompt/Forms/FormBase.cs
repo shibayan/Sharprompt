@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Sharprompt.Drivers;
 using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
@@ -8,28 +9,28 @@ namespace Sharprompt.Forms
     {
         protected FormBase(bool cursorVisible = true)
         {
-            Scope = new ConsoleScope(cursorVisible);
+            Renderer = new FormRenderer(cursorVisible);
         }
 
-        protected ConsoleScope Scope { get; }
+        protected FormRenderer Renderer { get; }
 
         public void Dispose()
         {
-            Scope.Dispose();
+            Renderer.Dispose();
         }
 
         public T Start()
         {
             while (true)
             {
-                Scope.Render(InputTemplate);
+                Renderer.Render(InputTemplate);
 
                 if (!TryGetResult(out var result))
                 {
                     continue;
                 }
 
-                Scope.Render(FinishTemplate, result);
+                Renderer.Render(FinishTemplate, result);
 
                 return result;
             }
@@ -37,11 +38,11 @@ namespace Sharprompt.Forms
 
         protected abstract bool TryGetResult(out T result);
 
-        protected virtual void InputTemplate(IConsoleRenderer consoleRenderer)
+        protected virtual void InputTemplate(IConsoleDriver consoleDriver)
         {
         }
 
-        protected virtual void FinishTemplate(IConsoleRenderer consoleRenderer, T result)
+        protected virtual void FinishTemplate(IConsoleDriver consoleDriver, T result)
         {
         }
     }
