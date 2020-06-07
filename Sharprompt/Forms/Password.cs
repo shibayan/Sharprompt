@@ -2,18 +2,20 @@
 using System.Collections.Generic;
 using System.Text;
 
+using Sharprompt.Validations;
+
 namespace Sharprompt.Forms
 {
     internal class Password : FormBase<string>
     {
-        public Password(string message, IList<Func<object, ValidationError>> validators)
+        public Password(string message, IList<Func<object, ValidationResult>> validators)
         {
             _message = message;
             _validators = validators;
         }
 
         private readonly string _message;
-        private readonly IList<Func<object, ValidationError>> _validators;
+        private readonly IList<Func<object, ValidationResult>> _validators;
 
         private readonly StringBuilder _inputBuffer = new StringBuilder();
 
@@ -25,7 +27,7 @@ namespace Sharprompt.Forms
             {
                 result = _inputBuffer.ToString();
 
-                if (Renderer.Validate(result, _validators))
+                if (TryValidate(result, _validators))
                 {
                     return true;
                 }

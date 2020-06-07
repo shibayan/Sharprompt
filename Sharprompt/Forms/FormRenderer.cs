@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 using Sharprompt.Drivers;
+using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
 {
@@ -60,31 +61,9 @@ namespace Sharprompt.Forms
             _writtenLines += _consoleDriver.WriteLine();
         }
 
-        public void SetError(ValidationError error)
+        public void SetValidationResult(ValidationResult result)
         {
-            _errorMessage = error.Message;
-        }
-
-        public bool Validate(object input, IList<Func<object, ValidationError>> validators)
-        {
-            if (validators == null)
-            {
-                return true;
-            }
-
-            foreach (var validator in validators)
-            {
-                var error = validator(input);
-
-                if (error != null)
-                {
-                    _errorMessage = error.Message;
-
-                    return false;
-                }
-            }
-
-            return true;
+            _errorMessage = result.ErrorMessage;
         }
 
         public void SetException(Exception exception)

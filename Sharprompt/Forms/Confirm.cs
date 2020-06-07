@@ -1,4 +1,6 @@
-﻿namespace Sharprompt.Forms
+﻿using Sharprompt.Validations;
+
+namespace Sharprompt.Forms
 {
     internal class Confirm : FormBase<bool>
     {
@@ -24,7 +26,7 @@
                     return true;
                 }
 
-                Renderer.SetError(new ValidationError("Value is required"));
+                Renderer.SetValidationResult(new ValidationResult("Value is required"));
             }
             else
             {
@@ -44,7 +46,7 @@
                     return true;
                 }
 
-                Renderer.SetError(new ValidationError("Value is invalid"));
+                Renderer.SetValidationResult(new ValidationResult("Value is invalid"));
             }
 
             result = default;

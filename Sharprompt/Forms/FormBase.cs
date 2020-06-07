@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+
+using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
 {
@@ -41,6 +44,28 @@ namespace Sharprompt.Forms
 
         protected virtual void FinishTemplate(FormRenderer formRenderer, T result)
         {
+        }
+
+        protected bool TryValidate(object input, IList<Func<object, ValidationResult>> validators)
+        {
+            if (validators == null)
+            {
+                return true;
+            }
+
+            foreach (var validator in validators)
+            {
+                var result = validator(input);
+
+                if (result != null)
+                {
+                    Renderer.SetValidationResult(result);
+
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

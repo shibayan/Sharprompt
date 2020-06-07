@@ -2,19 +2,20 @@
 using System.Collections.Generic;
 
 using Sharprompt.Forms;
+using Sharprompt.Validations;
 
 namespace Sharprompt
 {
     public static class Prompt
     {
-        public static T Input<T>(string message, object defaultValue = null, IList<Func<object, ValidationError>> validators = null)
+        public static T Input<T>(string message, object defaultValue = null, IList<Func<object, ValidationResult>> validators = null)
         {
             using var form = new Input<T>(message, defaultValue, validators);
 
             return form.Start();
         }
 
-        public static string Password(string message, IList<Func<object, ValidationError>> validators = null)
+        public static string Password(string message, IList<Func<object, ValidationResult>> validators = null)
         {
             using var form = new Password(message, validators);
 

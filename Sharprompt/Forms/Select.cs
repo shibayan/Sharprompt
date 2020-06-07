@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using Sharprompt.Internal;
+using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
 {
@@ -36,7 +37,7 @@ namespace Sharprompt.Forms
                     return true;
                 }
 
-                Renderer.SetError(new ValidationError("Value is required"));
+                Renderer.SetValidationResult(new ValidationResult("Value is required"));
             }
             else if (keyInfo.Key == ConsoleKey.UpArrow)
             {

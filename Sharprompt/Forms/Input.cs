@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using Sharprompt.Validations;
+
 namespace Sharprompt.Forms
 {
     internal class Input<T> : FormBase<T>
     {
-        public Input(string message, object defaultValue, IList<Func<object, ValidationError>> validators)
+        public Input(string message, object defaultValue, IList<Func<object, ValidationResult>> validators)
         {
             _message = message;
             _defaultValue = defaultValue;
@@ -14,7 +16,7 @@ namespace Sharprompt.Forms
 
         private readonly string _message;
         private readonly object _defaultValue;
-        private readonly IList<Func<object, ValidationError>> _validators;
+        private readonly IList<Func<object, ValidationResult>> _validators;
 
         private readonly Type _targetType = typeof(T);
         private readonly Type _underlyingType = Nullable.GetUnderlyingType(typeof(T));
@@ -23,7 +25,7 @@ namespace Sharprompt.Forms
         {
             var input = Renderer.ReadLine();
 
-            if (!Renderer.Validate(input, _validators))
+            if (!TryValidate(input, _validators))
             {
                 result = default;
 
@@ -34,7 +36,7 @@ namespace Sharprompt.Forms
             {
                 if (_targetType.IsValueType && _underlyingType == null && _defaultValue == null)
                 {
-                    Renderer.SetError(new ValidationError("Value is required"));
+                    Renderer.SetValidationResult(new ValidationResult("Value is required"));
 
                     result = default;
 

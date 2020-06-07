@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using Sharprompt.Internal;
+using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
 {
@@ -84,7 +85,7 @@ namespace Sharprompt.Forms
                     return true;
                 }
 
-                Renderer.SetError(new ValidationError($"A minimum selection of {_minimum} items is required"));
+                Renderer.SetValidationResult(new ValidationResult($"A minimum selection of {_minimum} items is required"));
             }
             else if (keyInfo.Key == ConsoleKey.UpArrow)
             {

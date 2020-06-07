@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-namespace Sharprompt
+namespace Sharprompt.Validations
 {
     public static class Validators
     {
-        public static Func<object, ValidationError> Required()
+        public static Func<object, ValidationResult> Required()
         {
             return input =>
             {
@@ -14,11 +14,11 @@ namespace Sharprompt
                     return null;
                 }
 
-                return new ValidationError("Value is required");
+                return new ValidationResult("Value is required");
             };
         }
 
-        public static Func<object, ValidationError> MinLength(int length)
+        public static Func<object, ValidationResult> MinLength(int length)
         {
             return input =>
             {
@@ -32,11 +32,11 @@ namespace Sharprompt
                     return null;
                 }
 
-                return new ValidationError("Value is too short");
+                return new ValidationResult("Value is too short");
             };
         }
 
-        public static Func<object, ValidationError> MaxLength(int length)
+        public static Func<object, ValidationResult> MaxLength(int length)
         {
             return input =>
             {
@@ -50,11 +50,11 @@ namespace Sharprompt
                     return null;
                 }
 
-                return new ValidationError("Value is too long");
+                return new ValidationResult("Value is too long");
             };
         }
 
-        public static Func<object, ValidationError> RegularExpression(string pattern)
+        public static Func<object, ValidationResult> RegularExpression(string pattern)
         {
             return input =>
             {
@@ -68,7 +68,7 @@ namespace Sharprompt
                     return null;
                 }
 
-                return new ValidationError("Value is not match pattern");
+                return new ValidationResult("Value is not match pattern");
             };
         }
     }
