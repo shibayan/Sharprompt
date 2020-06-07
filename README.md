@@ -93,7 +93,7 @@ Console.WriteLine($"Hello, {name}!");
 ## Platforms
 
 - Windows
-  - Cmd / PowerShell / Windows Terminal (Preview)
+  - Cmd / PowerShell / Windows Terminal
 - Ubuntu
   - Bash
 - macOS
