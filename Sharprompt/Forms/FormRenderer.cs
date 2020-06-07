@@ -18,6 +18,9 @@ namespace Sharprompt.Forms
         private readonly bool _cursorVisible;
         private readonly IConsoleDriver _consoleDriver;
 
+        private int _writtenLines;
+        private int _writtenErrorLines;
+
         private string _errorMessage;
 
         public void Dispose()
@@ -38,23 +41,23 @@ namespace Sharprompt.Forms
 
         public void Write(string value)
         {
-            _consoleDriver.Write(value);
+            _writtenLines += _consoleDriver.Write(value);
         }
 
         public void Write(string value, ConsoleColor color)
         {
-            _consoleDriver.Write(value, color);
+            _writtenLines += _consoleDriver.Write(value, color);
         }
 
         public void WriteMessage(string message)
         {
-            _consoleDriver.Write("?", ConsoleColor.Green);
-            _consoleDriver.Write($" {message}: ");
+            _writtenLines += _consoleDriver.Write("?", ConsoleColor.Green);
+            _writtenLines += _consoleDriver.Write($" {message}: ");
         }
 
         public void WriteLine()
         {
-            _consoleDriver.WriteLine();
+            _writtenLines += _consoleDriver.WriteLine();
         }
 
         public void SetError(ValidationError error)
@@ -93,13 +96,13 @@ namespace Sharprompt.Forms
         {
             _consoleDriver.CursorVisible = false;
 
-            _consoleDriver.Clear();
+            ClearAll();
 
             template(this);
 
             if (_errorMessage != null)
             {
-                _consoleDriver.WriteErrorMessage(_errorMessage);
+                WriteErrorMessage(_errorMessage);
 
                 _errorMessage = null;
             }
@@ -111,11 +114,39 @@ namespace Sharprompt.Forms
         {
             _consoleDriver.CursorVisible = false;
 
-            _consoleDriver.Clear();
+            ClearAll();
 
             template(this, model);
 
             _consoleDriver.CursorVisible = _cursorVisible;
+        }
+
+        private void ClearAll()
+        {
+            var bottom = _consoleDriver.CursorTop + _writtenErrorLines;
+
+            for (int i = 0; i <= _writtenLines + _writtenErrorLines; i++)
+            {
+                _consoleDriver.ClearLine(bottom - i);
+            }
+
+            _consoleDriver.SetCursorPosition(0, _consoleDriver.CursorTop);
+
+            _writtenLines = 0;
+            _writtenErrorLines = 0;
+        }
+
+        private void WriteErrorMessage(string errorMessage)
+        {
+            var left = _consoleDriver.CursorLeft;
+
+            var writtenErrorLines = _consoleDriver.WriteLine();
+
+            writtenErrorLines += _consoleDriver.Write($">> {errorMessage}", ConsoleColor.Red);
+
+            _consoleDriver.SetCursorPosition(left, _consoleDriver.CursorTop - writtenErrorLines);
+
+            _writtenErrorLines += writtenErrorLines;
         }
     }
 }

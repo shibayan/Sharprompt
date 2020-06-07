@@ -4,9 +4,6 @@ namespace Sharprompt.Drivers
 {
     internal class DefaultConsoleDriver : IConsoleDriver
     {
-        private int _lineCount;
-        private int _errorLineCount;
-
         #region IDisposable
 
         public virtual void Dispose()
@@ -25,19 +22,11 @@ namespace Sharprompt.Drivers
 
         public virtual void Beep() => Console.Beep();
 
-        public virtual void Clear()
+        public virtual void ClearLine(int top)
         {
-            var bottom = Console.CursorTop + _errorLineCount;
+            Console.SetCursorPosition(0, top);
 
-            for (int i = 0; i <= _lineCount + _errorLineCount; i++)
-            {
-                EraseLine(bottom - i);
-            }
-
-            Console.SetCursorPosition(0, Console.CursorTop);
-
-            _lineCount = 0;
-            _errorLineCount = 0;
+            Console.Write("\x1b[2K");
         }
 
         public virtual ConsoleKeyInfo ReadKey() => Console.ReadKey(true);
@@ -60,8 +49,6 @@ namespace Sharprompt.Drivers
         {
             var writtenLines = (Console.CursorLeft + value.Length) / Console.BufferWidth;
 
-            _lineCount += writtenLines;
-
             Console.Write(value);
 
             return writtenLines;
@@ -80,30 +67,16 @@ namespace Sharprompt.Drivers
             return writtenLines;
         }
 
-        public virtual void WriteLine()
+        public virtual int WriteLine()
         {
             Console.WriteLine();
 
-            _lineCount += 1;
+            return 1;
         }
 
-        public virtual void WriteErrorMessage(string errorMessage)
+        public virtual void SetCursorPosition(int left, int top)
         {
-            var left = Console.CursorLeft;
-
-            Console.WriteLine();
-            Write($">> {errorMessage}", ConsoleColor.Red);
-
-            Console.SetCursorPosition(left, Console.CursorTop - 1);
-
-            _errorLineCount = 1;
-        }
-
-        public virtual void EraseLine(int y)
-        {
-            Console.SetCursorPosition(0, y);
-
-            Console.Write("\x1b[2K");
+            Console.SetCursorPosition(left, top);
         }
 
         public virtual bool CursorVisible
@@ -111,6 +84,10 @@ namespace Sharprompt.Drivers
             get => Console.CursorVisible;
             set => Console.CursorVisible = value;
         }
+
+        public virtual int CursorLeft => Console.CursorLeft;
+
+        public virtual int CursorTop => Console.CursorTop;
 
         #endregion
     }

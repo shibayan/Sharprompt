@@ -5,11 +5,11 @@ namespace Sharprompt.Drivers
 {
     internal class WindowsConsoleDriver : DefaultConsoleDriver
     {
-        public override void EraseLine(int y)
+        public override void ClearLine(int top)
         {
-            Console.SetCursorPosition(0, y);
+            Console.SetCursorPosition(0, top);
 
-            FillConsoleOutputCharacter(GetStdHandle(-11), ' ', Console.BufferWidth, new COORD { X = 0, Y = (short)y }, out _);
+            FillConsoleOutputCharacter(GetStdHandle(-11), ' ', Console.BufferWidth, new COORD { X = 0, Y = (short)top }, out _);
         }
 
         [DllImport("kernel32.dll")]

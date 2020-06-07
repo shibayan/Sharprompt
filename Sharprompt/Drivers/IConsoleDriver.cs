@@ -5,14 +5,15 @@ namespace Sharprompt.Drivers
     internal interface IConsoleDriver : IDisposable
     {
         void Beep();
-        void Clear();
+        void ClearLine(int top);
         ConsoleKeyInfo ReadKey();
         string ReadLine();
         int Write(string value);
         int Write(string value, ConsoleColor color);
-        void WriteLine();
-        void WriteErrorMessage(string errorMessage);
-        void EraseLine(int y);
+        int WriteLine();
+        void SetCursorPosition(int left, int top);
         bool CursorVisible { get; set; }
+        int CursorLeft { get; }
+        int CursorTop { get; }
     }
 }
