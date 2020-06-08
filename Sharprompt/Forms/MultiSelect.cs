@@ -10,7 +10,7 @@ namespace Sharprompt.Forms
 {
     internal class MultiSelect<T> : FormBase<IEnumerable<T>>
     {
-        public MultiSelect(string message, IEnumerable<T> options, int minimum, int maximum, int pageSize, Func<T, string> valueSelector)
+        public MultiSelect(string message, IEnumerable<T> options, int? pageSize, int minimum, int maximum, Func<T, string> valueSelector)
             : base(false)
         {
             // throw early when invalid options are passed
@@ -25,7 +25,7 @@ namespace Sharprompt.Forms
             }
 
             _message = message;
-            _selector = new Selector<T>(options.ToArray(), pageSize, null, valueSelector);
+            _selector = new Selector<T>(options, pageSize, null, valueSelector);
             _minimum = minimum;
             _maximum = maximum;
             _valueSelector = valueSelector;
