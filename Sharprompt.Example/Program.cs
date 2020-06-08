@@ -1,9 +1,8 @@
 ﻿using System;
 
-using Sharprompt;
 using Sharprompt.Validations;
 
-namespace Example
+namespace Sharprompt.Example
 {
     class Program
     {
