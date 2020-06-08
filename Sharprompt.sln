@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29123.88
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sharprompt", "Sharprompt\Sharprompt.csproj", "{32B1CF1F-4683-4B04-B435-424EC5EE0E40}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example", "Example\Example.csproj", "{8E8C45F4-6B12-42F9-B2EA-E0E3EBC4BCB2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sharprompt.Example", "Sharprompt.Example\Sharprompt.Example.csproj", "{8E8C45F4-6B12-42F9-B2EA-E0E3EBC4BCB2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
