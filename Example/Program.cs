@@ -21,7 +21,7 @@ namespace Example
             var answer = Prompt.Confirm("Are you ready?");
             Console.WriteLine($"Your answer is {answer}");
 
-            var options = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3, min: 1);
+            var options = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3);
             Console.WriteLine($"You picked {string.Join(", ", options)}");
         }
     }

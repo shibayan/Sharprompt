@@ -6,10 +6,10 @@ namespace Sharprompt.Internal
 {
     public class Selector<T>
     {
-        public Selector(IEnumerable<T> source, int pageSize, object defaultValue, Func<T, string> valueSelector)
+        public Selector(IEnumerable<T> source, int? pageSize, object defaultValue, Func<T, string> valueSelector)
         {
             _source = source.ToArray();
-            _pageSize = pageSize;
+            _pageSize = pageSize ?? _source.Length;
             _valueSelector = valueSelector;
 
             InitializeDefaults(defaultValue);

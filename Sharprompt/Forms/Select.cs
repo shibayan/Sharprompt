@@ -10,11 +10,11 @@ namespace Sharprompt.Forms
 {
     internal class Select<T> : FormBase<T>
     {
-        public Select(string message, IEnumerable<T> options, int pageSize, object defaultValue, Func<T, string> valueSelector)
+        public Select(string message, IEnumerable<T> options, int? pageSize, object defaultValue, Func<T, string> valueSelector)
             : base(false)
         {
             _message = message;
-            _selector = new Selector<T>(options.ToArray(), pageSize, defaultValue, valueSelector);
+            _selector = new Selector<T>(options, pageSize, defaultValue, valueSelector);
             _valueSelector = valueSelector;
         }
 
