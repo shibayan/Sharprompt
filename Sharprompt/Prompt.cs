@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using Sharprompt.Forms;
+using Sharprompt.Internal;
 using Sharprompt.Validations;
 
 namespace Sharprompt
@@ -29,9 +30,27 @@ namespace Sharprompt
             return form.Start();
         }
 
+        public static T Select<T>(string message, int? pageSize = null, T? defaultValue = null, Func<T, string> valueSelector = null) where T : struct, Enum
+        {
+            var items = (T[])Enum.GetValues(typeof(T));
+
+            using var form = new Select<T>(message, items, pageSize, defaultValue, valueSelector ?? (x => x.GetDisplayName()));
+
+            return form.Start();
+        }
+
         public static T Select<T>(string message, IEnumerable<T> items, int? pageSize = null, object defaultValue = null, Func<T, string> valueSelector = null)
         {
             using var form = new Select<T>(message, items, pageSize, defaultValue, valueSelector ?? (x => x.ToString()));
+
+            return form.Start();
+        }
+
+        public static IEnumerable<T> MultiSelect<T>(string message, int? pageSize = null, int minimum = 1, int maximum = -1, Func<T, string> valueSelector = null) where T : struct, Enum
+        {
+            var items = (T[])Enum.GetValues(typeof(T));
+
+            using var form = new MultiSelect<T>(message, items, pageSize, minimum, maximum, valueSelector ?? (x => x.GetDisplayName()));
 
             return form.Start();
         }

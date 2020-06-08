@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 using Sharprompt.Internal;
@@ -10,11 +9,11 @@ namespace Sharprompt.Forms
 {
     internal class Select<T> : FormBase<T>
     {
-        public Select(string message, IEnumerable<T> options, int? pageSize, object defaultValue, Func<T, string> valueSelector)
+        public Select(string message, IEnumerable<T> items, int? pageSize, object defaultValue, Func<T, string> valueSelector)
             : base(false)
         {
             _message = message;
-            _selector = new Selector<T>(options, pageSize, defaultValue, valueSelector);
+            _selector = new Selector<T>(items, pageSize, defaultValue, valueSelector);
             _valueSelector = valueSelector;
         }
 
@@ -30,9 +29,9 @@ namespace Sharprompt.Forms
 
             if (keyInfo.Key == ConsoleKey.Enter)
             {
-                if (_selector.CurrentItem != null)
+                if (_selector.IsSelected)
                 {
-                    result = _selector.CurrentItem;
+                    result = _selector.SelectedItem;
 
                     return true;
                 }
@@ -93,7 +92,7 @@ namespace Sharprompt.Forms
 
                 formRenderer.WriteLine();
 
-                if (EqualityComparer<T>.Default.Equals(item, _selector.CurrentItem))
+                if (_selector.IsSelected && EqualityComparer<T>.Default.Equals(item, _selector.SelectedItem))
                 {
                     formRenderer.Write($"> {value}", Prompt.ColorSchema.Select);
                 }
