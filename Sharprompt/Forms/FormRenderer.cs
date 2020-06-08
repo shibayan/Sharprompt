@@ -25,8 +25,6 @@ namespace Sharprompt.Forms
 
         public void Dispose()
         {
-            _consoleDriver.CursorVisible = true;
-
             _consoleDriver.Dispose();
         }
 
