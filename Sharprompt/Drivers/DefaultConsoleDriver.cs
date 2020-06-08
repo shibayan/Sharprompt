@@ -8,12 +8,7 @@ namespace Sharprompt.Drivers
 
         public virtual void Dispose()
         {
-            Console.ResetColor();
-
-            if (Console.CursorLeft != 0)
-            {
-                Console.WriteLine();
-            }
+            Reset();
         }
 
         #endregion
@@ -21,6 +16,17 @@ namespace Sharprompt.Drivers
         #region IConsoleDriver
 
         public virtual void Beep() => Console.Beep();
+
+        public void Reset()
+        {
+            Console.CursorVisible = true;
+            Console.ResetColor();
+
+            if (Console.CursorLeft != 0)
+            {
+                Console.WriteLine();
+            }
+        }
 
         public virtual void ClearLine(int top)
         {

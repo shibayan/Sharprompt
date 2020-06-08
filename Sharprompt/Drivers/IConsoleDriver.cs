@@ -5,6 +5,7 @@ namespace Sharprompt.Drivers
     internal interface IConsoleDriver : IDisposable
     {
         void Beep();
+        void Reset();
         void ClearLine(int top);
         ConsoleKeyInfo ReadKey();
         string ReadLine();
