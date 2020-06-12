@@ -11,27 +11,38 @@ Interactive command line interface toolkit for .NET Core
 
 Package Name | Target Framework | NuGet
 ---|---|---
-Sharprompt | .NET Standard 2.0 | [![NuGet](https://img.shields.io/nuget/v/Sharprompt.svg)](https://www.nuget.org/packages/Sharprompt)
+Sharprompt | .NET Standard 2.0 | [![NuGet](https://img.shields.io/nuget/vpre/Sharprompt.svg)](https://www.nuget.org/packages/Sharprompt/2.0.0-preview2)
 
 ## Install
 
 ```
-Install-Package Sharprompt
+Install-Package Sharprompt -Pre
 ```
 
 ```
-dotnet add package Sharprompt
+dotnet add package Sharprompt --version 2.0.0-preview2
 ```
+
+## Features
+
+- Multi-platform support
+- Supports the popular Prompts (Input / Password / Select / etc)
+- Validation of input value
+- Automatic generation of data source using Enum
+- Customize the color scheme
 
 ## Usage
 
 ```csharp
+// Simple Input prompt
 var name = Prompt.Input<string>("What's your name?");
 Console.WriteLine($"Hello, {name}!");
 
+// Password prompt
 var secret = Prompt.Password("Type new password", new[] { Validators.Required(), Validators.MinLength(8) });
 Console.WriteLine("Password OK");
 
+// Confirmation prompt
 var answer = Prompt.Confirm("Are you ready?", defaultValue: true);
 Console.WriteLine($"Your answer is {answer}");
 ```
@@ -75,6 +86,7 @@ Console.WriteLine($"Hello, {city}!");
 ![select](https://user-images.githubusercontent.com/1356444/62228719-2de93e80-b3f9-11e9-8be5-f19e6ef58aeb.gif)
 
 ### MultiSelect
+
 ```csharp
 var cities = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3);
 Console.WriteLine($"You picked {string.Join(", ", options)}");
