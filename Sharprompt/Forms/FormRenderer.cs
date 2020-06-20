@@ -86,13 +86,13 @@ namespace Sharprompt.Forms
             _consoleDriver.CursorVisible = _cursorVisible;
         }
 
-        public void Render<TModel>(Action<FormRenderer, TModel> template, TModel model)
+        public void Render<TModel>(Action<FormRenderer, TModel> template, TModel result)
         {
             _consoleDriver.CursorVisible = false;
 
             ClearAll();
 
-            template(this, model);
+            template(this, result);
 
             _consoleDriver.CursorVisible = _cursorVisible;
         }
