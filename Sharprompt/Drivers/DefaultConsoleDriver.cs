@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace Sharprompt.Drivers
 {
@@ -22,7 +23,7 @@ namespace Sharprompt.Drivers
             Console.CursorVisible = true;
             Console.ResetColor();
 
-            if (Console.CursorLeft != 0)
+            if (CursorLeft != 0)
             {
                 Console.WriteLine();
             }
@@ -39,21 +40,75 @@ namespace Sharprompt.Drivers
 
         public virtual string ReadLine()
         {
-            var left = Console.CursorLeft;
+            int cursor = 0;
+            var buffer = new StringBuilder();
 
-            var line = Console.ReadLine();
-
-            if (line != null)
+            while (true)
             {
-                Console.SetCursorPosition(left, Console.CursorTop - 1);
+                var keyInfo = ReadKey();
+
+                if (keyInfo.Key == ConsoleKey.Enter)
+                {
+                    break;
+                }
+
+                if (keyInfo.Key == ConsoleKey.LeftArrow)
+                {
+                    if (cursor == 0)
+                    {
+                        Console.Beep();
+                    }
+                    else
+                    {
+                        Console.CursorLeft -= 1;
+                        cursor -= 1;
+                    }
+                }
+                else if (keyInfo.Key == ConsoleKey.RightArrow)
+                {
+                    if (cursor == buffer.Length)
+                    {
+                        Console.Beep();
+                    }
+                    else
+                    {
+                        Console.CursorLeft += 1;
+                        cursor += 1;
+                    }
+                }
+                else if (keyInfo.Key == ConsoleKey.Backspace)
+                {
+                    if (buffer.Length > 0)
+                    {
+                        Console.CursorLeft -= 1;
+                        Console.Write(" ");
+
+                        Console.CursorLeft -= 1;
+                        cursor -= 1;
+
+                        buffer.Length -= 1;
+                    }
+                    else
+                    {
+                        Beep();
+                    }
+                }
+                else if (!char.IsControl(keyInfo.KeyChar))
+                {
+                    Console.Write(keyInfo.KeyChar);
+
+                    buffer.Insert(cursor, keyInfo.KeyChar);
+
+                    cursor += 1;
+                }
             }
 
-            return line;
+            return buffer.ToString();
         }
 
         public virtual int Write(string value)
         {
-            var writtenLines = (Console.CursorLeft + value.Length) / Console.BufferWidth;
+            var writtenLines = (CursorLeft + value.Length) / Console.BufferWidth;
 
             Console.Write(value);
 
