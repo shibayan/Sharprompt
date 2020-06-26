@@ -25,17 +25,17 @@ namespace Sharprompt.Drivers
 
             if (CursorLeft != 0)
             {
-                Console.WriteLine();
+                WriteLine();
             }
         }
 
         public virtual void ClearLine(int top)
         {
-            Console.SetCursorPosition(0, top);
+            SetCursorPosition(0, top);
 
-            Console.Write("\x1b[2K");
+            Write("\x1b[2K");
 
-            Console.SetCursorPosition(0, top);
+            SetCursorPosition(0, top);
         }
 
         public virtual ConsoleKeyInfo ReadKey() => Console.ReadKey(true);
@@ -179,15 +179,9 @@ namespace Sharprompt.Drivers
             return 1;
         }
 
-        public (int left, int top) GetCursorPosition()
-        {
-            return (Console.CursorLeft, Console.CursorTop);
-        }
+        public (int left, int top) GetCursorPosition() => (Console.CursorLeft, Console.CursorTop);
 
-        public virtual void SetCursorPosition(int left, int top)
-        {
-            Console.SetCursorPosition(left, top);
-        }
+        public virtual void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);
 
         public virtual bool CursorVisible
         {
