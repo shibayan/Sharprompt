@@ -48,6 +48,17 @@ namespace Sharprompt.Forms
 
             if (keyInfo.Key == ConsoleKey.Enter)
             {
+                if (_selectedItems.Count >= _minimum)
+                {
+                    result = _selectedItems;
+
+                    return true;
+                }
+
+                Renderer.SetValidationResult(new ValidationResult($"A minimum selection of {_minimum} items is required"));
+            }
+            else if (keyInfo.Key == ConsoleKey.Spacebar)
+            {
                 var currentItem = _selector.SelectedItem;
 
                 if (currentItem == null)
@@ -75,17 +86,6 @@ namespace Sharprompt.Forms
                 {
                     _showConfirm = _selectedItems.Count >= _minimum;
                 }
-            }
-            else if (keyInfo.Key == ConsoleKey.Tab)
-            {
-                if (_selectedItems.Count >= _minimum)
-                {
-                    result = _selectedItems;
-
-                    return true;
-                }
-
-                Renderer.SetValidationResult(new ValidationResult($"A minimum selection of {_minimum} items is required"));
             }
             else if (keyInfo.Key == ConsoleKey.UpArrow)
             {
@@ -135,7 +135,7 @@ namespace Sharprompt.Forms
 
             if (_showConfirm && string.IsNullOrEmpty(_selector.FilterTerm))
             {
-                formRenderer.Write(" Press Tab to confirm", Prompt.ColorSchema.Answer);
+                formRenderer.Write(" Press Spacebar to Toggle", Prompt.ColorSchema.Answer);
             }
 
             var subset = _selector.ToSubset();

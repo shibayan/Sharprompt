@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace Sharprompt.Drivers
 {
@@ -22,38 +23,136 @@ namespace Sharprompt.Drivers
             Console.CursorVisible = true;
             Console.ResetColor();
 
-            if (Console.CursorLeft != 0)
+            if (CursorLeft != 0)
             {
-                Console.WriteLine();
+                WriteLine();
             }
         }
 
         public virtual void ClearLine(int top)
         {
-            Console.SetCursorPosition(0, top);
+            SetCursorPosition(0, top);
 
-            Console.Write("\x1b[2K");
+            Write("\x1b[2K");
+
+            SetCursorPosition(0, top);
         }
 
         public virtual ConsoleKeyInfo ReadKey() => Console.ReadKey(true);
 
         public virtual string ReadLine()
         {
-            var left = Console.CursorLeft;
+            int startIndex = 0;
+            var inputBuffer = new StringBuilder();
 
-            var line = Console.ReadLine();
-
-            if (line != null)
+            while (true)
             {
-                Console.SetCursorPosition(left, Console.CursorTop - 1);
+                var keyInfo = ReadKey();
+
+                if (keyInfo.Key == ConsoleKey.Enter)
+                {
+                    break;
+                }
+
+                if (keyInfo.Key == ConsoleKey.LeftArrow)
+                {
+                    if (startIndex > 0)
+                    {
+                        startIndex -= 1;
+
+                        Console.CursorLeft -= 1;
+                    }
+                    else
+                    {
+                        Beep();
+                    }
+                }
+                else if (keyInfo.Key == ConsoleKey.RightArrow)
+                {
+                    if (startIndex < inputBuffer.Length)
+                    {
+                        startIndex += 1;
+
+                        Console.CursorLeft += 1;
+                    }
+                    else
+                    {
+                        Beep();
+                    }
+                }
+                else if (keyInfo.Key == ConsoleKey.Backspace)
+                {
+                    if (startIndex > 0)
+                    {
+                        startIndex -= 1;
+
+                        inputBuffer.Remove(startIndex, 1);
+
+                        Console.CursorLeft -= 1;
+
+                        var (left, top) = GetCursorPosition();
+
+                        for (int i = startIndex; i < inputBuffer.Length; i++)
+                        {
+                            Console.Write(inputBuffer[i]);
+                        }
+
+                        Console.Write(' ');
+
+                        SetCursorPosition(left, top);
+                    }
+                    else
+                    {
+                        Beep();
+                    }
+                }
+                else if (keyInfo.Key == ConsoleKey.Delete)
+                {
+                    if (startIndex < inputBuffer.Length)
+                    {
+                        inputBuffer.Remove(startIndex, 1);
+
+                        var (left, top) = GetCursorPosition();
+
+                        for (int i = startIndex; i < inputBuffer.Length; i++)
+                        {
+                            Console.Write(inputBuffer[i]);
+                        }
+
+                        Console.Write(' ');
+
+                        SetCursorPosition(left, top);
+                    }
+                    else
+                    {
+                        Beep();
+                    }
+                }
+                else if (!char.IsControl(keyInfo.KeyChar))
+                {
+                    inputBuffer.Insert(startIndex, keyInfo.KeyChar);
+
+                    startIndex += 1;
+
+                    Console.Write(keyInfo.KeyChar);
+
+                    var (left, top) = GetCursorPosition();
+
+                    for (int i = startIndex; i < inputBuffer.Length; i++)
+                    {
+                        Console.Write(inputBuffer[i]);
+                    }
+
+                    SetCursorPosition(left, top);
+                }
             }
 
-            return line;
+            return inputBuffer.ToString();
         }
 
         public virtual int Write(string value)
         {
-            var writtenLines = (Console.CursorLeft + value.Length) / Console.BufferWidth;
+            var writtenLines = (CursorLeft + value.Length) / Console.BufferWidth;
 
             Console.Write(value);
 
@@ -80,10 +179,9 @@ namespace Sharprompt.Drivers
             return 1;
         }
 
-        public virtual void SetCursorPosition(int left, int top)
-        {
-            Console.SetCursorPosition(left, top);
-        }
+        public (int left, int top) GetCursorPosition() => (Console.CursorLeft, Console.CursorTop);
+
+        public virtual void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);
 
         public virtual bool CursorVisible
         {
