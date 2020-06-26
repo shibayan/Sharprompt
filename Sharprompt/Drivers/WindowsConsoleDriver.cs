@@ -10,6 +10,8 @@ namespace Sharprompt.Drivers
             Console.SetCursorPosition(0, top);
 
             FillConsoleOutputCharacter(GetStdHandle(-11), ' ', Console.BufferWidth, new COORD { X = 0, Y = (short)top }, out _);
+
+            Console.SetCursorPosition(0, top);
         }
 
         [DllImport("kernel32.dll")]

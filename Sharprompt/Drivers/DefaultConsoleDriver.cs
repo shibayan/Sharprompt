@@ -34,6 +34,8 @@ namespace Sharprompt.Drivers
             Console.SetCursorPosition(0, top);
 
             Console.Write("\x1b[2K");
+
+            Console.SetCursorPosition(0, top);
         }
 
         public virtual ConsoleKeyInfo ReadKey() => Console.ReadKey(true);
@@ -86,9 +88,9 @@ namespace Sharprompt.Drivers
 
                         inputBuffer.Remove(startIndex, 1);
 
-                        var left = Console.CursorLeft - 1;
+                        Console.CursorLeft -= 1;
 
-                        Console.CursorLeft = left;
+                        var (left, top) = GetCursorPosition();
 
                         for (int i = startIndex; i < inputBuffer.Length; i++)
                         {
@@ -97,7 +99,7 @@ namespace Sharprompt.Drivers
 
                         Console.Write(' ');
 
-                        Console.CursorLeft = left;
+                        SetCursorPosition(left, top);
                     }
                     else
                     {
@@ -110,9 +112,7 @@ namespace Sharprompt.Drivers
                     {
                         inputBuffer.Remove(startIndex, 1);
 
-                        var left = Console.CursorLeft;
-
-                        Console.CursorLeft = left;
+                        var (left, top) = GetCursorPosition();
 
                         for (int i = startIndex; i < inputBuffer.Length; i++)
                         {
@@ -121,7 +121,7 @@ namespace Sharprompt.Drivers
 
                         Console.Write(' ');
 
-                        Console.CursorLeft = left;
+                        SetCursorPosition(left, top);
                     }
                     else
                     {
@@ -136,16 +136,14 @@ namespace Sharprompt.Drivers
 
                     Console.Write(keyInfo.KeyChar);
 
-                    var left = Console.CursorLeft;
-
-                    Console.CursorLeft = left;
+                    var (left, top) = GetCursorPosition();
 
                     for (int i = startIndex; i < inputBuffer.Length; i++)
                     {
                         Console.Write(inputBuffer[i]);
                     }
 
-                    Console.CursorLeft = left;
+                    SetCursorPosition(left, top);
                 }
             }
 
@@ -179,6 +177,11 @@ namespace Sharprompt.Drivers
             Console.WriteLine();
 
             return 1;
+        }
+
+        public (int left, int top) GetCursorPosition()
+        {
+            return (Console.CursorLeft, Console.CursorTop);
         }
 
         public virtual void SetCursorPosition(int left, int top)

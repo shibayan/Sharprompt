@@ -99,14 +99,14 @@ namespace Sharprompt.Forms
 
         private void ClearAll()
         {
-            var bottom = _consoleDriver.CursorTop + _writtenErrorLines;
+            var (_, top) = _consoleDriver.GetCursorPosition();
+
+            var bottom = top + _writtenErrorLines;
 
             for (int i = 0; i <= _writtenLines + _writtenErrorLines; i++)
             {
                 _consoleDriver.ClearLine(bottom - i);
             }
-
-            _consoleDriver.SetCursorPosition(0, _consoleDriver.CursorTop);
 
             _writtenLines = 0;
             _writtenErrorLines = 0;
@@ -114,7 +114,7 @@ namespace Sharprompt.Forms
 
         private void WriteErrorMessage(string errorMessage)
         {
-            var left = _consoleDriver.CursorLeft;
+            var (left, _) = _consoleDriver.GetCursorPosition();
 
             var writtenErrorLines = _consoleDriver.WriteLine();
 
