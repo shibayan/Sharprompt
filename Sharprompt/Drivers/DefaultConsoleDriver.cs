@@ -40,8 +40,8 @@ namespace Sharprompt.Drivers
 
         public virtual string ReadLine()
         {
-            int cursor = 0;
-            var buffer = new StringBuilder();
+            int startIndex = 0;
+            var inputBuffer = new StringBuilder();
 
             while (true)
             {
@@ -54,39 +54,74 @@ namespace Sharprompt.Drivers
 
                 if (keyInfo.Key == ConsoleKey.LeftArrow)
                 {
-                    if (cursor == 0)
+                    if (startIndex > 0)
                     {
-                        Console.Beep();
+                        startIndex -= 1;
+
+                        Console.CursorLeft -= 1;
                     }
                     else
                     {
-                        Console.CursorLeft -= 1;
-                        cursor -= 1;
+                        Beep();
                     }
                 }
                 else if (keyInfo.Key == ConsoleKey.RightArrow)
                 {
-                    if (cursor == buffer.Length)
+                    if (startIndex < inputBuffer.Length)
                     {
-                        Console.Beep();
+                        startIndex += 1;
+
+                        Console.CursorLeft += 1;
                     }
                     else
                     {
-                        Console.CursorLeft += 1;
-                        cursor += 1;
+                        Beep();
                     }
                 }
                 else if (keyInfo.Key == ConsoleKey.Backspace)
                 {
-                    if (buffer.Length > 0)
+                    if (startIndex > 0)
                     {
-                        Console.CursorLeft -= 1;
-                        Console.Write(" ");
+                        startIndex -= 1;
 
-                        Console.CursorLeft -= 1;
-                        cursor -= 1;
+                        inputBuffer.Remove(startIndex, 1);
 
-                        buffer.Length -= 1;
+                        var left = Console.CursorLeft - 1;
+
+                        Console.CursorLeft = left;
+
+                        for (int i = startIndex; i < inputBuffer.Length; i++)
+                        {
+                            Console.Write(inputBuffer[i]);
+                        }
+
+                        Console.Write(' ');
+
+                        Console.CursorLeft = left;
+                    }
+                    else
+                    {
+                        Beep();
+                    }
+                }
+                else if (keyInfo.Key == ConsoleKey.Delete)
+                {
+                    if (startIndex < inputBuffer.Length)
+                    {
+                        inputBuffer.Remove(startIndex, 1);
+
+                        var left = Console.CursorLeft;
+
+                        Console.CursorLeft = left;
+
+                        for (int i = startIndex; i < inputBuffer.Length; i++)
+                        {
+                            Console.Write(inputBuffer[i]);
+                        }
+
+                        Console.Write(' ');
+
+                        Console.CursorLeft = left;
                     }
                     else
                     {
@@ -95,15 +130,26 @@ namespace Sharprompt.Drivers
                 }
                 else if (!char.IsControl(keyInfo.KeyChar))
                 {
+                    inputBuffer.Insert(startIndex, keyInfo.KeyChar);
+
+                    startIndex += 1;
+
                     Console.Write(keyInfo.KeyChar);
 
-                    buffer.Insert(cursor, keyInfo.KeyChar);
+                    var left = Console.CursorLeft;
 
-                    cursor += 1;
+                    Console.CursorLeft = left;
+
+                    for (int i = startIndex; i < inputBuffer.Length; i++)
+                    {
+                        Console.Write(inputBuffer[i]);
+                    }
+
+                    Console.CursorLeft = left;
                 }
             }
 
-            return buffer.ToString();
+            return inputBuffer.ToString();
         }
 
         public virtual int Write(string value)
