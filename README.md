@@ -85,6 +85,13 @@ Console.WriteLine($"Hello, {city}!");
 
 ![select](https://user-images.githubusercontent.com/1356444/62228719-2de93e80-b3f9-11e9-8be5-f19e6ef58aeb.gif)
 
+**Enum support**
+
+```csharp
+var value = Prompt.Select<MyEnum>("Select enum value");
+Console.WriteLine($"You selected {value}");
+```
+
 ### MultiSelect
 
 ```csharp
@@ -93,6 +100,7 @@ Console.WriteLine($"You picked {string.Join(", ", options)}");
 ```
 
 ## Custom Prompter
+
 ```csharp
 Prompt.ColorSchema.Answer = ConsoleColor.DarkRed;
 Prompt.ColorSchema.Select = ConsoleColor.DarkCyan;
