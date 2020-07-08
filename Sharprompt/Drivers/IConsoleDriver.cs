@@ -17,5 +17,6 @@ namespace Sharprompt.Drivers
         bool CursorVisible { get; set; }
         int CursorLeft { get; }
         int CursorTop { get; }
+        bool IsUnicodeSupported { get; }
     }
 }
