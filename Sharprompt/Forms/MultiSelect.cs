@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -150,27 +150,30 @@ namespace Sharprompt.Forms
                 {
                     if (_selectedItems.Contains(item))
                     {
-                        formRenderer.Write($"> [x] {value}", Prompt.ColorSchema.Select);
+                        formRenderer.Write($"{Symbol.Selector} {Symbol.Selected} {value}", Prompt.ColorSchema.Select);
                     }
                     else
                     {
-                        formRenderer.Write($"> [ ] {value}", Prompt.ColorSchema.Select);
+                        formRenderer.Write($"{Symbol.Selector} {Symbol.NotSelect} {value}", Prompt.ColorSchema.Select);
                     }
-                }
-                else if (_selectedItems.Contains(item))
-                {
-                    formRenderer.Write($"  [x] {value}", Prompt.ColorSchema.Select);
                 }
                 else
                 {
-                    formRenderer.Write($"  [ ] {value}");
+                    if (_selectedItems.Contains(item))
+                    {
+                        formRenderer.Write($"  {Symbol.Selected} {value}", Prompt.ColorSchema.Select);
+                    }
+                    else
+                    {
+                        formRenderer.Write($"  {Symbol.NotSelect} {value}");
+                    }
                 }
             }
         }
 
         protected override void FinishTemplate(FormRenderer formRenderer, IEnumerable<T> result)
         {
-            formRenderer.WriteMessage(_message);
+            formRenderer.WriteFinishMessage(_message);
             formRenderer.Write(result.Select(_valueSelector).Join(", "), Prompt.ColorSchema.Answer);
         }
     }

@@ -76,7 +76,7 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(FormRenderer formRenderer, T result)
         {
-            formRenderer.WriteMessage(_message);
+            formRenderer.WriteFinishMessage(_message);
 
             if (result != null)
             {

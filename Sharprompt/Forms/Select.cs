@@ -94,7 +94,7 @@ namespace Sharprompt.Forms
 
                 if (_selector.IsSelected && EqualityComparer<T>.Default.Equals(item, _selector.SelectedItem))
                 {
-                    formRenderer.Write($"> {value}", Prompt.ColorSchema.Select);
+                    formRenderer.Write($"{Symbol.Selector} {value}", Prompt.ColorSchema.Select);
                 }
                 else
                 {
@@ -105,7 +105,7 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(FormRenderer formRenderer, T result)
         {
-            formRenderer.WriteMessage(_message);
+            formRenderer.WriteFinishMessage(_message);
             formRenderer.Write(_valueSelector(result), Prompt.ColorSchema.Answer);
         }
     }
