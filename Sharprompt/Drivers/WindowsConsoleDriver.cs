@@ -14,8 +14,6 @@ namespace Sharprompt.Drivers
             SetCursorPosition(0, top);
         }
 
-        public override bool IsUnicodeSupported => Console.OutputEncoding.CodePage == 1200 || Console.OutputEncoding.CodePage == 65001;
-
         [DllImport("kernel32.dll")]
         private static extern IntPtr GetStdHandle(int nStdHandle);
 

@@ -70,7 +70,7 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(FormRenderer formRenderer, bool result)
         {
-            formRenderer.WriteMessage(_message);
+            formRenderer.WriteFinishMessage(_message);
             formRenderer.Write(result ? "Yes" : "No", Prompt.ColorSchema.Answer);
         }
     }

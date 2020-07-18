@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 
 using Sharprompt.Drivers;
+using Sharprompt.Internal;
 using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
@@ -49,7 +50,13 @@ namespace Sharprompt.Forms
 
         public void WriteMessage(string message)
         {
-            _writtenLines += _consoleDriver.Write("?", ConsoleColor.Green);
+            _writtenLines += _consoleDriver.Write(Symbol.Prompt, ConsoleColor.Green);
+            _writtenLines += _consoleDriver.Write($" {message}: ");
+        }
+
+        public void WriteFinishMessage(string message)
+        {
+            _writtenLines += _consoleDriver.Write(Symbol.Done, ConsoleColor.Green);
             _writtenLines += _consoleDriver.Write($" {message}: ");
         }
 
@@ -118,7 +125,7 @@ namespace Sharprompt.Forms
 
             var writtenErrorLines = _consoleDriver.WriteLine();
 
-            writtenErrorLines += _consoleDriver.Write($">> {errorMessage}", ConsoleColor.Red);
+            writtenErrorLines += _consoleDriver.Write($"{Symbol.Error} {errorMessage}", ConsoleColor.Red);
 
             _consoleDriver.SetCursorPosition(left, _consoleDriver.CursorTop - writtenErrorLines);
 

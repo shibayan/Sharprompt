@@ -193,8 +193,6 @@ namespace Sharprompt.Drivers
 
         public virtual int CursorTop => Console.CursorTop;
 
-        public virtual bool IsUnicodeSupported => true;
-
         #endregion
     }
 }

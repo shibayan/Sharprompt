@@ -60,5 +60,11 @@ namespace Sharprompt.Forms
             formRenderer.WriteMessage(_message);
             formRenderer.Write(new string('*', _inputBuffer.Length));
         }
+
+        protected override void FinishTemplate(FormRenderer formRenderer, string result)
+        {
+            formRenderer.WriteFinishMessage(_message);
+            formRenderer.Write(new string('*', _inputBuffer.Length), Prompt.ColorSchema.Answer);
+        }
     }
 }
