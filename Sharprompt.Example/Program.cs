@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 
 using Sharprompt.Validations;
 
@@ -9,6 +10,8 @@ namespace Sharprompt.Example
     {
         static void Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
+
             RunInputSample();
 
             RunSelectSample();

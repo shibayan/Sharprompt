@@ -11,7 +11,7 @@ Interactive command line interface toolkit for .NET Core
 
 Package Name | Target Framework | NuGet
 ---|---|---
-Sharprompt | .NET Standard 2.0 | [![NuGet](https://img.shields.io/nuget/vpre/Sharprompt.svg)](https://www.nuget.org/packages/Sharprompt/2.0.0-preview3)
+Sharprompt | .NET Standard 2.0 | [![NuGet](https://img.shields.io/nuget/vpre/Sharprompt.svg)](https://www.nuget.org/packages/Sharprompt/2.0.0-preview4)
 
 ## Install
 
@@ -20,7 +20,7 @@ Install-Package Sharprompt -Pre
 ```
 
 ```
-dotnet add package Sharprompt --version 2.0.0-preview3
+dotnet add package Sharprompt --version 2.0.0-preview4
 ```
 
 ## Features
@@ -85,7 +85,7 @@ Console.WriteLine($"Hello, {city}!");
 
 ![select](https://user-images.githubusercontent.com/1356444/62228719-2de93e80-b3f9-11e9-8be5-f19e6ef58aeb.gif)
 
-**Enum support**
+**Enum value support**
 
 ```csharp
 var value = Prompt.Select<MyEnum>("Select enum value");
@@ -99,12 +99,23 @@ var cities = Prompt.MultiSelect("Which cities would you like to visit?", new[] {
 Console.WriteLine($"You picked {string.Join(", ", options)}");
 ```
 
-## Custom Prompter
+## Configuration
+
+### Custom Prompter
 
 ```csharp
 Prompt.ColorSchema.Answer = ConsoleColor.DarkRed;
 Prompt.ColorSchema.Select = ConsoleColor.DarkCyan;
-Prompt.ColorSchema.DisabledOption = ConsoleColor.DarkGray;
+
+var name = Prompt.Input<string>("What's your name?");
+Console.WriteLine($"Hello, {name}!");
+```
+
+### Unicode Support
+
+```csharp
+// Prefer UTF-8 as the output encoding
+Console.OutputEncoding = Encoding.UTF8;
 
 var name = Prompt.Input<string>("What's your name?");
 Console.WriteLine($"Hello, {name}!");
