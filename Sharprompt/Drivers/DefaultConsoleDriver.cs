@@ -5,11 +5,18 @@ namespace Sharprompt.Drivers
 {
     internal class DefaultConsoleDriver : IConsoleDriver
     {
+        public DefaultConsoleDriver()
+        {
+            Console.CancelKeyPress += RequestCancellation;
+        }
+
         #region IDisposable
 
         public virtual void Dispose()
         {
             Reset();
+
+            Console.CancelKeyPress -= RequestCancellation;
         }
 
         #endregion
@@ -194,5 +201,10 @@ namespace Sharprompt.Drivers
         public virtual int CursorTop => Console.CursorTop;
 
         #endregion
+
+        private void RequestCancellation(object sender, ConsoleCancelEventArgs e)
+        {
+            Reset();
+        }
     }
 }
