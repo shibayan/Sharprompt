@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Text;
 
+using Sharprompt.Internal;
+
 namespace Sharprompt.Drivers
 {
     internal class DefaultConsoleDriver : IConsoleDriver
@@ -67,7 +69,7 @@ namespace Sharprompt.Drivers
                     {
                         startIndex -= 1;
 
-                        Console.CursorLeft -= 1;
+                        Console.CursorLeft -= EastAsianWidth.GetWidth(inputBuffer[startIndex]);
                     }
                     else
                     {
@@ -78,9 +80,9 @@ namespace Sharprompt.Drivers
                 {
                     if (startIndex < inputBuffer.Length)
                     {
-                        startIndex += 1;
+                        Console.CursorLeft += EastAsianWidth.GetWidth(inputBuffer[startIndex]);
 
-                        Console.CursorLeft += 1;
+                        startIndex += 1;
                     }
                     else
                     {
@@ -93,9 +95,11 @@ namespace Sharprompt.Drivers
                     {
                         startIndex -= 1;
 
-                        inputBuffer.Remove(startIndex, 1);
+                        var width = EastAsianWidth.GetWidth(inputBuffer[startIndex]);
 
-                        Console.CursorLeft -= 1;
+                        Console.CursorLeft -= width;
+
+                        inputBuffer.Remove(startIndex, 1);
 
                         var (left, top) = GetCursorPosition();
 
@@ -104,7 +108,7 @@ namespace Sharprompt.Drivers
                             Console.Write(inputBuffer[i]);
                         }
 
-                        Console.Write(' ');
+                        Console.Write(width == 1 ? " " : "  ");
 
                         SetCursorPosition(left, top);
                     }
@@ -117,6 +121,8 @@ namespace Sharprompt.Drivers
                 {
                     if (startIndex < inputBuffer.Length)
                     {
+                        var width = EastAsianWidth.GetWidth(inputBuffer[startIndex]);
+
                         inputBuffer.Remove(startIndex, 1);
 
                         var (left, top) = GetCursorPosition();
@@ -126,7 +132,7 @@ namespace Sharprompt.Drivers
                             Console.Write(inputBuffer[i]);
                         }
 
-                        Console.Write(' ');
+                        Console.Write(width == 1 ? " " : "  ");
 
                         SetCursorPosition(left, top);
                     }
