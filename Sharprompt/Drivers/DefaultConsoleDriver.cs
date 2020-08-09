@@ -69,7 +69,17 @@ namespace Sharprompt.Drivers
                     {
                         startIndex -= 1;
 
-                        Console.CursorLeft -= EastAsianWidth.GetWidth(inputBuffer[startIndex]);
+                        var width = EastAsianWidth.GetWidth(inputBuffer[startIndex]);
+
+                        if (Console.CursorLeft - width < 0)
+                        {
+                            Console.CursorTop -= 1;
+                            Console.CursorLeft = Console.BufferWidth - 1;
+                        }
+                        else
+                        {
+                            Console.CursorLeft -= width;
+                        }
                     }
                     else
                     {
@@ -80,7 +90,17 @@ namespace Sharprompt.Drivers
                 {
                     if (startIndex < inputBuffer.Length)
                     {
-                        Console.CursorLeft += EastAsianWidth.GetWidth(inputBuffer[startIndex]);
+                        var width = EastAsianWidth.GetWidth(inputBuffer[startIndex]);
+
+                        if (Console.CursorLeft + width >= Console.BufferWidth)
+                        {
+                            Console.CursorTop += 1;
+                            Console.CursorLeft = 0;
+                        }
+                        else
+                        {
+                            Console.CursorLeft += width;
+                        }
 
                         startIndex += 1;
                     }
@@ -165,7 +185,7 @@ namespace Sharprompt.Drivers
 
         public virtual int Write(string value)
         {
-            var writtenLines = (CursorLeft + value.Length) / Console.BufferWidth;
+            var writtenLines = (CursorLeft + EastAsianWidth.GetWidth(value)) / Console.BufferWidth;
 
             Console.Write(value);
 
@@ -192,9 +212,19 @@ namespace Sharprompt.Drivers
             return 1;
         }
 
-        public (int left, int top) GetCursorPosition() => (Console.CursorLeft, Console.CursorTop);
+        public (int left, int top) GetCursorPosition()
+        {
+            CursorVisible = false;
 
-        public virtual void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);
+            return (Console.CursorLeft, Console.CursorTop);
+        }
+
+        public virtual void SetCursorPosition(int left, int top)
+        {
+            Console.SetCursorPosition(left, top);
+
+            CursorVisible = true;
+        }
 
         public virtual bool CursorVisible
         {
