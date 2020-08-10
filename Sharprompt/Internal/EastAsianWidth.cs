@@ -1,4 +1,7 @@
-﻿namespace Sharprompt.Internal
+﻿using System.Globalization;
+using System.Linq;
+
+namespace Sharprompt.Internal
 {
     internal static class EastAsianWidth
     {
@@ -9,14 +12,7 @@
 
         public static int GetWidth(string value)
         {
-            int width = 0;
-
-            for (int i = 0; i < value.Length; i++)
-            {
-                width += GetWidth(value[i]);
-            }
-
-            return width;
+            return value.Sum(x => GetWidth(x));
         }
 
         public static bool IsFullWidth(int codePoint)
@@ -46,7 +42,7 @@
                     continue;
                 }
 
-                return true;
+                return !range.Ambiguous || IsEastAsianLanguage;
             }
 
             return false;
@@ -67,6 +63,10 @@
 
             public bool Ambiguous { get; }
         }
+
+        private static bool IsEastAsianLanguage => _languages.Contains(CultureInfo.CurrentCulture.TwoLetterISOLanguageName);
+
+        private static readonly string[] _languages = { "ja", "ko", "zh" };
 
         private static readonly EastAsianWidthRange[] _ranges =
         {
