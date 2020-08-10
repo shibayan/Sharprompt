@@ -24,7 +24,7 @@ namespace Sharprompt.Example
 
             RunSelectEnumSample();
 
-            RunFormsSample();
+            RunAutoFormsSample();
         }
 
         private static void RunInputSample()
@@ -63,9 +63,9 @@ namespace Sharprompt.Example
             Console.WriteLine($"You selected {value}");
         }
 
-        private static void RunFormsSample()
+        private static void RunAutoFormsSample()
         {
-            var model = Prompt.Forms<FormModel>();
+            var model = Prompt.AutoForms<FormModel>();
         }
     }
 
