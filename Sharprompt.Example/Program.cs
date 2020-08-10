@@ -1,7 +1,7 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 using System.Text;
 
+using Sharprompt.Example.Models;
 using Sharprompt.Validations;
 
 namespace Sharprompt.Example
@@ -67,33 +67,5 @@ namespace Sharprompt.Example
         {
             var model = Prompt.AutoForms<FormModel>();
         }
-    }
-
-    public class FormModel
-    {
-        [Display(Description = "What's your name?", Order = 1)]
-        public string Name { get; set; }
-
-        [Display(Description = "Select enum value", Order = 2)]
-        public MyEnum MyEnum { get; set; }
-
-        [Display(Description = "Type new password", Order = 3)]
-        [DataType(DataType.Password)]
-        public string Password { get; set; }
-
-        [Display(Description = "Are you ready?", Order = 4)]
-        public bool Ready { get; set; }
-    }
-
-    public enum MyEnum
-    {
-        [Display(Name = "Foo value")]
-        Foo,
-
-        [Display(Name = "Bar value")]
-        Bar,
-
-        [Display(Name = "Baz value")]
-        Baz
     }
 }

@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Reflection;
 
 using Sharprompt.Forms;
 using Sharprompt.Internal;
-
-using ValidationResult = Sharprompt.Validations.ValidationResult;
+using Sharprompt.Validations;
 
 namespace Sharprompt
 {
