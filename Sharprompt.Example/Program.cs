@@ -23,6 +23,8 @@ namespace Sharprompt.Example
             RunMultiSelectSample();
 
             RunSelectEnumSample();
+
+            RunFormsSample();
         }
 
         private static void RunInputSample()
@@ -61,16 +63,37 @@ namespace Sharprompt.Example
             Console.WriteLine($"You selected {value}");
         }
 
-        public enum MyEnum
+        private static void RunFormsSample()
         {
-            [Display(Name = "Foo value")]
-            Foo,
-
-            [Display(Name = "Bar value")]
-            Bar,
-
-            [Display(Name = "Baz value")]
-            Baz
+            var model = Prompt.Forms<FormModel>();
         }
+    }
+
+    public class FormModel
+    {
+        [Display(Description = "What's your name?", Order = 1)]
+        public string Name { get; set; }
+
+        [Display(Description = "Select enum value", Order = 2)]
+        public MyEnum MyEnum { get; set; }
+
+        [Display(Description = "Type new password", Order = 3)]
+        [DataType(DataType.Password)]
+        public string Password { get; set; }
+
+        [Display(Description = "Are you ready?", Order = 4)]
+        public bool Ready { get; set; }
+    }
+
+    public enum MyEnum
+    {
+        [Display(Name = "Foo value")]
+        Foo,
+
+        [Display(Name = "Bar value")]
+        Bar,
+
+        [Display(Name = "Baz value")]
+        Baz
     }
 }

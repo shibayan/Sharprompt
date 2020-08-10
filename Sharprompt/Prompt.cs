@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Reflection;
 
 using Sharprompt.Forms;
 using Sharprompt.Internal;
-using Sharprompt.Validations;
+
+using ValidationResult = Sharprompt.Validations.ValidationResult;
 
 namespace Sharprompt
 {
@@ -60,6 +64,45 @@ namespace Sharprompt
             using var form = new MultiSelect<T>(message, items, pageSize, minimum, maximum, valueSelector ?? (x => x.ToString()));
 
             return form.Start();
+        }
+
+        public static T Forms<T>() where T : new()
+        {
+            var model = new T();
+
+            var properties = typeof(T).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+            foreach (var propertyInfo in properties.OrderBy(x => x.GetCustomAttribute<DisplayAttribute>()?.GetOrder() ?? 0))
+            {
+                var displayAttribute = propertyInfo.GetCustomAttribute<DisplayAttribute>();
+                var dataTypeAttribute = propertyInfo.GetCustomAttribute<DataTypeAttribute>();
+
+                if (dataTypeAttribute?.DataType == DataType.Password)
+                {
+                    propertyInfo.SetValue(model, Prompt.Password(displayAttribute.Description));
+                }
+                else if (propertyInfo.PropertyType.IsEnum)
+                {
+                    var method = typeof(Prompt).GetMethods()
+                                               .First(x => x.Name == nameof(Select))
+                                               .MakeGenericMethod(propertyInfo.PropertyType);
+
+                    propertyInfo.SetValue(model, method.Invoke(null, new object[] { displayAttribute.Description, null, null, null }));
+                }
+                else if (propertyInfo.PropertyType == typeof(bool))
+                {
+                    propertyInfo.SetValue(model, Prompt.Confirm(displayAttribute.Description));
+                }
+                else
+                {
+                    var method = typeof(Prompt).GetMethod(nameof(Input))
+                                               .MakeGenericMethod(propertyInfo.PropertyType);
+
+                    propertyInfo.SetValue(model, method.Invoke(null, new object[] { displayAttribute.Description, null, null }));
+                }
+            }
+
+            return model;
         }
 
         public static class ColorSchema
