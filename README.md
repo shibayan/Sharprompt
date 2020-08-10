@@ -11,7 +11,7 @@ Interactive command line interface toolkit for .NET Core
 
 Package Name | Target Framework | NuGet
 ---|---|---
-Sharprompt | .NET Standard 2.0 | [![NuGet](https://img.shields.io/nuget/vpre/Sharprompt.svg)](https://www.nuget.org/packages/Sharprompt/2.0.0-preview4)
+Sharprompt | .NET Standard 2.0 | [![NuGet](https://img.shields.io/nuget/vpre/Sharprompt.svg)](https://www.nuget.org/packages/Sharprompt/2.0.0-preview5)
 
 ## Install
 
@@ -20,7 +20,7 @@ Install-Package Sharprompt -Pre
 ```
 
 ```
-dotnet add package Sharprompt --version 2.0.0-preview4
+dotnet add package Sharprompt --version 2.0.0-preview5
 ```
 
 ## Features
@@ -28,8 +28,9 @@ dotnet add package Sharprompt --version 2.0.0-preview4
 - Multi-platform support
 - Supports the popular Prompts (Input / Password / Select / etc)
 - Validation of input value
-- Automatic generation of data source using Enum
+- Automatic generation of data source using Enum value
 - Customize the color scheme
+- Unicode support (East asian width and Emoji)
 
 ## Usage
 
@@ -112,6 +113,8 @@ Console.WriteLine($"Hello, {name}!");
 ```
 
 ### Unicode Support
+
+![unicode](https://user-images.githubusercontent.com/1356444/89803983-86a3f900-db6e-11ea-8fc8-5b6f9ef5644f.gif)
 
 ```csharp
 // Prefer UTF-8 as the output encoding
