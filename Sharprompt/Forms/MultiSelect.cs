@@ -40,8 +40,6 @@ namespace Sharprompt.Forms
         private readonly IList<T> _selectedItems = new List<T>();
         private readonly StringBuilder _filterBuffer = new StringBuilder();
 
-        private bool _showConfirm;
-
         protected override bool TryGetResult(out IEnumerable<T> result)
         {
             var keyInfo = Renderer.ReadKey();
@@ -75,16 +73,6 @@ namespace Sharprompt.Forms
                 else
                 {
                     _selectedItems.Add(currentItem);
-                }
-
-                // If we have reached the limit, determine which items should not be selected anymore
-                if (_maximum == _selectedItems.Count)
-                {
-                    _showConfirm = true;
-                }
-                else
-                {
-                    _showConfirm = _selectedItems.Count >= _minimum;
                 }
             }
             else if (keyInfo.Key == ConsoleKey.UpArrow)
@@ -133,9 +121,9 @@ namespace Sharprompt.Forms
             formRenderer.WriteMessage(_message);
             formRenderer.Write(_selector.FilterTerm);
 
-            if (_showConfirm && string.IsNullOrEmpty(_selector.FilterTerm))
+            if (string.IsNullOrEmpty(_selector.FilterTerm))
             {
-                formRenderer.Write(" Press Spacebar to Toggle", Prompt.ColorSchema.Answer);
+                formRenderer.Write(" Hit space to select", Prompt.ColorSchema.Answer);
             }
 
             var subset = _selector.ToSubset();
