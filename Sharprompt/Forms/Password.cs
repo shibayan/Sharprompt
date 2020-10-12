@@ -31,8 +31,6 @@ namespace Sharprompt.Forms
                 {
                     return true;
                 }
-
-                _inputBuffer.Clear();
             }
             else if (keyInfo.Key == ConsoleKey.Backspace)
             {

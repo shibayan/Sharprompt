@@ -38,6 +38,13 @@ namespace Sharprompt.Forms
 
         public string ReadLine() => _consoleDriver.ReadLine();
 
+        public (int left, int top) GetCursorPosition() => _consoleDriver.GetCursorPosition();
+
+        public void SetCursorPosition(int left, int top)
+        {
+            _consoleDriver.SetCursorPosition(left, top);
+        }
+
         public void Write(string value)
         {
             _writtenLines += _consoleDriver.Write(value);
