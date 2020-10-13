@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
+using Sharprompt.Internal;
 using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
@@ -27,7 +29,7 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out T result)
         {
-            var keyInfo = Renderer.ReadKey();
+            var keyInfo = ConsoleDriver.ReadKey();
 
             if (keyInfo.Key == ConsoleKey.Enter)
             {
@@ -75,7 +77,7 @@ namespace Sharprompt.Forms
                 }
                 else
                 {
-                    Renderer.Beep();
+                    ConsoleDriver.Beep();
                 }
             }
             else if (keyInfo.Key == ConsoleKey.RightArrow)
@@ -86,7 +88,7 @@ namespace Sharprompt.Forms
                 }
                 else
                 {
-                    Renderer.Beep();
+                    ConsoleDriver.Beep();
                 }
             }
             else if (keyInfo.Key == ConsoleKey.Backspace)
@@ -99,7 +101,7 @@ namespace Sharprompt.Forms
                 }
                 else
                 {
-                    Renderer.Beep();
+                    ConsoleDriver.Beep();
                 }
             }
             else if (keyInfo.Key == ConsoleKey.Delete)
@@ -110,7 +112,7 @@ namespace Sharprompt.Forms
                 }
                 else
                 {
-                    Renderer.Beep();
+                    ConsoleDriver.Beep();
                 }
             }
             else if (!char.IsControl(keyInfo.KeyChar))
@@ -134,11 +136,15 @@ namespace Sharprompt.Forms
                 formRenderer.Write($"({_defaultValue}) ");
             }
 
-            var (left, top) = Renderer.GetCursorPosition();
+            var (left, top) = ConsoleDriver.GetCursorPosition();
 
-            formRenderer.Write(_inputBuffer.ToString());
+            var input = _inputBuffer.ToString();
 
-            Renderer.SetCursorPosition(left + _startIndex, top);
+            formRenderer.Write(input);
+
+            var width = EastAsianWidth.GetWidth(input.Take(_startIndex)) + left;
+
+            ConsoleDriver.SetCursorPosition(width % ConsoleDriver.BufferWidth, top + (width / ConsoleDriver.BufferWidth));
         }
 
         protected override void FinishTemplate(FormRenderer formRenderer, T result)

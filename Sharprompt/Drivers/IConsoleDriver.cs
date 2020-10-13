@@ -17,5 +17,7 @@ namespace Sharprompt.Drivers
         bool CursorVisible { get; set; }
         int CursorLeft { get; }
         int CursorTop { get; }
+        int BufferWidth { get; }
+        int BufferHeight { get; }
     }
 }

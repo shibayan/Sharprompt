@@ -13,63 +13,48 @@ namespace Sharprompt.Forms
         {
             _cursorVisible = cursorVisible;
 
-            _consoleDriver = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? new WindowsConsoleDriver() : new DefaultConsoleDriver();
+            ConsoleDriver = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? new WindowsConsoleDriver() : new DefaultConsoleDriver();
         }
 
         private readonly bool _cursorVisible;
-        private readonly IConsoleDriver _consoleDriver;
 
         private int _writtenLines;
         private int _writtenErrorLines;
 
         private string _errorMessage;
 
+        public IConsoleDriver ConsoleDriver { get; }
+
         public void Dispose()
         {
-            _consoleDriver.Dispose();
-        }
-
-        public void Beep()
-        {
-            _consoleDriver.Beep();
-        }
-
-        public ConsoleKeyInfo ReadKey() => _consoleDriver.ReadKey();
-
-        public string ReadLine() => _consoleDriver.ReadLine();
-
-        public (int left, int top) GetCursorPosition() => _consoleDriver.GetCursorPosition();
-
-        public void SetCursorPosition(int left, int top)
-        {
-            _consoleDriver.SetCursorPosition(left, top);
+            ConsoleDriver.Dispose();
         }
 
         public void Write(string value)
         {
-            _writtenLines += _consoleDriver.Write(value);
+            _writtenLines += ConsoleDriver.Write(value);
         }
 
         public void Write(string value, ConsoleColor color)
         {
-            _writtenLines += _consoleDriver.Write(value, color);
+            _writtenLines += ConsoleDriver.Write(value, color);
         }
 
         public void WriteMessage(string message)
         {
-            _writtenLines += _consoleDriver.Write(Symbol.Prompt, ConsoleColor.Green);
-            _writtenLines += _consoleDriver.Write($" {message}: ");
+            _writtenLines += ConsoleDriver.Write(Symbol.Prompt, ConsoleColor.Green);
+            _writtenLines += ConsoleDriver.Write($" {message}: ");
         }
 
         public void WriteFinishMessage(string message)
         {
-            _writtenLines += _consoleDriver.Write(Symbol.Done, ConsoleColor.Green);
-            _writtenLines += _consoleDriver.Write($" {message}: ");
+            _writtenLines += ConsoleDriver.Write(Symbol.Done, ConsoleColor.Green);
+            _writtenLines += ConsoleDriver.Write($" {message}: ");
         }
 
         public void WriteLine()
         {
-            _writtenLines += _consoleDriver.WriteLine();
+            _writtenLines += ConsoleDriver.WriteLine();
         }
 
         public void SetValidationResult(ValidationResult result)
@@ -84,7 +69,7 @@ namespace Sharprompt.Forms
 
         public void Render(Action<FormRenderer> template)
         {
-            _consoleDriver.CursorVisible = false;
+            ConsoleDriver.CursorVisible = false;
 
             ClearAll();
 
@@ -97,29 +82,29 @@ namespace Sharprompt.Forms
                 _errorMessage = null;
             }
 
-            _consoleDriver.CursorVisible = _cursorVisible;
+            ConsoleDriver.CursorVisible = _cursorVisible;
         }
 
         public void Render<TModel>(Action<FormRenderer, TModel> template, TModel result)
         {
-            _consoleDriver.CursorVisible = false;
+            ConsoleDriver.CursorVisible = false;
 
             ClearAll();
 
             template(this, result);
 
-            _consoleDriver.CursorVisible = _cursorVisible;
+            ConsoleDriver.CursorVisible = _cursorVisible;
         }
 
         private void ClearAll()
         {
-            var (_, top) = _consoleDriver.GetCursorPosition();
+            var top = ConsoleDriver.CursorTop;
 
             var bottom = top + _writtenErrorLines;
 
             for (int i = 0; i <= _writtenLines + _writtenErrorLines; i++)
             {
-                _consoleDriver.ClearLine(bottom - i);
+                ConsoleDriver.ClearLine(bottom - i);
             }
 
             _writtenLines = 0;
@@ -128,13 +113,13 @@ namespace Sharprompt.Forms
 
         private void WriteErrorMessage(string errorMessage)
         {
-            var (left, _) = _consoleDriver.GetCursorPosition();
+            var left = ConsoleDriver.CursorLeft;
 
-            var writtenErrorLines = _consoleDriver.WriteLine();
+            var writtenErrorLines = ConsoleDriver.WriteLine();
 
-            writtenErrorLines += _consoleDriver.Write($"{Symbol.Error} {errorMessage}", ConsoleColor.Red);
+            writtenErrorLines += ConsoleDriver.Write($"{Symbol.Error} {errorMessage}", ConsoleColor.Red);
 
-            _consoleDriver.SetCursorPosition(left, _consoleDriver.CursorTop - writtenErrorLines);
+            ConsoleDriver.SetCursorPosition(left, ConsoleDriver.CursorTop - writtenErrorLines);
 
             _writtenErrorLines += writtenErrorLines;
         }

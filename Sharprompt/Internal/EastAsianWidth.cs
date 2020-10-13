@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace Sharprompt.Internal
@@ -10,7 +11,7 @@ namespace Sharprompt.Internal
             return IsFullWidth(codePoint) ? 2 : 1;
         }
 
-        public static int GetWidth(string value)
+        public static int GetWidth(IEnumerable<char> value)
         {
             return value.Sum(x => GetWidth(x));
         }

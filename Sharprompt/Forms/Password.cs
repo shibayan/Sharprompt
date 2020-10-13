@@ -21,7 +21,7 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out string result)
         {
-            var keyInfo = Renderer.ReadKey();
+            var keyInfo = ConsoleDriver.ReadKey();
 
             if (keyInfo.Key == ConsoleKey.Enter)
             {
@@ -36,7 +36,7 @@ namespace Sharprompt.Forms
             {
                 if (_inputBuffer.Length == 0)
                 {
-                    Renderer.Beep();
+                    ConsoleDriver.Beep();
                 }
                 else
                 {

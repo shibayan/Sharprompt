@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using Sharprompt.Drivers;
 using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
@@ -13,6 +14,8 @@ namespace Sharprompt.Forms
         }
 
         protected FormRenderer Renderer { get; }
+
+        protected IConsoleDriver ConsoleDriver => Renderer.ConsoleDriver;
 
         public void Dispose()
         {

@@ -9,7 +9,7 @@ namespace Sharprompt.Drivers
         {
             SetCursorPosition(0, top);
 
-            FillConsoleOutputCharacter(GetStdHandle(-11), ' ', Console.BufferWidth, new COORD { X = 0, Y = (short)top }, out _);
+            FillConsoleOutputCharacter(GetStdHandle(-11), ' ', BufferWidth, new COORD { X = 0, Y = (short)top }, out _);
 
             SetCursorPosition(0, top);
         }
