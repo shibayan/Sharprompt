@@ -235,6 +235,11 @@ namespace Sharprompt.Drivers
 
         public virtual void SetCursorPosition(int left, int top)
         {
+            if (top >= Console.BufferHeight)
+            {
+                Console.BufferHeight += 1;
+            }
+
             Console.SetCursorPosition(left, top);
         }
 
