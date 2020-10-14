@@ -14,12 +14,12 @@ namespace Sharprompt.Forms
             _cursorVisible = cursorVisible;
 
             ConsoleDriver = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? new WindowsConsoleDriver() : new DefaultConsoleDriver();
+
+            _screenBuffer = new ScreenBuffer(ConsoleDriver);
         }
 
         private readonly bool _cursorVisible;
-
-        private int _writtenLines;
-        private int _writtenErrorLines;
+        private readonly ScreenBuffer _screenBuffer;
 
         private string _errorMessage;
 
@@ -28,33 +28,6 @@ namespace Sharprompt.Forms
         public void Dispose()
         {
             ConsoleDriver.Dispose();
-        }
-
-        public void Write(string value)
-        {
-            _writtenLines += ConsoleDriver.Write(value);
-        }
-
-        public void Write(string value, ConsoleColor color)
-        {
-            _writtenLines += ConsoleDriver.Write(value, color);
-        }
-
-        public void WriteMessage(string message)
-        {
-            _writtenLines += ConsoleDriver.Write(Symbol.Prompt, ConsoleColor.Green);
-            _writtenLines += ConsoleDriver.Write($" {message}: ");
-        }
-
-        public void WriteFinishMessage(string message)
-        {
-            _writtenLines += ConsoleDriver.Write(Symbol.Done, ConsoleColor.Green);
-            _writtenLines += ConsoleDriver.Write($" {message}: ");
-        }
-
-        public void WriteLine()
-        {
-            _writtenLines += ConsoleDriver.WriteLine();
         }
 
         public void SetValidationResult(ValidationResult result)
@@ -67,61 +40,51 @@ namespace Sharprompt.Forms
             _errorMessage = exception.Message;
         }
 
-        public void Render(Action<FormRenderer> template)
+        public void Render(Action<ScreenBuffer> template)
         {
             ConsoleDriver.CursorVisible = false;
 
             ClearAll();
 
-            template(this);
+            template(_screenBuffer);
 
             if (_errorMessage != null)
             {
-                WriteErrorMessage(_errorMessage);
+                _screenBuffer.WriteErrorMessage(_errorMessage);
 
                 _errorMessage = null;
             }
 
+            _screenBuffer.RenderToConsole();
+
             ConsoleDriver.CursorVisible = _cursorVisible;
         }
 
-        public void Render<TModel>(Action<FormRenderer, TModel> template, TModel result)
+        public void Render<TModel>(Action<ScreenBuffer, TModel> template, TModel result)
         {
             ConsoleDriver.CursorVisible = false;
 
             ClearAll();
 
-            template(this, result);
+            template(_screenBuffer, result);
+
+            _screenBuffer.RenderToConsole();
+
+            ConsoleDriver.WriteLine();
 
             ConsoleDriver.CursorVisible = _cursorVisible;
         }
 
         private void ClearAll()
         {
-            var top = ConsoleDriver.CursorTop;
+            var bottom = _screenBuffer.CursorBottom;
 
-            var bottom = top + _writtenErrorLines;
-
-            for (int i = 0; i <= _writtenLines + _writtenErrorLines; i++)
+            for (int i = 0; i < _screenBuffer.LineCount; i++)
             {
                 ConsoleDriver.ClearLine(bottom - i);
             }
 
-            _writtenLines = 0;
-            _writtenErrorLines = 0;
-        }
-
-        private void WriteErrorMessage(string errorMessage)
-        {
-            var left = ConsoleDriver.CursorLeft;
-
-            var writtenErrorLines = ConsoleDriver.WriteLine();
-
-            writtenErrorLines += ConsoleDriver.Write($"{Symbol.Error} {errorMessage}", ConsoleColor.Red);
-
-            ConsoleDriver.SetCursorPosition(left, ConsoleDriver.CursorTop - writtenErrorLines);
-
-            _writtenErrorLines += writtenErrorLines;
+            _screenBuffer.Clear();
         }
     }
 }

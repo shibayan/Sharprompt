@@ -1,4 +1,5 @@
-﻿using Sharprompt.Validations;
+﻿using Sharprompt.Internal;
+using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
 {
@@ -54,24 +55,26 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(FormRenderer formRenderer)
+        protected override void InputTemplate(ScreenBuffer screenBuffer)
         {
-            formRenderer.WriteMessage(_message);
+            screenBuffer.WriteMessage(_message);
 
             if (_defaultValue != null)
             {
-                formRenderer.Write($"({(_defaultValue.Value ? "yes" : "no")}) ");
+                screenBuffer.Write($"({(_defaultValue.Value ? "yes" : "no")}) ");
             }
             else
             {
-                formRenderer.Write("(y/N) ");
+                screenBuffer.Write("(y/N) ");
             }
+
+            screenBuffer.SetCursorPosition();
         }
 
-        protected override void FinishTemplate(FormRenderer formRenderer, bool result)
+        protected override void FinishTemplate(ScreenBuffer screenBuffer, bool result)
         {
-            formRenderer.WriteFinishMessage(_message);
-            formRenderer.Write(result ? "Yes" : "No", Prompt.ColorSchema.Answer);
+            screenBuffer.WriteFinishMessage(_message);
+            screenBuffer.Write(result ? "Yes" : "No", Prompt.ColorSchema.Answer);
         }
     }
 }

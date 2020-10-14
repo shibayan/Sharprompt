@@ -116,14 +116,14 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(FormRenderer formRenderer)
+        protected override void InputTemplate(ScreenBuffer screenBuffer)
         {
-            formRenderer.WriteMessage(_message);
-            formRenderer.Write(_selector.FilterTerm);
+            screenBuffer.WriteMessage(_message);
+            screenBuffer.Write(_selector.FilterTerm);
 
             if (string.IsNullOrEmpty(_selector.FilterTerm))
             {
-                formRenderer.Write(" Hit space to select", Prompt.ColorSchema.Answer);
+                screenBuffer.Write(" Hit space to select", Prompt.ColorSchema.Answer);
             }
 
             var subset = _selector.ToSubset();
@@ -132,37 +132,37 @@ namespace Sharprompt.Forms
             {
                 var value = _valueSelector(item);
 
-                formRenderer.WriteLine();
+                screenBuffer.WriteLine();
 
                 if (_selector.IsSelected && EqualityComparer<T>.Default.Equals(item, _selector.SelectedItem))
                 {
                     if (_selectedItems.Contains(item))
                     {
-                        formRenderer.Write($"{Symbol.Selector} {Symbol.Selected} {value}", Prompt.ColorSchema.Select);
+                        screenBuffer.Write($"{Symbol.Selector} {Symbol.Selected} {value}", Prompt.ColorSchema.Select);
                     }
                     else
                     {
-                        formRenderer.Write($"{Symbol.Selector} {Symbol.NotSelect} {value}", Prompt.ColorSchema.Select);
+                        screenBuffer.Write($"{Symbol.Selector} {Symbol.NotSelect} {value}", Prompt.ColorSchema.Select);
                     }
                 }
                 else
                 {
                     if (_selectedItems.Contains(item))
                     {
-                        formRenderer.Write($"  {Symbol.Selected} {value}", Prompt.ColorSchema.Select);
+                        screenBuffer.Write($"  {Symbol.Selected} {value}", Prompt.ColorSchema.Select);
                     }
                     else
                     {
-                        formRenderer.Write($"  {Symbol.NotSelect} {value}");
+                        screenBuffer.Write($"  {Symbol.NotSelect} {value}");
                     }
                 }
             }
         }
 
-        protected override void FinishTemplate(FormRenderer formRenderer, IEnumerable<T> result)
+        protected override void FinishTemplate(ScreenBuffer screenBuffer, IEnumerable<T> result)
         {
-            formRenderer.WriteFinishMessage(_message);
-            formRenderer.Write(result.Select(_valueSelector).Join(", "), Prompt.ColorSchema.Answer);
+            screenBuffer.WriteFinishMessage(_message);
+            screenBuffer.Write(result.Select(_valueSelector).Join(", "), Prompt.ColorSchema.Answer);
         }
     }
 }

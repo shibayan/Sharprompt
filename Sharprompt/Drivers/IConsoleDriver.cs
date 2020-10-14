@@ -9,9 +9,9 @@ namespace Sharprompt.Drivers
         void ClearLine(int top);
         ConsoleKeyInfo ReadKey();
         string ReadLine();
-        int Write(string value);
-        int Write(string value, ConsoleColor color);
-        int WriteLine();
+        void Write(string value);
+        void Write(string value, ConsoleColor color);
+        void WriteLine();
         (int left, int top) GetCursorPosition();
         void SetCursorPosition(int left, int top);
         bool CursorVisible { get; set; }

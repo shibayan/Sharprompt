@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
+using Sharprompt.Internal;
 using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
@@ -53,16 +54,18 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(FormRenderer formRenderer)
+        protected override void InputTemplate(ScreenBuffer screenBuffer)
         {
-            formRenderer.WriteMessage(_message);
-            formRenderer.Write(new string('*', _inputBuffer.Length));
+            screenBuffer.WriteMessage(_message);
+            screenBuffer.Write(new string('*', _inputBuffer.Length));
+
+            screenBuffer.SetCursorPosition();
         }
 
-        protected override void FinishTemplate(FormRenderer formRenderer, string result)
+        protected override void FinishTemplate(ScreenBuffer screenBuffer, string result)
         {
-            formRenderer.WriteFinishMessage(_message);
-            formRenderer.Write(new string('*', _inputBuffer.Length), Prompt.ColorSchema.Answer);
+            screenBuffer.WriteFinishMessage(_message);
+            screenBuffer.Write(new string('*', _inputBuffer.Length), Prompt.ColorSchema.Answer);
         }
     }
 }

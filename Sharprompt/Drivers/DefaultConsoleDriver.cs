@@ -202,42 +202,34 @@ namespace Sharprompt.Drivers
             return inputBuffer.ToString();
         }
 
-        public virtual int Write(string value)
+        public virtual void Write(string value)
         {
-            var writtenLines = (CursorLeft + EastAsianWidth.GetWidth(value)) / Console.BufferWidth;
-
             Console.Write(value);
-
-            return writtenLines;
         }
 
-        public virtual int Write(string value, ConsoleColor color)
+        public virtual void Write(string value, ConsoleColor color)
         {
-            var previousColor = Console.ForegroundColor;
-
             Console.ForegroundColor = color;
-
-            var writtenLines = Write(value);
-
-            Console.ForegroundColor = previousColor;
-
-            return writtenLines;
+            Console.Write(value);
+            Console.ResetColor();
         }
 
-        public virtual int WriteLine()
+        public virtual void WriteLine()
         {
             Console.WriteLine();
-
-            return 1;
         }
 
         public (int left, int top) GetCursorPosition() => (Console.CursorLeft, Console.CursorTop);
 
         public virtual void SetCursorPosition(int left, int top)
         {
-            if (top >= Console.BufferHeight)
+            if (top < 0)
             {
-                Console.BufferHeight += 1;
+                top = 0;
+            }
+            else if (top >= Console.BufferHeight)
+            {
+                top = Console.BufferHeight - 1;
             }
 
             Console.SetCursorPosition(left, top);
