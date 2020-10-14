@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
+using Sharprompt.Internal;
 using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
@@ -21,42 +24,102 @@ namespace Sharprompt.Forms
         private readonly Type _targetType = typeof(T);
         private readonly Type _underlyingType = Nullable.GetUnderlyingType(typeof(T));
 
+        private int _startIndex;
+        private readonly StringBuilder _inputBuffer = new StringBuilder();
+
         protected override bool TryGetResult(out T result)
         {
-            var input = Renderer.ReadLine();
+            var keyInfo = ConsoleDriver.ReadKey();
 
-            if (!TryValidate(input, _validators))
+            if (keyInfo.Key == ConsoleKey.Enter)
             {
-                result = default;
+                var input = _inputBuffer.ToString();
 
-                return false;
-            }
-
-            if (string.IsNullOrEmpty(input))
-            {
-                if (_targetType.IsValueType && _underlyingType == null && _defaultValue == null)
+                if (!TryValidate(input, _validators))
                 {
-                    Renderer.SetValidationResult(new ValidationResult("Value is required"));
-
                     result = default;
 
                     return false;
                 }
 
-                result = (T)_defaultValue;
+                if (string.IsNullOrEmpty(input))
+                {
+                    if (_targetType.IsValueType && _underlyingType == null && _defaultValue == null)
+                    {
+                        Renderer.SetValidationResult(new ValidationResult("Value is required"));
 
-                return true;
+                        result = default;
+
+                        return false;
+                    }
+
+                    result = (T)_defaultValue;
+
+                    return true;
+                }
+
+                try
+                {
+                    result = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Renderer.SetException(ex);
+                }
             }
-
-            try
+            else if (keyInfo.Key == ConsoleKey.LeftArrow)
             {
-                result = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
-
-                return true;
+                if (_startIndex > 0)
+                {
+                    _startIndex -= 1;
+                }
+                else
+                {
+                    ConsoleDriver.Beep();
+                }
             }
-            catch (Exception ex)
+            else if (keyInfo.Key == ConsoleKey.RightArrow)
             {
-                Renderer.SetException(ex);
+                if (_startIndex < _inputBuffer.Length)
+                {
+                    _startIndex += 1;
+                }
+                else
+                {
+                    ConsoleDriver.Beep();
+                }
+            }
+            else if (keyInfo.Key == ConsoleKey.Backspace)
+            {
+                if (_startIndex > 0)
+                {
+                    _startIndex -= 1;
+
+                    _inputBuffer.Remove(_startIndex, 1);
+                }
+                else
+                {
+                    ConsoleDriver.Beep();
+                }
+            }
+            else if (keyInfo.Key == ConsoleKey.Delete)
+            {
+                if (_startIndex < _inputBuffer.Length)
+                {
+                    _inputBuffer.Remove(_startIndex, 1);
+                }
+                else
+                {
+                    ConsoleDriver.Beep();
+                }
+            }
+            else if (!char.IsControl(keyInfo.KeyChar))
+            {
+                _inputBuffer.Insert(_startIndex, keyInfo.KeyChar);
+
+                _startIndex += 1;
             }
 
             result = default;
@@ -72,6 +135,16 @@ namespace Sharprompt.Forms
             {
                 formRenderer.Write($"({_defaultValue}) ");
             }
+
+            var (left, top) = ConsoleDriver.GetCursorPosition();
+
+            var input = _inputBuffer.ToString();
+
+            formRenderer.Write(input);
+
+            var width = EastAsianWidth.GetWidth(input.Take(_startIndex)) + left;
+
+            ConsoleDriver.SetCursorPosition(width % ConsoleDriver.BufferWidth, top + (width / ConsoleDriver.BufferWidth));
         }
 
         protected override void FinishTemplate(FormRenderer formRenderer, T result)

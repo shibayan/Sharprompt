@@ -204,7 +204,7 @@ namespace Sharprompt.Drivers
 
         public virtual int Write(string value)
         {
-            var writtenLines = (CursorLeft + EastAsianWidth.GetWidth(value) + 1) / Console.BufferWidth;
+            var writtenLines = (CursorLeft + EastAsianWidth.GetWidth(value)) / Console.BufferWidth;
 
             Console.Write(value);
 
@@ -231,18 +231,16 @@ namespace Sharprompt.Drivers
             return 1;
         }
 
-        public (int left, int top) GetCursorPosition()
-        {
-            CursorVisible = false;
-
-            return (Console.CursorLeft, Console.CursorTop);
-        }
+        public (int left, int top) GetCursorPosition() => (Console.CursorLeft, Console.CursorTop);
 
         public virtual void SetCursorPosition(int left, int top)
         {
-            Console.SetCursorPosition(left, top);
+            if (top >= Console.BufferHeight)
+            {
+                Console.BufferHeight += 1;
+            }
 
-            CursorVisible = true;
+            Console.SetCursorPosition(left, top);
         }
 
         public virtual bool CursorVisible
@@ -254,6 +252,10 @@ namespace Sharprompt.Drivers
         public virtual int CursorLeft => Console.CursorLeft;
 
         public virtual int CursorTop => Console.CursorTop;
+
+        public virtual int BufferWidth => Console.BufferWidth;
+
+        public virtual int BufferHeight => Console.BufferHeight;
 
         #endregion
 

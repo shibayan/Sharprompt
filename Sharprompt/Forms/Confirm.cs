@@ -15,7 +15,7 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out bool result)
         {
-            var input = Renderer.ReadLine();
+            var input = ConsoleDriver.ReadLine();
 
             if (string.IsNullOrEmpty(input))
             {
