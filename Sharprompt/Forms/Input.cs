@@ -127,33 +127,33 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(FormRenderer formRenderer)
+        protected override void InputTemplate(ScreenBuffer screenBuffer)
         {
-            formRenderer.WriteMessage(_message);
+            screenBuffer.WriteMessage(_message);
 
             if (_defaultValue != null)
             {
-                formRenderer.Write($"({_defaultValue}) ");
+                screenBuffer.Write($"({_defaultValue}) ");
             }
 
-            var (left, top) = ConsoleDriver.GetCursorPosition();
+            var (left, top) = screenBuffer.GetCursorPosition();
 
             var input = _inputBuffer.ToString();
 
-            formRenderer.Write(input);
+            screenBuffer.Write(input);
 
             var width = EastAsianWidth.GetWidth(input.Take(_startIndex)) + left;
 
-            ConsoleDriver.SetCursorPosition(width % ConsoleDriver.BufferWidth, top + (width / ConsoleDriver.BufferWidth));
+            screenBuffer.SetCursorPosition(width % ConsoleDriver.BufferWidth, top + (width / ConsoleDriver.BufferWidth));
         }
 
-        protected override void FinishTemplate(FormRenderer formRenderer, T result)
+        protected override void FinishTemplate(ScreenBuffer screenBuffer, T result)
         {
-            formRenderer.WriteFinishMessage(_message);
+            screenBuffer.WriteFinishMessage(_message);
 
             if (result != null)
             {
-                formRenderer.Write(result.ToString(), Prompt.ColorSchema.Answer);
+                screenBuffer.Write(result.ToString(), Prompt.ColorSchema.Answer);
             }
         }
     }

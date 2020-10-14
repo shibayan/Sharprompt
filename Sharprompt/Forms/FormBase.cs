@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using Sharprompt.Drivers;
+using Sharprompt.Internal;
 using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
@@ -41,11 +42,11 @@ namespace Sharprompt.Forms
 
         protected abstract bool TryGetResult(out T result);
 
-        protected virtual void InputTemplate(FormRenderer formRenderer)
+        protected virtual void InputTemplate(ScreenBuffer screenBuffer)
         {
         }
 
-        protected virtual void FinishTemplate(FormRenderer formRenderer, T result)
+        protected virtual void FinishTemplate(ScreenBuffer screenBuffer, T result)
         {
         }
 
