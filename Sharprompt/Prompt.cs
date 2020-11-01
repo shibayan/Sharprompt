@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Sharprompt.Forms;
 using Sharprompt.Internal;
@@ -30,13 +31,13 @@ namespace Sharprompt
             return form.Start();
         }
 
-        public static T Select<T>(string message, int? pageSize = null, T? defaultValue = null, Func<T, string> valueSelector = null) where T : struct, Enum
+        public static T Select<T>(string message, int? pageSize = null, T? defaultValue = null) where T : struct, Enum
         {
-            var items = (T[])Enum.GetValues(typeof(T));
+            var items = EnumValue<T>.GetValues();
 
-            using var form = new Select<T>(message, items, pageSize, defaultValue, valueSelector ?? (x => x.GetDisplayName()));
+            using var form = new Select<EnumValue<T>>(message, items, pageSize, defaultValue, x => x.DisplayName);
 
-            return form.Start();
+            return form.Start().Value;
         }
 
         public static T Select<T>(string message, IEnumerable<T> items, int? pageSize = null, object defaultValue = null, Func<T, string> valueSelector = null)
@@ -46,13 +47,13 @@ namespace Sharprompt
             return form.Start();
         }
 
-        public static IEnumerable<T> MultiSelect<T>(string message, int? pageSize = null, int minimum = 1, int maximum = -1, Func<T, string> valueSelector = null) where T : struct, Enum
+        public static IEnumerable<T> MultiSelect<T>(string message, int? pageSize = null, int minimum = 1, int maximum = -1) where T : struct, Enum
         {
-            var items = (T[])Enum.GetValues(typeof(T));
+            var items = EnumValue<T>.GetValues();
 
-            using var form = new MultiSelect<T>(message, items, pageSize, minimum, maximum, valueSelector ?? (x => x.GetDisplayName()));
+            using var form = new MultiSelect<EnumValue<T>>(message, items, pageSize, minimum, maximum, x => x.DisplayName);
 
-            return form.Start();
+            return form.Start().Select(x => x.Value);
         }
 
         public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items, int? pageSize = null, int minimum = 1, int maximum = -1, Func<T, string> valueSelector = null)
