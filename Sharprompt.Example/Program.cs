@@ -23,6 +23,8 @@ namespace Sharprompt.Example
             RunMultiSelectSample();
 
             RunSelectEnumSample();
+
+            RunMultiSelectEnumSample();
         }
 
         private static void RunInputSample()
@@ -61,15 +63,21 @@ namespace Sharprompt.Example
             Console.WriteLine($"You selected {value}");
         }
 
+        private static void RunMultiSelectEnumSample()
+        {
+            var value = Prompt.MultiSelect<MyEnum>("Select enum value");
+            Console.WriteLine($"You picked {string.Join(", ", value)}");
+        }
+
         public enum MyEnum
         {
-            [Display(Name = "Foo value")]
+            [Display(Name = "Foo value", Order = 3)]
             Foo,
 
-            [Display(Name = "Bar value")]
+            [Display(Name = "Bar value", Order = 2)]
             Bar,
 
-            [Display(Name = "Baz value")]
+            [Display(Name = "Baz value", Order = 1)]
             Baz
         }
     }
