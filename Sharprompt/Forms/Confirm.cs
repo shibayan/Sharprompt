@@ -26,8 +26,6 @@ namespace Sharprompt.Forms
 
                     return true;
                 }
-
-                Renderer.SetValidationResult(new ValidationResult("Value is required"));
             }
             else
             {
@@ -46,9 +44,9 @@ namespace Sharprompt.Forms
 
                     return true;
                 }
-
-                Renderer.SetValidationResult(new ValidationResult("Value is invalid"));
             }
+
+            Renderer.SetValidationResult(new ValidationResult("Value is invalid"));
 
             result = default;
 

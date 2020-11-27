@@ -35,32 +35,32 @@ namespace Sharprompt.Forms
             {
                 var input = _inputBuffer.ToString();
 
-                if (!TryValidate(input, _validators))
+                try
                 {
-                    result = default;
-
-                    return false;
-                }
-
-                if (string.IsNullOrEmpty(input))
-                {
-                    if (_targetType.IsValueType && _underlyingType == null && _defaultValue == null)
+                    if (string.IsNullOrEmpty(input))
                     {
-                        Renderer.SetValidationResult(new ValidationResult("Value is required"));
+                        if (_targetType.IsValueType && _underlyingType == null && _defaultValue == null)
+                        {
+                            Renderer.SetValidationResult(new ValidationResult("Value is required"));
 
+                            result = default;
+
+                            return false;
+                        }
+
+                        result = (T)_defaultValue;
+                    }
+                    else
+                    {
+                        result = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
+                    }
+
+                    if (!TryValidate(result, _validators))
+                    {
                         result = default;
 
                         return false;
                     }
-
-                    result = (T)_defaultValue;
-
-                    return true;
-                }
-
-                try
-                {
-                    result = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
 
                     return true;
                 }
