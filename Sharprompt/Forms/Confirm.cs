@@ -57,9 +57,13 @@ namespace Sharprompt.Forms
         {
             screenBuffer.WriteMessage(_message);
 
-            if (_defaultValue != null)
+            if (_defaultValue == null)
             {
-                screenBuffer.Write($"({(_defaultValue.Value ? "yes" : "no")}) ");
+                screenBuffer.Write("(y/n) ");
+            }
+            else if (_defaultValue.Value)
+            {
+                screenBuffer.Write("(Y/n) ");
             }
             else
             {
