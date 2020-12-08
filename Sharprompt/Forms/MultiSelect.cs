@@ -118,7 +118,7 @@ namespace Sharprompt.Forms
 
         protected override void InputTemplate(ScreenBuffer screenBuffer)
         {
-            screenBuffer.WriteMessage(_message);
+            screenBuffer.WritePrompt(_message);
             screenBuffer.Write(_selector.FilterTerm);
 
             if (string.IsNullOrEmpty(_selector.FilterTerm))
@@ -161,7 +161,7 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(ScreenBuffer screenBuffer, IEnumerable<T> result)
         {
-            screenBuffer.WriteFinishMessage(_message);
+            screenBuffer.WriteFinish(_message);
             screenBuffer.Write(result.Select(_valueSelector).Join(", "), Prompt.ColorSchema.Answer);
         }
     }

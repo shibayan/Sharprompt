@@ -49,13 +49,13 @@ namespace Sharprompt.Internal
             _outputBuffer.Add(new List<TextInfo>());
         }
 
-        public void WriteMessage(string message)
+        public void WritePrompt(string message)
         {
             Write(Symbol.Prompt, ConsoleColor.Green);
             Write($" {message}: ");
         }
 
-        public void WriteFinishMessage(string message)
+        public void WriteFinish(string message)
         {
             Write(Symbol.Done, ConsoleColor.Green);
             Write($" {message}: ");

@@ -81,7 +81,7 @@ namespace Sharprompt.Forms
 
         protected override void InputTemplate(ScreenBuffer screenBuffer)
         {
-            screenBuffer.WriteMessage(_message);
+            screenBuffer.WritePrompt(_message);
             screenBuffer.Write(_selector.FilterTerm);
 
             var subset = _selector.ToSubset();
@@ -105,7 +105,7 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(ScreenBuffer screenBuffer, T result)
         {
-            screenBuffer.WriteFinishMessage(_message);
+            screenBuffer.WriteFinish(_message);
             screenBuffer.Write(_valueSelector(result), Prompt.ColorSchema.Answer);
         }
     }

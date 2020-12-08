@@ -129,7 +129,7 @@ namespace Sharprompt.Forms
 
         protected override void InputTemplate(ScreenBuffer screenBuffer)
         {
-            screenBuffer.WriteMessage(_message);
+            screenBuffer.WritePrompt(_message);
 
             if (_defaultValue != null)
             {
@@ -149,7 +149,7 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(ScreenBuffer screenBuffer, T result)
         {
-            screenBuffer.WriteFinishMessage(_message);
+            screenBuffer.WriteFinish(_message);
 
             if (result != null)
             {
