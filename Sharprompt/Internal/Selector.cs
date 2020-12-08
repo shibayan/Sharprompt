@@ -73,7 +73,7 @@ namespace Sharprompt.Internal
         private void InitializeCollection()
         {
             _filteredSource = _items.Where(x => _valueSelector(x).IndexOf(FilterTerm, StringComparison.OrdinalIgnoreCase) != -1)
-                                     .ToArray();
+                                    .ToArray();
 
             _pageCount = (_filteredSource.Length - 1) / _pageSize + 1;
         }

@@ -21,6 +21,8 @@ namespace Sharprompt.Internal
 
         public int CursorBottom { get; set; }
 
+        public int BufferWidth => _consoleDriver.BufferWidth;
+
         public int LineCount => _outputBuffer.Count + _outputBuffer.Sum(x => (x.Sum(xs => EastAsianWidth.GetWidth(xs.Text)) - 1) / _consoleDriver.BufferWidth);
 
         public void Clear()

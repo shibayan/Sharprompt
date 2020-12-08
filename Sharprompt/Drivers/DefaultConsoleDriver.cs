@@ -40,8 +40,6 @@ namespace Sharprompt.Drivers
 
         public virtual void ClearLine(int top)
         {
-            SetCursorPosition(0, top);
-
             Write("\x1b[2K");
 
             SetCursorPosition(0, top);

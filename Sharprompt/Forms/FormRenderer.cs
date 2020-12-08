@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 
 using Sharprompt.Drivers;
 using Sharprompt.Internal;
@@ -11,10 +10,9 @@ namespace Sharprompt.Forms
     {
         public FormRenderer(bool cursorVisible = true)
         {
+            ConsoleDriver = new DefaultConsoleDriver();
+
             _cursorVisible = cursorVisible;
-
-            ConsoleDriver = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? new WindowsConsoleDriver() : new DefaultConsoleDriver();
-
             _screenBuffer = new ScreenBuffer(ConsoleDriver);
         }
 
