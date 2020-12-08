@@ -43,8 +43,6 @@ namespace Sharprompt.Drivers
             SetCursorPosition(0, top);
 
             Write("\x1b[2K");
-
-            SetCursorPosition(0, top);
         }
 
         public virtual ConsoleKeyInfo ReadKey() => Console.ReadKey(true);

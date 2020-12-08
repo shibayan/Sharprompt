@@ -129,7 +129,7 @@ namespace Sharprompt.Forms
 
         protected override void InputTemplate(ScreenBuffer screenBuffer)
         {
-            screenBuffer.WriteMessage(_message);
+            screenBuffer.WritePrompt(_message);
 
             if (_defaultValue != null)
             {
@@ -144,12 +144,12 @@ namespace Sharprompt.Forms
 
             var width = EastAsianWidth.GetWidth(input.Take(_startIndex)) + left;
 
-            screenBuffer.SetCursorPosition(width % ConsoleDriver.BufferWidth, top + (width / ConsoleDriver.BufferWidth));
+            screenBuffer.SetCursorPosition(width % screenBuffer.BufferWidth, top + (width / screenBuffer.BufferWidth));
         }
 
         protected override void FinishTemplate(ScreenBuffer screenBuffer, T result)
         {
-            screenBuffer.WriteFinishMessage(_message);
+            screenBuffer.WriteFinish(_message);
 
             if (result != null)
             {

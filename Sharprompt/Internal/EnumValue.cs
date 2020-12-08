@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Sharprompt.Internal
 {
-    internal class EnumValue<T> where T : struct, Enum
+    internal class EnumValue<T> where T : Enum
     {
         private EnumValue(T value)
         {

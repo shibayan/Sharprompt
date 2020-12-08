@@ -21,6 +21,8 @@ namespace Sharprompt.Internal
 
         public int CursorBottom { get; set; }
 
+        public int BufferWidth => _consoleDriver.BufferWidth;
+
         public int LineCount => _outputBuffer.Count + _outputBuffer.Sum(x => (x.Sum(xs => EastAsianWidth.GetWidth(xs.Text)) - 1) / _consoleDriver.BufferWidth);
 
         public void Clear()
@@ -47,13 +49,13 @@ namespace Sharprompt.Internal
             _outputBuffer.Add(new List<TextInfo>());
         }
 
-        public void WriteMessage(string message)
+        public void WritePrompt(string message)
         {
             Write(Symbol.Prompt, ConsoleColor.Green);
             Write($" {message}: ");
         }
 
-        public void WriteFinishMessage(string message)
+        public void WriteFinish(string message)
         {
             Write(Symbol.Done, ConsoleColor.Green);
             Write($" {message}: ");
