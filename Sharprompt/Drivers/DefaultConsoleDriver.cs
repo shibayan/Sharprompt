@@ -40,9 +40,9 @@ namespace Sharprompt.Drivers
 
         public virtual void ClearLine(int top)
         {
-            Write("\x1b[2K");
-
             SetCursorPosition(0, top);
+
+            Write("\x1b[2K");
         }
 
         public virtual ConsoleKeyInfo ReadKey() => Console.ReadKey(true);
