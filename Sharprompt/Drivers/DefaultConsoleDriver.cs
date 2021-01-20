@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using Sharprompt.Internal;
@@ -7,6 +8,21 @@ namespace Sharprompt.Drivers
 {
     internal class DefaultConsoleDriver : IConsoleDriver
     {
+        static DefaultConsoleDriver()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var hConsole = NativeMethods.GetStdHandle(NativeMethods.STD_OUTPUT_HANDLE);
+
+                if (!NativeMethods.GetConsoleMode(hConsole, out var mode))
+                {
+                    return;
+                }
+
+                NativeMethods.SetConsoleMode(hConsole, mode | NativeMethods.ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+            }
+        }
+
         public DefaultConsoleDriver()
         {
             Console.CancelKeyPress += RequestCancellation;
