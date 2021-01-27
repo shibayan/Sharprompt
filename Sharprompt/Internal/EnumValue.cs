@@ -6,15 +6,12 @@ using System.Reflection;
 
 namespace Sharprompt.Internal
 {
-    internal class EnumValue<T> where T : Enum
+    internal class EnumValue<T> : IEquatable<EnumValue<T>> where T : Enum
     {
         private EnumValue(T value)
         {
             var name = value.ToString();
-
-            var fieldInfo = typeof(T).GetField(name);
-
-            var displayAttribute = fieldInfo?.GetCustomAttribute<DisplayAttribute>();
+            var displayAttribute = typeof(T).GetField(name)?.GetCustomAttribute<DisplayAttribute>();
 
             DisplayName = displayAttribute?.Name ?? name;
             Order = displayAttribute?.Order ?? int.MaxValue;
@@ -22,8 +19,27 @@ namespace Sharprompt.Internal
         }
 
         public string DisplayName { get; }
-        public int Order { get; set; }
-        public T Value { get; set; }
+        public int Order { get; }
+        public T Value { get; }
+
+        public override bool Equals(object obj) => Equals(obj as EnumValue<T>);
+
+        public bool Equals(EnumValue<T> other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            return EqualityComparer<T>.Default.Equals(Value, other.Value);
+        }
+
+        public override int GetHashCode() => Value.GetHashCode();
+
+        public static implicit operator EnumValue<T>(T value)
+        {
+            return new EnumValue<T>(value);
+        }
 
         public static IEnumerable<EnumValue<T>> GetValues()
         {

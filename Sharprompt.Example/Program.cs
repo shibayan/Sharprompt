@@ -59,7 +59,7 @@ namespace Sharprompt.Example
 
         private static void RunSelectEnumSample()
         {
-            var value = Prompt.Select<MyEnum>("Select enum value");
+            var value = Prompt.Select<MyEnum>("Select enum value", defaultValue: MyEnum.Bar);
             Console.WriteLine($"You selected {value}");
         }
 

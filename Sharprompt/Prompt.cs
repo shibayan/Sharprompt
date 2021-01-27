@@ -35,7 +35,7 @@ namespace Sharprompt
         {
             var items = EnumValue<T>.GetValues();
 
-            using var form = new Select<EnumValue<T>>(message, items, pageSize, defaultValue, x => x.DisplayName);
+            using var form = new Select<EnumValue<T>>(message, items, pageSize, (EnumValue<T>)defaultValue, x => x.DisplayName);
 
             return form.Start().Value;
         }
