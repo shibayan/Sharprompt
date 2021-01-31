@@ -1,8 +1,8 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 using Sharprompt.Drivers;
 using Sharprompt.Internal;
-using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
 {
@@ -19,7 +19,7 @@ namespace Sharprompt.Forms
         private readonly bool _cursorVisible;
         private readonly ScreenBuffer _screenBuffer;
 
-        private string _errorMessage;
+        private string? _errorMessage;
 
         public IConsoleDriver ConsoleDriver { get; }
 

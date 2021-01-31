@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Sharprompt.Internal
 {
-    public class Selector<T>
+    public class Selector<T> where T : notnull
     {
-        public Selector(IEnumerable<T> items, int? pageSize, object defaultValue, Func<T, string> valueSelector)
+        public Selector(IEnumerable<T> items, int? pageSize, T? defaultValue, Func<T, string> valueSelector)
         {
             _items = items.ToArray();
             _pageSize = pageSize ?? _items.Length;
@@ -27,11 +28,21 @@ namespace Sharprompt.Internal
 
         public int Count => Math.Min(_filteredSource.Length - (_pageSize * _selectedPage), _pageSize);
 
-        public bool IsSelected => _selectedIndex != -1;
-
-        public T SelectedItem => _selectedIndex == -1 ? default : _filteredSource[(_pageSize * _selectedPage) + _selectedIndex];
-
         public string FilterTerm { get; private set; } = "";
+
+        public bool TryGetSelectedItem([NotNullWhen(true)] out T? selectedItem)
+        {
+            if (_selectedIndex == -1)
+            {
+                selectedItem = default;
+
+                return false;
+            }
+
+            selectedItem = _filteredSource[(_pageSize * _selectedPage) + _selectedIndex];
+
+            return true;
+        }
 
         public void NextItem()
         {
@@ -67,7 +78,7 @@ namespace Sharprompt.Internal
 
         public ArraySegment<T> ToSubset()
         {
-            return new ArraySegment<T>(_filteredSource, _pageSize * _selectedPage, Count);
+            return new(_filteredSource, _pageSize * _selectedPage, Count);
         }
 
         private void InitializeCollection()
@@ -78,7 +89,7 @@ namespace Sharprompt.Internal
             _pageCount = (_filteredSource.Length - 1) / _pageSize + 1;
         }
 
-        private void InitializeDefaults(object defaultValue)
+        private void InitializeDefaults(T? defaultValue)
         {
             InitializeCollection();
 
@@ -89,7 +100,7 @@ namespace Sharprompt.Internal
 
             for (int i = 0; i < _filteredSource.Length; i++)
             {
-                if (EqualityComparer<T>.Default.Equals(_filteredSource[i], (T)defaultValue))
+                if (EqualityComparer<T>.Default.Equals(_filteredSource[i], defaultValue))
                 {
                     _selectedIndex = i % _pageSize;
                     _selectedPage = i / _pageSize;

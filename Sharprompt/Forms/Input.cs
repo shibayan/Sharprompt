@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
 using Sharprompt.Internal;
-using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
 {
-    internal class Input<T> : FormBase<T>
+    internal class Input<T> : FormBase<T> where T : notnull
     {
-        public Input(string message, object defaultValue, IList<Func<object, ValidationResult>> validators)
+        public Input(string message, T? defaultValue, IReadOnlyList<Func<object?, ValidationResult>> validators)
         {
             _message = message;
             _defaultValue = defaultValue;
@@ -18,16 +19,16 @@ namespace Sharprompt.Forms
         }
 
         private readonly string _message;
-        private readonly object _defaultValue;
-        private readonly IList<Func<object, ValidationResult>> _validators;
+        private readonly T? _defaultValue;
+        private readonly IReadOnlyList<Func<object?, ValidationResult>> _validators;
 
         private readonly Type _targetType = typeof(T);
-        private readonly Type _underlyingType = Nullable.GetUnderlyingType(typeof(T));
+        private readonly Type? _underlyingType = Nullable.GetUnderlyingType(typeof(T));
 
         private int _startIndex;
-        private readonly StringBuilder _inputBuffer = new StringBuilder();
+        private readonly StringBuilder _inputBuffer = new();
 
-        protected override bool TryGetResult(out T result)
+        protected override bool TryGetResult([NotNullWhen(true)] out T? result)
         {
             var keyInfo = ConsoleDriver.ReadKey();
 
@@ -48,7 +49,7 @@ namespace Sharprompt.Forms
                             return false;
                         }
 
-                        result = (T)_defaultValue;
+                        result = _defaultValue;
                     }
                     else
                     {

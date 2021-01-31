@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 using Sharprompt.Internal;
-using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
 {
-    internal class Select<T> : FormBase<T>
+    internal class Select<T> : FormBase<T> where T : notnull
     {
-        public Select(string message, IEnumerable<T> items, int? pageSize, object defaultValue, Func<T, string> valueSelector)
+        public Select(string message, IEnumerable<T> items, int? pageSize, T? defaultValue, Func<T, string> valueSelector)
             : base(false)
         {
             _message = message;
@@ -21,18 +22,16 @@ namespace Sharprompt.Forms
         private readonly Selector<T> _selector;
         private readonly Func<T, string> _valueSelector;
 
-        private readonly StringBuilder _filterBuffer = new StringBuilder();
+        private readonly StringBuilder _filterBuffer = new();
 
-        protected override bool TryGetResult(out T result)
+        protected override bool TryGetResult([NotNullWhen(true)] out T? result)
         {
             var keyInfo = ConsoleDriver.ReadKey();
 
             if (keyInfo.Key == ConsoleKey.Enter)
             {
-                if (_selector.IsSelected)
+                if (_selector.TryGetSelectedItem(out result))
                 {
-                    result = _selector.SelectedItem;
-
                     return true;
                 }
 
@@ -92,7 +91,7 @@ namespace Sharprompt.Forms
 
                 screenBuffer.WriteLine();
 
-                if (_selector.IsSelected && EqualityComparer<T>.Default.Equals(item, _selector.SelectedItem))
+                if (_selector.TryGetSelectedItem(out var selectedItem) && EqualityComparer<T>.Default.Equals(item, selectedItem))
                 {
                     screenBuffer.Write($"{Symbol.Selector} {value}", Prompt.ColorSchema.Select);
                 }

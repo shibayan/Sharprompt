@@ -1,26 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 using Sharprompt.Internal;
-using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
 {
     internal class Password : FormBase<string>
     {
-        public Password(string message, IList<Func<object, ValidationResult>> validators)
+        public Password(string message, IReadOnlyList<Func<object?, ValidationResult>> validators)
         {
             _message = message;
             _validators = validators;
         }
 
         private readonly string _message;
-        private readonly IList<Func<object, ValidationResult>> _validators;
+        private readonly IReadOnlyList<Func<object?, ValidationResult>> _validators;
 
-        private readonly StringBuilder _inputBuffer = new StringBuilder();
+        private readonly StringBuilder _inputBuffer = new();
 
-        protected override bool TryGetResult(out string result)
+        protected override bool TryGetResult([NotNullWhen(true)] out string? result)
         {
             var keyInfo = ConsoleDriver.ReadKey();
 
@@ -49,7 +50,7 @@ namespace Sharprompt.Forms
                 _inputBuffer.Append(keyInfo.KeyChar);
             }
 
-            result = null;
+            result = default;
 
             return false;
         }

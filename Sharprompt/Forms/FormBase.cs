@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 using Sharprompt.Drivers;
 using Sharprompt.Internal;
-using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
 {
-    internal abstract class FormBase<T> : IDisposable
+    internal abstract class FormBase<T> : IDisposable where T : notnull
     {
         protected FormBase(bool cursorVisible = true)
         {
@@ -40,7 +41,7 @@ namespace Sharprompt.Forms
             }
         }
 
-        protected abstract bool TryGetResult(out T result);
+        protected abstract bool TryGetResult([NotNullWhen(true)] out T? result);
 
         protected virtual void InputTemplate(ScreenBuffer screenBuffer)
         {
@@ -50,18 +51,13 @@ namespace Sharprompt.Forms
         {
         }
 
-        protected bool TryValidate(object input, IList<Func<object, ValidationResult>> validators)
+        protected bool TryValidate(T? input, IReadOnlyList<Func<object?, ValidationResult>> validators)
         {
-            if (validators == null)
-            {
-                return true;
-            }
-
             foreach (var validator in validators)
             {
                 var result = validator(input);
 
-                if (result != null)
+                if (result != ValidationResult.Success)
                 {
                     Renderer.SetValidationResult(result);
 

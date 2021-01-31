@@ -24,7 +24,7 @@ namespace Sharprompt.Internal
 
         public override bool Equals(object obj) => Equals(obj as EnumValue<T>);
 
-        public bool Equals(EnumValue<T> other)
+        public bool Equals(EnumValue<T>? other)
         {
             if (other == null)
             {
@@ -38,7 +38,7 @@ namespace Sharprompt.Internal
 
         public static implicit operator EnumValue<T>(T value)
         {
-            return new EnumValue<T>(value);
+            return new(value);
         }
 
         public static IEnumerable<EnumValue<T>> GetValues()

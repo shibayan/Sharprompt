@@ -14,7 +14,7 @@ namespace Sharprompt.Internal
         }
 
         private readonly IConsoleDriver _consoleDriver;
-        private readonly List<List<TextInfo>> _outputBuffer = new List<List<TextInfo>>();
+        private readonly List<List<TextInfo>> _outputBuffer = new();
 
         private int _cursorLeft;
         private int _cursorTop;

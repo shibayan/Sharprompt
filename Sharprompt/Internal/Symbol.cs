@@ -21,12 +21,12 @@ namespace Sharprompt.Internal
 
         public static implicit operator string(Symbol symbol) => symbol.ToString();
 
-        public static Symbol Prompt { get; set; } = new Symbol("?", "?");
-        public static Symbol Done { get; set; } = new Symbol("✔", "V");
-        public static Symbol Error { get; set; } = new Symbol("»", ">>");
-        public static Symbol Selector { get; set; } = new Symbol("›", ">");
-        public static Symbol Selected { get; set; } = new Symbol("◉", "(*)");
-        public static Symbol NotSelect { get; set; } = new Symbol("◯", "( )");
+        public static Symbol Prompt { get; set; } = new("?", "?");
+        public static Symbol Done { get; set; } = new("✔", "V");
+        public static Symbol Error { get; set; } = new("»", ">>");
+        public static Symbol Selector { get; set; } = new("›", ">");
+        public static Symbol Selected { get; set; } = new("◉", "(*)");
+        public static Symbol NotSelect { get; set; } = new("◯", "( )");
 
         private static bool IsUnicodeSupported => !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || (Console.OutputEncoding.CodePage == 1200 || Console.OutputEncoding.CodePage == 65001);
     }

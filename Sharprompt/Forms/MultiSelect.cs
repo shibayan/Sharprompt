@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
 using Sharprompt.Internal;
-using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
 {
-    internal class MultiSelect<T> : FormBase<IEnumerable<T>>
+    internal class MultiSelect<T> : FormBase<IEnumerable<T>> where T : notnull
     {
         public MultiSelect(string message, IEnumerable<T> items, int? pageSize, int minimum, int maximum, Func<T, string> valueSelector)
             : base(false)
@@ -25,7 +26,7 @@ namespace Sharprompt.Forms
             }
 
             _message = message;
-            _selector = new Selector<T>(items, pageSize, null, valueSelector);
+            _selector = new Selector<T>(items, pageSize, default, valueSelector);
             _minimum = minimum;
             _maximum = maximum;
             _valueSelector = valueSelector;
@@ -38,9 +39,9 @@ namespace Sharprompt.Forms
         private readonly Func<T, string> _valueSelector;
 
         private readonly IList<T> _selectedItems = new List<T>();
-        private readonly StringBuilder _filterBuffer = new StringBuilder();
+        private readonly StringBuilder _filterBuffer = new();
 
-        protected override bool TryGetResult(out IEnumerable<T> result)
+        protected override bool TryGetResult([NotNullWhen(true)] out IEnumerable<T>? result)
         {
             var keyInfo = ConsoleDriver.ReadKey();
 
@@ -57,11 +58,9 @@ namespace Sharprompt.Forms
             }
             else if (keyInfo.Key == ConsoleKey.Spacebar)
             {
-                var currentItem = _selector.SelectedItem;
-
-                if (currentItem == null)
+                if (!_selector.TryGetSelectedItem(out var currentItem))
                 {
-                    result = null;
+                    result = default;
 
                     return false;
                 }
@@ -111,7 +110,7 @@ namespace Sharprompt.Forms
                 _selector.UpdateFilter(_filterBuffer.ToString());
             }
 
-            result = null;
+            result = default;
 
             return false;
         }
@@ -134,7 +133,7 @@ namespace Sharprompt.Forms
 
                 screenBuffer.WriteLine();
 
-                if (_selector.IsSelected && EqualityComparer<T>.Default.Equals(item, _selector.SelectedItem))
+                if (_selector.TryGetSelectedItem(out var selectedItem) && EqualityComparer<T>.Default.Equals(item, selectedItem))
                 {
                     if (_selectedItems.Contains(item))
                     {
