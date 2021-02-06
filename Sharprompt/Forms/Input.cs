@@ -151,11 +151,7 @@ namespace Sharprompt.Forms
         protected override void FinishTemplate(ScreenBuffer screenBuffer, T result)
         {
             screenBuffer.WriteFinish(_message);
-
-            if (result != null)
-            {
-                screenBuffer.Write(result.ToString(), Prompt.ColorSchema.Answer);
-            }
+            screenBuffer.Write(result.ToString(), Prompt.ColorSchema.Answer);
         }
     }
 }

@@ -5,7 +5,6 @@ using System.Linq;
 
 using Sharprompt.Forms;
 using Sharprompt.Internal;
-using Sharprompt.Validations;
 
 namespace Sharprompt
 {
@@ -13,14 +12,14 @@ namespace Sharprompt
     {
         public static T Input<T>(string message, T? defaultValue = default, IReadOnlyList<Func<object?, ValidationResult>>? validators = default) where T : notnull
         {
-            using var form = new Input<T>(message, defaultValue, validators ?? Validators.Empty);
+            using var form = new Input<T>(message, defaultValue, validators ?? Array.Empty<Func<object?, ValidationResult>>());
 
             return form.Start();
         }
 
         public static string Password(string message, IReadOnlyList<Func<object?, ValidationResult>>? validators = default)
         {
-            using var form = new Password(message, validators ?? Validators.Empty);
+            using var form = new Password(message, validators ?? Array.Empty<Func<object?, ValidationResult>>());
 
             return form.Start();
         }
@@ -32,7 +31,7 @@ namespace Sharprompt
             return form.Start();
         }
 
-        public static T Select<T>(string message, int? pageSize = default, T? defaultValue = default) where T : struct, Enum
+        public static T Select<T>(string message, int? pageSize = null, T? defaultValue = default) where T : struct, Enum
         {
             var items = EnumValue<T>.GetValues();
 

@@ -43,13 +43,9 @@ namespace Sharprompt.Forms
 
         protected abstract bool TryGetResult([NotNullWhen(true)] out T? result);
 
-        protected virtual void InputTemplate(ScreenBuffer screenBuffer)
-        {
-        }
+        protected abstract void InputTemplate(ScreenBuffer screenBuffer);
 
-        protected virtual void FinishTemplate(ScreenBuffer screenBuffer, T result)
-        {
-        }
+        protected abstract void FinishTemplate(ScreenBuffer screenBuffer, T result);
 
         protected bool TryValidate(T? input, IReadOnlyList<Func<object?, ValidationResult>> validators)
         {
