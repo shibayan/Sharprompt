@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 
 using Sharprompt.Internal;
-using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
 {
@@ -57,9 +57,7 @@ namespace Sharprompt.Forms
             }
             else if (keyInfo.Key == ConsoleKey.Spacebar)
             {
-                var currentItem = _selector.SelectedItem;
-
-                if (currentItem == null)
+                if (!_selector.TryGetSelectedItem(out var currentItem))
                 {
                     result = null;
 
@@ -134,7 +132,7 @@ namespace Sharprompt.Forms
 
                 screenBuffer.WriteLine();
 
-                if (_selector.IsSelected && EqualityComparer<T>.Default.Equals(item, _selector.SelectedItem))
+                if (_selector.TryGetSelectedItem(out var selectedItem) && EqualityComparer<T>.Default.Equals(item, selectedItem))
                 {
                     if (_selectedItems.Contains(item))
                     {

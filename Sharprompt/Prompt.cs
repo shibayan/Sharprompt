@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 using Sharprompt.Forms;
 using Sharprompt.Internal;
-using Sharprompt.Validations;
 
 namespace Sharprompt
 {

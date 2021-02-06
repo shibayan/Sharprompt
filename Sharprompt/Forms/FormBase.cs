@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 using Sharprompt.Drivers;
 using Sharprompt.Internal;
-using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
 {
@@ -61,7 +61,7 @@ namespace Sharprompt.Forms
             {
                 var result = validator(input);
 
-                if (result != null)
+                if (result != ValidationResult.Success)
                 {
                     Renderer.SetValidationResult(result);
 

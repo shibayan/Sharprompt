@@ -27,11 +27,21 @@ namespace Sharprompt.Internal
 
         public int Count => Math.Min(_filteredSource.Length - (_pageSize * _selectedPage), _pageSize);
 
-        public bool IsSelected => _selectedIndex != -1;
-
-        public T SelectedItem => _selectedIndex == -1 ? default : _filteredSource[(_pageSize * _selectedPage) + _selectedIndex];
-
         public string FilterTerm { get; private set; } = "";
+
+        public bool TryGetSelectedItem(out T selectedItem)
+        {
+            if (_selectedIndex == -1)
+            {
+                selectedItem = default;
+
+                return false;
+            }
+
+            selectedItem = _filteredSource[(_pageSize * _selectedPage) + _selectedIndex];
+
+            return true;
+        }
 
         public void NextItem()
         {

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 using Sharprompt.Internal;
-using Sharprompt.Validations;
 
 namespace Sharprompt.Forms
 {
@@ -29,10 +29,8 @@ namespace Sharprompt.Forms
 
             if (keyInfo.Key == ConsoleKey.Enter)
             {
-                if (_selector.IsSelected)
+                if (_selector.TryGetSelectedItem(out result))
                 {
-                    result = _selector.SelectedItem;
-
                     return true;
                 }
 
@@ -92,7 +90,7 @@ namespace Sharprompt.Forms
 
                 screenBuffer.WriteLine();
 
-                if (_selector.IsSelected && EqualityComparer<T>.Default.Equals(item, _selector.SelectedItem))
+                if (_selector.TryGetSelectedItem(out var selectedItem) && EqualityComparer<T>.Default.Equals(item, selectedItem))
                 {
                     screenBuffer.Write($"{Symbol.Selector} {value}", Prompt.ColorSchema.Select);
                 }

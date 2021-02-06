@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
 namespace Sharprompt.Validations
@@ -11,7 +12,7 @@ namespace Sharprompt.Validations
             {
                 if (input is string strValue && !string.IsNullOrEmpty(strValue))
                 {
-                    return null;
+                    return ValidationResult.Success;
                 }
 
                 return new ValidationResult("Value is required");
@@ -24,12 +25,12 @@ namespace Sharprompt.Validations
             {
                 if (!(input is string strValue))
                 {
-                    return null;
+                    return ValidationResult.Success;
                 }
 
                 if (strValue.Length >= length)
                 {
-                    return null;
+                    return ValidationResult.Success;
                 }
 
                 return new ValidationResult("Value is too short");
@@ -42,12 +43,12 @@ namespace Sharprompt.Validations
             {
                 if (!(input is string strValue))
                 {
-                    return null;
+                    return ValidationResult.Success;
                 }
 
                 if (strValue.Length <= length)
                 {
-                    return null;
+                    return ValidationResult.Success;
                 }
 
                 return new ValidationResult("Value is too long");
@@ -60,12 +61,12 @@ namespace Sharprompt.Validations
             {
                 if (!(input is string strValue))
                 {
-                    return null;
+                    return ValidationResult.Success;
                 }
 
                 if (Regex.IsMatch(strValue, pattern))
                 {
-                    return null;
+                    return ValidationResult.Success;
                 }
 
                 return new ValidationResult("Value is not match pattern");
