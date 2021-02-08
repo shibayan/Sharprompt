@@ -24,29 +24,34 @@ namespace Sharprompt.Forms
         {
             var keyInfo = ConsoleDriver.ReadKey();
 
-            if (keyInfo.Key == ConsoleKey.Enter)
+            switch (keyInfo.Key)
             {
-                result = _inputBuffer.ToString();
+                case ConsoleKey.Enter:
+                {
+                    result = _inputBuffer.ToString();
 
-                if (TryValidate(result, _validators))
-                {
-                    return true;
+                    if (TryValidate(result, _validators))
+                    {
+                        return true;
+                    }
+
+                    break;
                 }
-            }
-            else if (keyInfo.Key == ConsoleKey.Backspace)
-            {
-                if (_inputBuffer.Length == 0)
-                {
+                case ConsoleKey.Backspace when _inputBuffer.Length == 0:
                     ConsoleDriver.Beep();
-                }
-                else
-                {
+                    break;
+                case ConsoleKey.Backspace:
                     _inputBuffer.Length -= 1;
+                    break;
+                default:
+                {
+                    if (!char.IsControl(keyInfo.KeyChar))
+                    {
+                        _inputBuffer.Append(keyInfo.KeyChar);
+                    }
+
+                    break;
                 }
-            }
-            else if (!char.IsControl(keyInfo.KeyChar))
-            {
-                _inputBuffer.Append(keyInfo.KeyChar);
             }
 
             result = null;

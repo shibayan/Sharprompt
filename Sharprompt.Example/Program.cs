@@ -2,8 +2,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
-using Sharprompt.Validations;
-
 namespace Sharprompt.Example
 {
     class Program
