@@ -44,69 +44,58 @@ namespace Sharprompt.Forms
         {
             var keyInfo = ConsoleDriver.ReadKey();
 
-            if (keyInfo.Key == ConsoleKey.Enter)
+            switch (keyInfo.Key)
             {
-                if (_selectedItems.Count >= _minimum)
-                {
+                case ConsoleKey.Enter when _selectedItems.Count >= _minimum:
                     result = _selectedItems;
-
                     return true;
-                }
+                case ConsoleKey.Enter:
+                    Renderer.SetValidationResult(new ValidationResult($"A minimum selection of {_minimum} items is required"));
+                    break;
+                case ConsoleKey.Spacebar when _selector.TryGetSelectedItem(out var currentItem):
+                    {
+                        if (_selectedItems.Contains(currentItem))
+                        {
+                            _selectedItems.Remove(currentItem);
+                        }
+                        else
+                        {
+                            _selectedItems.Add(currentItem);
+                        }
 
-                Renderer.SetValidationResult(new ValidationResult($"A minimum selection of {_minimum} items is required"));
-            }
-            else if (keyInfo.Key == ConsoleKey.Spacebar)
-            {
-                if (!_selector.TryGetSelectedItem(out var currentItem))
-                {
-                    result = null;
-
-                    return false;
-                }
-
-                if (_selectedItems.Contains(currentItem))
-                {
-                    _selectedItems.Remove(currentItem);
-                }
-                else
-                {
-                    _selectedItems.Add(currentItem);
-                }
-            }
-            else if (keyInfo.Key == ConsoleKey.UpArrow)
-            {
-                _selector.PreviousItem();
-            }
-            else if (keyInfo.Key == ConsoleKey.DownArrow)
-            {
-                _selector.NextItem();
-            }
-            else if (keyInfo.Key == ConsoleKey.LeftArrow)
-            {
-                _selector.PreviousPage();
-            }
-            else if (keyInfo.Key == ConsoleKey.RightArrow)
-            {
-                _selector.NextPage();
-            }
-            else if (keyInfo.Key == ConsoleKey.Backspace)
-            {
-                if (_filterBuffer.Length == 0)
-                {
+                        break;
+                    }
+                case ConsoleKey.UpArrow:
+                    _selector.PreviousItem();
+                    break;
+                case ConsoleKey.DownArrow:
+                    _selector.NextItem();
+                    break;
+                case ConsoleKey.LeftArrow:
+                    _selector.PreviousPage();
+                    break;
+                case ConsoleKey.RightArrow:
+                    _selector.NextPage();
+                    break;
+                case ConsoleKey.Backspace when _filterBuffer.Length == 0:
                     ConsoleDriver.Beep();
-                }
-                else
-                {
+                    break;
+                case ConsoleKey.Backspace:
                     _filterBuffer.Length -= 1;
 
                     _selector.UpdateFilter(_filterBuffer.ToString());
-                }
-            }
-            else if (!char.IsControl(keyInfo.KeyChar))
-            {
-                _filterBuffer.Append(keyInfo.KeyChar);
+                    break;
+                default:
+                    {
+                        if (!char.IsControl(keyInfo.KeyChar))
+                        {
+                            _filterBuffer.Append(keyInfo.KeyChar);
 
-                _selector.UpdateFilter(_filterBuffer.ToString());
+                            _selector.UpdateFilter(_filterBuffer.ToString());
+                        }
+
+                        break;
+                    }
             }
 
             result = null;
@@ -136,22 +125,22 @@ namespace Sharprompt.Forms
                 {
                     if (_selectedItems.Contains(item))
                     {
-                        screenBuffer.Write($"{Symbol.Selector} {Symbol.Selected} {value}", Prompt.ColorSchema.Select);
+                        screenBuffer.Write($"{Prompt.Symbols.Selector} {Prompt.Symbols.Selected} {value}", Prompt.ColorSchema.Select);
                     }
                     else
                     {
-                        screenBuffer.Write($"{Symbol.Selector} {Symbol.NotSelect} {value}", Prompt.ColorSchema.Select);
+                        screenBuffer.Write($"{Prompt.Symbols.Selector} {Prompt.Symbols.NotSelect} {value}", Prompt.ColorSchema.Select);
                     }
                 }
                 else
                 {
                     if (_selectedItems.Contains(item))
                     {
-                        screenBuffer.Write($"  {Symbol.Selected} {value}", Prompt.ColorSchema.Select);
+                        screenBuffer.Write($"  {Prompt.Symbols.Selected} {value}", Prompt.ColorSchema.Select);
                     }
                     else
                     {
-                        screenBuffer.Write($"  {Symbol.NotSelect} {value}");
+                        screenBuffer.Write($"  {Prompt.Symbols.NotSelect} {value}");
                     }
                 }
             }

@@ -51,20 +51,20 @@ namespace Sharprompt.Internal
 
         public void WritePrompt(string message)
         {
-            Write(Symbol.Prompt, ConsoleColor.Green);
+            Write(Prompt.Symbols.Prompt, ConsoleColor.Green);
             Write($" {message}: ");
         }
 
         public void WriteFinish(string message)
         {
-            Write(Symbol.Done, ConsoleColor.Green);
+            Write(Prompt.Symbols.Done, ConsoleColor.Green);
             Write($" {message}: ");
         }
 
         public void WriteErrorMessage(string errorMessage)
         {
             WriteLine();
-            Write($"{Symbol.Error} {errorMessage}", ConsoleColor.Red);
+            Write($"{Prompt.Symbols.Error} {errorMessage}", ConsoleColor.Red);
         }
 
         public (int left, int top) GetCursorPosition()

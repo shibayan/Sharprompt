@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
-namespace Sharprompt.Validations
+namespace Sharprompt
 {
     public static class Validators
     {

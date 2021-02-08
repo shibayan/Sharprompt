@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Sharprompt.Internal
 {
-    public class Selector<T>
+    internal class Selector<T>
     {
         public Selector(IEnumerable<T> items, int? pageSize, object defaultValue, Func<T, string> valueSelector)
         {

@@ -27,49 +27,44 @@ namespace Sharprompt.Forms
         {
             var keyInfo = ConsoleDriver.ReadKey();
 
-            if (keyInfo.Key == ConsoleKey.Enter)
+            switch (keyInfo.Key)
             {
-                if (_selector.TryGetSelectedItem(out result))
-                {
+                case ConsoleKey.Enter when _selector.TryGetSelectedItem(out result):
                     return true;
-                }
-
-                Renderer.SetValidationResult(new ValidationResult("Value is required"));
-            }
-            else if (keyInfo.Key == ConsoleKey.UpArrow)
-            {
-                _selector.PreviousItem();
-            }
-            else if (keyInfo.Key == ConsoleKey.DownArrow)
-            {
-                _selector.NextItem();
-            }
-            else if (keyInfo.Key == ConsoleKey.LeftArrow)
-            {
-                _selector.PreviousPage();
-            }
-            else if (keyInfo.Key == ConsoleKey.RightArrow)
-            {
-                _selector.NextPage();
-            }
-            else if (keyInfo.Key == ConsoleKey.Backspace)
-            {
-                if (_filterBuffer.Length == 0)
-                {
+                case ConsoleKey.Enter:
+                    Renderer.SetValidationResult(new ValidationResult("Value is required"));
+                    break;
+                case ConsoleKey.UpArrow:
+                    _selector.PreviousItem();
+                    break;
+                case ConsoleKey.DownArrow:
+                    _selector.NextItem();
+                    break;
+                case ConsoleKey.LeftArrow:
+                    _selector.PreviousPage();
+                    break;
+                case ConsoleKey.RightArrow:
+                    _selector.NextPage();
+                    break;
+                case ConsoleKey.Backspace when _filterBuffer.Length == 0:
                     ConsoleDriver.Beep();
-                }
-                else
-                {
+                    break;
+                case ConsoleKey.Backspace:
                     _filterBuffer.Length -= 1;
 
                     _selector.UpdateFilter(_filterBuffer.ToString());
-                }
-            }
-            else if (!char.IsControl(keyInfo.KeyChar))
-            {
-                _filterBuffer.Append(keyInfo.KeyChar);
+                    break;
+                default:
+                {
+                    if (!char.IsControl(keyInfo.KeyChar))
+                    {
+                        _filterBuffer.Append(keyInfo.KeyChar);
 
-                _selector.UpdateFilter(_filterBuffer.ToString());
+                        _selector.UpdateFilter(_filterBuffer.ToString());
+                    }
+
+                    break;
+                }
             }
 
             result = default;
@@ -92,7 +87,7 @@ namespace Sharprompt.Forms
 
                 if (_selector.TryGetSelectedItem(out var selectedItem) && EqualityComparer<T>.Default.Equals(item, selectedItem))
                 {
-                    screenBuffer.Write($"{Symbol.Selector} {value}", Prompt.ColorSchema.Select);
+                    screenBuffer.Write($"{Prompt.Symbols.Selector} {value}", Prompt.ColorSchema.Select);
                 }
                 else
                 {
