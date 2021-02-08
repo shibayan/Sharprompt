@@ -53,18 +53,18 @@ namespace Sharprompt.Forms
                     Renderer.SetValidationResult(new ValidationResult($"A minimum selection of {_minimum} items is required"));
                     break;
                 case ConsoleKey.Spacebar when _selector.TryGetSelectedItem(out var currentItem):
+                {
+                    if (_selectedItems.Contains(currentItem))
                     {
-                        if (_selectedItems.Contains(currentItem))
-                        {
-                            _selectedItems.Remove(currentItem);
-                        }
-                        else
-                        {
-                            _selectedItems.Add(currentItem);
-                        }
-
-                        break;
+                        _selectedItems.Remove(currentItem);
                     }
+                    else
+                    {
+                        _selectedItems.Add(currentItem);
+                    }
+
+                    break;
+                }
                 case ConsoleKey.UpArrow:
                     _selector.PreviousItem();
                     break;
@@ -86,16 +86,16 @@ namespace Sharprompt.Forms
                     _selector.UpdateFilter(_filterBuffer.ToString());
                     break;
                 default:
+                {
+                    if (!char.IsControl(keyInfo.KeyChar))
                     {
-                        if (!char.IsControl(keyInfo.KeyChar))
-                        {
-                            _filterBuffer.Append(keyInfo.KeyChar);
+                        _filterBuffer.Append(keyInfo.KeyChar);
 
-                            _selector.UpdateFilter(_filterBuffer.ToString());
-                        }
-
-                        break;
+                        _selector.UpdateFilter(_filterBuffer.ToString());
                     }
+
+                    break;
+                }
             }
 
             result = null;
