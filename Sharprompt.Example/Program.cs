@@ -1,6 +1,7 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 using System.Text;
+
+using Sharprompt.Example.Models;
 
 namespace Sharprompt.Example
 {
@@ -65,18 +66,6 @@ namespace Sharprompt.Example
         {
             var value = Prompt.MultiSelect<MyEnum>("Select enum value");
             Console.WriteLine($"You picked {string.Join(", ", value)}");
-        }
-
-        public enum MyEnum
-        {
-            [Display(Name = "Foo value", Order = 3)]
-            Foo,
-
-            [Display(Name = "Bar value", Order = 2)]
-            Bar,
-
-            [Display(Name = "Baz value", Order = 1)]
-            Baz
         }
     }
 }
