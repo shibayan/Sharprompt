@@ -24,6 +24,8 @@ namespace Sharprompt.Example
             RunSelectEnumSample();
 
             RunMultiSelectEnumSample();
+
+            RunAutoFormsSample();
         }
 
         private static void RunInputSample()
@@ -66,6 +68,11 @@ namespace Sharprompt.Example
         {
             var value = Prompt.MultiSelect<MyEnum>("Select enum value");
             Console.WriteLine($"You picked {string.Join(", ", value)}");
+        }
+
+        private static void RunAutoFormsSample()
+        {
+            var model = Prompt.AutoForms<MyFormModel>();
         }
     }
 }

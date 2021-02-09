@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Sharprompt.Example.Models
 {
@@ -9,7 +10,7 @@ namespace Sharprompt.Example.Models
         public string Name { get; set; }
 
         [Display(Description = "Select enum value", Order = 2)]
-        public MyEnum MyEnum { get; set; }
+        public MyEnum? MyEnum { get; set; }
 
         [Display(Description = "Type new password", Order = 3)]
         [DataType(DataType.Password)]
@@ -19,5 +20,8 @@ namespace Sharprompt.Example.Models
 
         [Display(Description = "Are you ready?", Order = 4)]
         public bool Ready { get; set; }
+
+        [Display(Description = "Select enum values", Order = 5)]
+        public IEnumerable<MyEnum> MyEnums { get; set; }
     }
 }
