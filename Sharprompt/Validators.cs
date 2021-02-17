@@ -10,12 +10,17 @@ namespace Sharprompt
         {
             return input =>
             {
-                if (input is string strValue && !string.IsNullOrEmpty(strValue))
+                if (input == null)
                 {
-                    return ValidationResult.Success;
+                    return new ValidationResult("Value is required");
                 }
 
-                return new ValidationResult("Value is required");
+                if (input is string strValue && string.IsNullOrEmpty(strValue))
+                {
+                    return new ValidationResult("Value is required");
+                }
+
+                return ValidationResult.Success;
             };
         }
 
