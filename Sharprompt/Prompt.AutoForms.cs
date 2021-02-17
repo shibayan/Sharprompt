@@ -4,6 +4,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 
+using Sharprompt.Internal;
+
 namespace Sharprompt
 {
     public static partial class Prompt
@@ -36,14 +38,15 @@ namespace Sharprompt
                 var propertyInfo = propertyMetadata.PropertyInfo;
 
                 var defaultValue = propertyInfo.GetValue(model);
+                var validators = propertyMetadata.Validations.Select(x => new ValidationAttributeAdapter(x).GetValidator(propertyInfo.Name, model)).ToArray();
 
                 if (propertyMetadata.DataType == DataType.Password)
                 {
-                    propertyInfo.SetValue(model, Password(propertyMetadata.Description));
+                    propertyInfo.SetValue(model, Password(propertyMetadata.Description, validators));
                 }
                 else if (propertyMetadata.PropertyType == typeof(bool))
                 {
-                    propertyInfo.SetValue(model, Confirm(propertyMetadata.Description));
+                    propertyInfo.SetValue(model, Confirm(propertyMetadata.Description, (bool?)defaultValue));
                 }
                 else if (propertyMetadata.PropertyType.IsEnum)
                 {
@@ -61,7 +64,7 @@ namespace Sharprompt
                 {
                     var method = _inputMethod.MakeGenericMethod(propertyMetadata.PropertyType);
 
-                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Description, defaultValue, null));
+                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Description, defaultValue, validators));
                 }
             }
         }
@@ -84,6 +87,7 @@ namespace Sharprompt
                 IsCollection = propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>);
                 Description = displayAttribute?.GetDescription();
                 Order = displayAttribute?.GetOrder();
+                Validations = propertyInfo.GetCustomAttributes<ValidationAttribute>(true);
             }
 
             public PropertyInfo PropertyInfo { get; }
@@ -92,6 +96,7 @@ namespace Sharprompt
             public bool IsCollection { get; }
             public string Description { get; }
             public int? Order { get; }
+            public IEnumerable<ValidationAttribute> Validations { get; }
         }
 
         private static readonly MethodInfo _inputMethod = typeof(Prompt).GetMethod(nameof(Input));
