@@ -12,7 +12,7 @@ namespace Sharprompt
     {
         public static T Input<T>(string message, object defaultValue = null, IList<Func<object, ValidationResult>> validators = null)
         {
-            using var form = new Input<T>(message, defaultValue, validators);
+            using var form = new Input<T>(message, Optional<T>.Create(defaultValue), validators);
 
             return form.Start();
         }
@@ -35,14 +35,14 @@ namespace Sharprompt
         {
             var items = EnumValue<T>.GetValues();
 
-            using var form = new Select<EnumValue<T>>(message, items, pageSize, (EnumValue<T>)defaultValue, x => x.DisplayName);
+            using var form = new Select<EnumValue<T>>(message, items, pageSize, Optional<EnumValue<T>>.Create(defaultValue), x => x.DisplayName);
 
             return form.Start().Value;
         }
 
         public static T Select<T>(string message, IEnumerable<T> items, int? pageSize = null, object defaultValue = null, Func<T, string> valueSelector = null)
         {
-            using var form = new Select<T>(message, items, pageSize, defaultValue, valueSelector ?? (x => x.ToString()));
+            using var form = new Select<T>(message, items, pageSize, Optional<T>.Create(defaultValue), valueSelector ?? (x => x.ToString()));
 
             return form.Start();
         }
