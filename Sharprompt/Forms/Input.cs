@@ -41,7 +41,7 @@ namespace Sharprompt.Forms
                     {
                         if (string.IsNullOrEmpty(input))
                         {
-                            if (_targetType.IsValueType && _underlyingType == null && _defaultValue.HasValue)
+                            if (_targetType.IsValueType && _underlyingType == null && !_defaultValue.HasValue)
                             {
                                 Renderer.SetValidationResult(new ValidationResult("Value is required"));
 
