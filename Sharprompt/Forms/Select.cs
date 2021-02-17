@@ -9,7 +9,7 @@ namespace Sharprompt.Forms
 {
     internal class Select<T> : FormBase<T>
     {
-        public Select(string message, IEnumerable<T> items, int? pageSize, object defaultValue, Func<T, string> valueSelector)
+        public Select(string message, IEnumerable<T> items, int? pageSize, Optional<T> defaultValue, Func<T, string> valueSelector)
             : base(false)
         {
             _message = message;
@@ -79,7 +79,7 @@ namespace Sharprompt.Forms
 
             var subset = _selector.ToSubset();
 
-            foreach (T item in subset)
+            foreach (var item in subset)
             {
                 var value = _valueSelector(item);
 

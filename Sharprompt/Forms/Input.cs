@@ -10,7 +10,7 @@ namespace Sharprompt.Forms
 {
     internal class Input<T> : FormBase<T>
     {
-        public Input(string message, object defaultValue, IList<Func<object, ValidationResult>> validators)
+        public Input(string message, Optional<T> defaultValue, IList<Func<object, ValidationResult>> validators)
         {
             _message = message;
             _defaultValue = defaultValue;
@@ -18,7 +18,7 @@ namespace Sharprompt.Forms
         }
 
         private readonly string _message;
-        private readonly object _defaultValue;
+        private readonly Optional<T> _defaultValue;
         private readonly IList<Func<object, ValidationResult>> _validators;
 
         private readonly Type _targetType = typeof(T);
@@ -41,7 +41,7 @@ namespace Sharprompt.Forms
                     {
                         if (string.IsNullOrEmpty(input))
                         {
-                            if (_targetType.IsValueType && _underlyingType == null && _defaultValue == null)
+                            if (_targetType.IsValueType && _underlyingType == null && _defaultValue.HasValue)
                             {
                                 Renderer.SetValidationResult(new ValidationResult("Value is required"));
 
@@ -50,7 +50,7 @@ namespace Sharprompt.Forms
                                 return false;
                             }
 
-                            result = (T)_defaultValue;
+                            result = _defaultValue;
                         }
                         else
                         {
@@ -121,7 +121,7 @@ namespace Sharprompt.Forms
         {
             screenBuffer.WritePrompt(_message);
 
-            if (_defaultValue != null)
+            if (_defaultValue.HasValue)
             {
                 screenBuffer.Write($"({_defaultValue}) ");
             }

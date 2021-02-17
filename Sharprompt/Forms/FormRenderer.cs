@@ -77,7 +77,7 @@ namespace Sharprompt.Forms
         {
             var bottom = _screenBuffer.CursorBottom;
 
-            for (int i = 0; i < _screenBuffer.LineCount; i++)
+            for (var i = 0; i < _screenBuffer.LineCount; i++)
             {
                 ConsoleDriver.ClearLine(bottom - i);
             }

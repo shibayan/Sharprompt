@@ -25,7 +25,7 @@ namespace Sharprompt.Forms
             }
 
             _message = message;
-            _selector = new Selector<T>(items, pageSize, null, valueSelector);
+            _selector = new Selector<T>(items, pageSize, Optional<T>.Empty, valueSelector);
             _minimum = minimum;
             _maximum = maximum;
             _valueSelector = valueSelector;
@@ -115,7 +115,7 @@ namespace Sharprompt.Forms
 
             var subset = _selector.ToSubset();
 
-            foreach (T item in subset)
+            foreach (var item in subset)
             {
                 var value = _valueSelector(item);
 
