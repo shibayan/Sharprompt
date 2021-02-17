@@ -149,7 +149,7 @@ namespace Sharprompt.Forms
         protected override void FinishTemplate(ScreenBuffer screenBuffer, IEnumerable<T> result)
         {
             screenBuffer.WriteFinish(_message);
-            screenBuffer.Write(result.Select(_valueSelector).Join(", "), Prompt.ColorSchema.Answer);
+            screenBuffer.Write(string.Join(", ", result.Select(_valueSelector)), Prompt.ColorSchema.Answer);
         }
     }
 }

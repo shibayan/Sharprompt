@@ -1,9 +1,10 @@
 # Sharprompt
 
 ![Build](https://github.com/shibayan/Sharprompt/workflows/Build/badge.svg)
-[![License](https://img.shields.io/github/license/shibayan/Sharprompt.svg)](https://github.com/shibayan/Sharprompt/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/shibayan/Sharprompt)](https://github.com/shibayan/Sharprompt/blob/master/LICENSE)
+[![Downloads](https://img.shields.io/nuget/dt/Sharprompt)](https://www.nuget.org/packages/Sharprompt/)
 
-Interactive command line interface toolkit for .NET Core
+Interactive command line interface toolkit for C#
 
 ![sharprompt](https://user-images.githubusercontent.com/1356444/62227794-87506e00-b3f7-11e9-84ae-06c9a900448b.gif)
 
@@ -11,7 +12,7 @@ Interactive command line interface toolkit for .NET Core
 
 Package Name | Target Framework | NuGet
 ---|---|---
-Sharprompt | .NET Standard 2.0 | [![NuGet](https://img.shields.io/nuget/v/Sharprompt.svg)](https://www.nuget.org/packages/Sharprompt/)
+Sharprompt | .NET Standard 2.0 | [![NuGet](https://img.shields.io/nuget/v/Sharprompt)](https://www.nuget.org/packages/Sharprompt/)
 
 ## Install
 
@@ -127,7 +128,7 @@ Console.WriteLine($"Hello, {name}!");
 ## Platforms
 
 - Windows
-  - Cmd / PowerShell / Windows Terminal
+  - Command Prompt / PowerShell / Windows Terminal
 - Ubuntu
   - Bash
 - macOS
