@@ -29,42 +29,42 @@ namespace Sharprompt
         private static void StartForms<T>(T model)
         {
             var propertyMetadatas = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                      .Select(x => new PropertyMetadata(x))
-                                      .OrderBy(x => x.Order)
-                                      .ToArray();
+                                             .Select(x => new PropertyMetadata(x))
+                                             .OrderBy(x => x.Order)
+                                             .ToArray();
 
             foreach (var propertyMetadata in propertyMetadatas)
             {
                 var propertyInfo = propertyMetadata.PropertyInfo;
+                var validators = propertyMetadata.Validations.Select(x => new ValidationAttributeAdapter(x).GetValidator(propertyInfo.Name, model)).ToArray();
 
                 var defaultValue = propertyInfo.GetValue(model);
-                var validators = propertyMetadata.Validations.Select(x => new ValidationAttributeAdapter(x).GetValidator(propertyInfo.Name, model)).ToArray();
 
                 if (propertyMetadata.DataType == DataType.Password)
                 {
-                    propertyInfo.SetValue(model, Password(propertyMetadata.Description, validators));
+                    propertyInfo.SetValue(model, Password(propertyMetadata.Prompt, validators));
                 }
                 else if (propertyMetadata.PropertyType == typeof(bool))
                 {
-                    propertyInfo.SetValue(model, Confirm(propertyMetadata.Description, (bool?)defaultValue));
+                    propertyInfo.SetValue(model, Confirm(propertyMetadata.Prompt, (bool?)defaultValue));
                 }
                 else if (propertyMetadata.PropertyType.IsEnum)
                 {
                     var method = _selectMethod.MakeGenericMethod(propertyMetadata.PropertyType);
 
-                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Description, null, defaultValue));
+                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, null, defaultValue));
                 }
                 else if (propertyMetadata.IsCollection && propertyMetadata.PropertyType.GetGenericArguments()[0].IsEnum)
                 {
                     var method = _multiSelectMethod.MakeGenericMethod(propertyMetadata.PropertyType.GetGenericArguments()[0]);
 
-                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Description, null, 1, -1));
+                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, null, 1, -1));
                 }
                 else
                 {
                     var method = _inputMethod.MakeGenericMethod(propertyMetadata.PropertyType);
 
-                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Description, defaultValue, validators));
+                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, defaultValue, validators));
                 }
             }
         }
@@ -85,7 +85,7 @@ namespace Sharprompt
                 PropertyType = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
                 DataType = dataTypeAttribute?.DataType;
                 IsCollection = propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>);
-                Description = displayAttribute?.GetDescription();
+                Prompt = displayAttribute?.GetPrompt();
                 Order = displayAttribute?.GetOrder();
                 Validations = propertyInfo.GetCustomAttributes<ValidationAttribute>(true);
             }
@@ -94,7 +94,7 @@ namespace Sharprompt
             public Type PropertyType { get; }
             public DataType? DataType { get; }
             public bool IsCollection { get; }
-            public string Description { get; }
+            public string Prompt { get; }
             public int? Order { get; }
             public IEnumerable<ValidationAttribute> Validations { get; }
         }
