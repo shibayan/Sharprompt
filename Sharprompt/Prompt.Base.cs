@@ -8,7 +8,7 @@ using Sharprompt.Internal;
 
 namespace Sharprompt
 {
-    public static class Prompt
+    public static partial class Prompt
     {
         public static T Input<T>(string message, object defaultValue = null, IList<Func<object, ValidationResult>> validators = null)
         {
@@ -61,23 +61,6 @@ namespace Sharprompt
             using var form = new MultiSelect<T>(message, items, pageSize, minimum, maximum, valueSelector ?? (x => x.ToString()));
 
             return form.Start();
-        }
-
-        public static class ColorSchema
-        {
-            public static ConsoleColor Answer { get; set; } = ConsoleColor.Cyan;
-            public static ConsoleColor Select { get; set; } = ConsoleColor.Green;
-            public static ConsoleColor DisabledOption { get; set; } = ConsoleColor.DarkCyan;
-        }
-
-        public static class Symbols
-        {
-            public static Symbol Prompt { get; set; } = new Symbol("?", "?");
-            public static Symbol Done { get; set; } = new Symbol("✔", "V");
-            public static Symbol Error { get; set; } = new Symbol("»", ">>");
-            public static Symbol Selector { get; set; } = new Symbol("›", ">");
-            public static Symbol Selected { get; set; } = new Symbol("◉", "(*)");
-            public static Symbol NotSelect { get; set; } = new Symbol("◯", "( )");
         }
     }
 }

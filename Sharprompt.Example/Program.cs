@@ -1,6 +1,7 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 using System.Text;
+
+using Sharprompt.Example.Models;
 
 namespace Sharprompt.Example
 {
@@ -10,19 +11,40 @@ namespace Sharprompt.Example
         {
             Console.OutputEncoding = Encoding.UTF8;
 
-            RunInputSample();
+            while (true)
+            {
+                var type = Prompt.Select<ExampleType>("Choose prompt example");
 
-            RunSelectSample();
-
-            RunPasswordSample();
-
-            RunConfirmSample();
-
-            RunMultiSelectSample();
-
-            RunSelectEnumSample();
-
-            RunMultiSelectEnumSample();
+                switch (type)
+                {
+                    case ExampleType.Input:
+                        RunInputSample();
+                        break;
+                    case ExampleType.Confirm:
+                        RunConfirmSample();
+                        break;
+                    case ExampleType.Password:
+                        RunPasswordSample();
+                        break;
+                    case ExampleType.Select:
+                        RunSelectSample();
+                        break;
+                    case ExampleType.MultiSelect:
+                        RunMultiSelectSample();
+                        break;
+                    case ExampleType.SelectWithEnum:
+                        RunSelectEnumSample();
+                        break;
+                    case ExampleType.MultiSelectWithEnum:
+                        RunMultiSelectEnumSample();
+                        break;
+                    case ExampleType.AutoForms:
+                        RunAutoFormsSample();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
         }
 
         private static void RunInputSample()
@@ -67,16 +89,9 @@ namespace Sharprompt.Example
             Console.WriteLine($"You picked {string.Join(", ", value)}");
         }
 
-        public enum MyEnum
+        private static void RunAutoFormsSample()
         {
-            [Display(Name = "Foo value", Order = 3)]
-            Foo,
-
-            [Display(Name = "Bar value", Order = 2)]
-            Bar,
-
-            [Display(Name = "Baz value", Order = 1)]
-            Baz
+            var model = Prompt.AutoForms<MyFormModel>();
         }
     }
 }
