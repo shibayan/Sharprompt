@@ -11,21 +11,40 @@ namespace Sharprompt.Example
         {
             Console.OutputEncoding = Encoding.UTF8;
 
-            RunInputSample();
+            while (true)
+            {
+                var type = Prompt.Select<ExampleType>("Choose prompt example");
 
-            RunSelectSample();
-
-            RunPasswordSample();
-
-            RunConfirmSample();
-
-            RunMultiSelectSample();
-
-            RunSelectEnumSample();
-
-            RunMultiSelectEnumSample();
-
-            RunAutoFormsSample();
+                switch (type)
+                {
+                    case ExampleType.Input:
+                        RunInputSample();
+                        break;
+                    case ExampleType.Confirm:
+                        RunConfirmSample();
+                        break;
+                    case ExampleType.Password:
+                        RunPasswordSample();
+                        break;
+                    case ExampleType.Select:
+                        RunSelectSample();
+                        break;
+                    case ExampleType.MultiSelect:
+                        RunMultiSelectSample();
+                        break;
+                    case ExampleType.SelectWithEnum:
+                        RunSelectEnumSample();
+                        break;
+                    case ExampleType.MultiSelectWithEnum:
+                        RunMultiSelectEnumSample();
+                        break;
+                    case ExampleType.AutoForms:
+                        RunAutoFormsSample();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
         }
 
         private static void RunInputSample()
