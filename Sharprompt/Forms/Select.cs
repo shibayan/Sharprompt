@@ -13,12 +13,12 @@ namespace Sharprompt.Forms
             : base(false)
         {
             _message = message;
-            _selector = new Selector<T>(items, pageSize, defaultValue, valueSelector);
+            _paginator = new Paginator<T>(items, pageSize, defaultValue, valueSelector);
             _valueSelector = valueSelector;
         }
 
         private readonly string _message;
-        private readonly Selector<T> _selector;
+        private readonly Paginator<T> _paginator;
         private readonly Func<T, string> _valueSelector;
 
         private readonly StringBuilder _filterBuffer = new StringBuilder();
@@ -29,22 +29,22 @@ namespace Sharprompt.Forms
 
             switch (keyInfo.Key)
             {
-                case ConsoleKey.Enter when _selector.TryGetSelectedItem(out result):
+                case ConsoleKey.Enter when _paginator.TryGetSelectedItem(out result):
                     return true;
                 case ConsoleKey.Enter:
                     Renderer.SetValidationResult(new ValidationResult("Value is required"));
                     break;
                 case ConsoleKey.UpArrow:
-                    _selector.PreviousItem();
+                    _paginator.PreviousItem();
                     break;
                 case ConsoleKey.DownArrow:
-                    _selector.NextItem();
+                    _paginator.NextItem();
                     break;
                 case ConsoleKey.LeftArrow:
-                    _selector.PreviousPage();
+                    _paginator.PreviousPage();
                     break;
                 case ConsoleKey.RightArrow:
-                    _selector.NextPage();
+                    _paginator.NextPage();
                     break;
                 case ConsoleKey.Backspace when _filterBuffer.Length == 0:
                     ConsoleDriver.Beep();
@@ -52,7 +52,7 @@ namespace Sharprompt.Forms
                 case ConsoleKey.Backspace:
                     _filterBuffer.Length -= 1;
 
-                    _selector.UpdateFilter(_filterBuffer.ToString());
+                    _paginator.UpdateFilter(_filterBuffer.ToString());
                     break;
                 default:
                 {
@@ -60,7 +60,7 @@ namespace Sharprompt.Forms
                     {
                         _filterBuffer.Append(keyInfo.KeyChar);
 
-                        _selector.UpdateFilter(_filterBuffer.ToString());
+                        _paginator.UpdateFilter(_filterBuffer.ToString());
                     }
 
                     break;
@@ -75,9 +75,9 @@ namespace Sharprompt.Forms
         protected override void InputTemplate(ScreenBuffer screenBuffer)
         {
             screenBuffer.WritePrompt(_message);
-            screenBuffer.Write(_selector.FilterTerm);
+            screenBuffer.Write(_paginator.FilterTerm);
 
-            var subset = _selector.ToSubset();
+            var subset = _paginator.ToSubset();
 
             foreach (var item in subset)
             {
@@ -85,7 +85,7 @@ namespace Sharprompt.Forms
 
                 screenBuffer.WriteLine();
 
-                if (_selector.TryGetSelectedItem(out var selectedItem) && EqualityComparer<T>.Default.Equals(item, selectedItem))
+                if (_paginator.TryGetSelectedItem(out var selectedItem) && EqualityComparer<T>.Default.Equals(item, selectedItem))
                 {
                     screenBuffer.Write($"{Prompt.Symbols.Selector} {value}", Prompt.ColorSchema.Select);
                 }

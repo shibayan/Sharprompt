@@ -4,20 +4,20 @@ using System.Linq;
 
 namespace Sharprompt.Internal
 {
-    internal class Selector<T>
+    internal class Paginator<T>
     {
-        public Selector(IEnumerable<T> items, int? pageSize, Optional<T> defaultValue, Func<T, string> valueSelector)
+        public Paginator(IEnumerable<T> items, int? pageSize, Optional<T> defaultValue, Func<T, string> textSelector)
         {
             _items = items.ToArray();
             _pageSize = pageSize ?? _items.Length;
-            _valueSelector = valueSelector;
+            _textSelector = textSelector;
 
             InitializeDefaults(defaultValue);
         }
 
         private readonly T[] _items;
         private readonly int _pageSize;
-        private readonly Func<T, string> _valueSelector;
+        private readonly Func<T, string> _textSelector;
 
         private T[] _filteredSource;
         private int _pageCount;
@@ -82,7 +82,7 @@ namespace Sharprompt.Internal
 
         private void InitializeCollection()
         {
-            _filteredSource = _items.Where(x => _valueSelector(x).IndexOf(FilterTerm, StringComparison.OrdinalIgnoreCase) != -1)
+            _filteredSource = _items.Where(x => _textSelector(x).IndexOf(FilterTerm, StringComparison.OrdinalIgnoreCase) != -1)
                                     .ToArray();
 
             _pageCount = (_filteredSource.Length - 1) / _pageSize + 1;
