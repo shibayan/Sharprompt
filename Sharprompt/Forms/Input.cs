@@ -123,7 +123,7 @@ namespace Sharprompt.Forms
 
             if (_defaultValue.HasValue)
             {
-                screenBuffer.Write($"({_defaultValue}) ");
+                screenBuffer.Write($"({_defaultValue.Value}) ");
             }
 
             var (left, top) = screenBuffer.GetCursorPosition();
