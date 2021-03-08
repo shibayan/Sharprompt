@@ -10,7 +10,7 @@ namespace Sharprompt.Forms
 {
     internal class MultiSelect<T> : FormBase<IEnumerable<T>>
     {
-        public MultiSelect(string message, IEnumerable<T> items, int? pageSize, int minimum, int maximum, Func<T, string> textSelector)
+        public MultiSelect(string message, IEnumerable<T> items, int? pageSize, int minimum, int maximum, IEnumerable<T> defaultValues, Func<T, string> textSelector)
             : base(false)
         {
             // throw early when invalid options are passed
@@ -29,6 +29,11 @@ namespace Sharprompt.Forms
             _minimum = minimum;
             _maximum = maximum;
             _textSelector = textSelector;
+
+            if (defaultValues != null)
+            {
+                _selectedItems.AddRange(defaultValues);
+            }
         }
 
         private readonly string _message;
@@ -37,7 +42,7 @@ namespace Sharprompt.Forms
         private readonly int _maximum;
         private readonly Func<T, string> _textSelector;
 
-        private readonly IList<T> _selectedItems = new List<T>();
+        private readonly List<T> _selectedItems = new List<T>();
         private readonly StringBuilder _filterBuffer = new StringBuilder();
 
         protected override bool TryGetResult(out IEnumerable<T> result)

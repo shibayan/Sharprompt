@@ -53,10 +53,10 @@ namespace Sharprompt.Example
             Console.WriteLine($"Hello, {name}!");
         }
 
-        private static void RunSelectSample()
+        private static void RunConfirmSample()
         {
-            var city = Prompt.Select("Select your city", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3);
-            Console.WriteLine($"Hello, {city}!");
+            var answer = Prompt.Confirm("Are you ready?");
+            Console.WriteLine($"Your answer is {answer}");
         }
 
         private static void RunPasswordSample()
@@ -65,15 +65,15 @@ namespace Sharprompt.Example
             Console.WriteLine("Password OK");
         }
 
-        private static void RunConfirmSample()
+        private static void RunSelectSample()
         {
-            var answer = Prompt.Confirm("Are you ready?");
-            Console.WriteLine($"Your answer is {answer}");
+            var city = Prompt.Select("Select your city", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3);
+            Console.WriteLine($"Hello, {city}!");
         }
 
         private static void RunMultiSelectSample()
         {
-            var options = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3);
+            var options = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3, defaultValues: new[] { "Tokyo" });
             Console.WriteLine($"You picked {string.Join(", ", options)}");
         }
 
@@ -85,7 +85,7 @@ namespace Sharprompt.Example
 
         private static void RunMultiSelectEnumSample()
         {
-            var value = Prompt.MultiSelect<MyEnum>("Select enum value");
+            var value = Prompt.MultiSelect<MyEnum>("Select enum value", defaultValues: new[] { MyEnum.Bar });
             Console.WriteLine($"You picked {string.Join(", ", value)}");
         }
 
