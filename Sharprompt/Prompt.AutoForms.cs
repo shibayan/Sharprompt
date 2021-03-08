@@ -58,7 +58,7 @@ namespace Sharprompt
                 {
                     var method = _multiSelectMethod.MakeGenericMethod(propertyMetadata.PropertyType.GetGenericArguments()[0]);
 
-                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, null, 1, -1));
+                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, null, 1, -1, defaultValue));
                 }
                 else
                 {
@@ -101,6 +101,6 @@ namespace Sharprompt
 
         private static readonly MethodInfo _inputMethod = typeof(Prompt).GetMethod(nameof(Input));
         private static readonly MethodInfo _selectMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(Select) && x.GetParameters().Length == 3);
-        private static readonly MethodInfo _multiSelectMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(MultiSelect) && x.GetParameters().Length == 4);
+        private static readonly MethodInfo _multiSelectMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(MultiSelect) && x.GetParameters().Length == 5);
     }
 }
