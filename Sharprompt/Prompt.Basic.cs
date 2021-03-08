@@ -47,18 +47,18 @@ namespace Sharprompt
             return form.Start();
         }
 
-        public static IEnumerable<T> MultiSelect<T>(string message, int? pageSize = null, int minimum = 1, int maximum = -1) where T : struct, Enum
+        public static IEnumerable<T> MultiSelect<T>(string message, int? pageSize = null, int minimum = 1, int maximum = -1, IEnumerable<T> defaultValues = null) where T : struct, Enum
         {
             var items = EnumValue<T>.GetValues();
 
-            using var form = new MultiSelect<EnumValue<T>>(message, items, pageSize, minimum, maximum, x => x.DisplayName);
+            using var form = new MultiSelect<EnumValue<T>>(message, items, pageSize, minimum, maximum, defaultValues?.Select(x => (EnumValue<T>)x), x => x.DisplayName);
 
             return form.Start().Select(x => x.Value);
         }
 
-        public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items, int? pageSize = null, int minimum = 1, int maximum = -1, Func<T, string> textSelector = null)
+        public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items, int? pageSize = null, int minimum = 1, int maximum = -1, IEnumerable<T> defaultValues = null, Func<T, string> textSelector = null)
         {
-            using var form = new MultiSelect<T>(message, items, pageSize, minimum, maximum, textSelector ?? (x => x.ToString()));
+            using var form = new MultiSelect<T>(message, items, pageSize, minimum, maximum, defaultValues, textSelector ?? (x => x.ToString()));
 
             return form.Start();
         }
