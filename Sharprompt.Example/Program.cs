@@ -92,6 +92,7 @@ namespace Sharprompt.Example
         private static void RunAutoFormsSample()
         {
             var model = Prompt.AutoForms<MyFormModel>();
+            Console.WriteLine("Forms OK");
         }
     }
 }

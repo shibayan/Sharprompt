@@ -14,7 +14,7 @@ namespace Sharprompt.Internal
             var displayAttribute = typeof(T).GetField(name)?.GetCustomAttribute<DisplayAttribute>();
 
             DisplayName = displayAttribute?.Name ?? name;
-            Order = displayAttribute?.Order ?? int.MaxValue;
+            Order = displayAttribute?.GetOrder() ?? int.MaxValue;
             Value = value;
         }
 

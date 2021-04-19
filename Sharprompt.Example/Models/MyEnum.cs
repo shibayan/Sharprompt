@@ -11,6 +11,9 @@ namespace Sharprompt.Example.Models
         Bar,
 
         [Display(Name = "Baz value", Order = 1)]
-        Baz
+        Baz,
+
+        [Display(Name = "Test value")]
+        Test
     }
 }
