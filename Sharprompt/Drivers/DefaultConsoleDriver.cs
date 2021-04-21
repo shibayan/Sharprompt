@@ -41,7 +41,7 @@ namespace Sharprompt.Drivers
 
         #region IConsoleDriver
 
-        public virtual void Beep() => Console.Beep();
+        public virtual void Beep() => Console.Write("\a");
 
         public void Reset()
         {
