@@ -6,9 +6,9 @@ using Sharprompt.Drivers;
 
 namespace Sharprompt.Internal
 {
-    internal class ScreenBuffer
+    internal class OffscreenBuffer
     {
-        public ScreenBuffer(IConsoleDriver consoleDriver)
+        public OffscreenBuffer(IConsoleDriver consoleDriver)
         {
             _consoleDriver = consoleDriver;
         }

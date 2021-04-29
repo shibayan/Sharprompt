@@ -59,7 +59,7 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(ScreenBuffer screenBuffer)
+        protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
             screenBuffer.WritePrompt(_message);
             screenBuffer.Write(new string('*', _inputBuffer.Length));
@@ -67,7 +67,7 @@ namespace Sharprompt.Forms
             screenBuffer.SetCursorPosition();
         }
 
-        protected override void FinishTemplate(ScreenBuffer screenBuffer, string result)
+        protected override void FinishTemplate(OffscreenBuffer screenBuffer, string result)
         {
             screenBuffer.WriteFinish(_message);
             screenBuffer.Write(new string('*', _inputBuffer.Length), Prompt.ColorSchema.Answer);

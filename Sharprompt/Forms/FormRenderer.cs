@@ -8,24 +8,23 @@ namespace Sharprompt.Forms
 {
     internal class FormRenderer : IDisposable
     {
-        public FormRenderer(bool cursorVisible = true)
+        public FormRenderer(IConsoleDriver consoleDriver, bool cursorVisible = true)
         {
-            ConsoleDriver = new DefaultConsoleDriver();
-
+            _consoleDriver = consoleDriver;
             _cursorVisible = cursorVisible;
-            _screenBuffer = new ScreenBuffer(ConsoleDriver);
+
+            _offscreenBuffer = new OffscreenBuffer(_consoleDriver);
         }
 
         private readonly bool _cursorVisible;
-        private readonly ScreenBuffer _screenBuffer;
+        private readonly IConsoleDriver _consoleDriver;
+        private readonly OffscreenBuffer _offscreenBuffer;
 
         private string _errorMessage;
 
-        public IConsoleDriver ConsoleDriver { get; }
-
         public void Dispose()
         {
-            ConsoleDriver.Dispose();
+            _consoleDriver.Dispose();
         }
 
         public void SetValidationResult(ValidationResult result)
@@ -38,51 +37,51 @@ namespace Sharprompt.Forms
             _errorMessage = exception.Message;
         }
 
-        public void Render(Action<ScreenBuffer> template)
+        public void Render(Action<OffscreenBuffer> template)
         {
-            ConsoleDriver.CursorVisible = false;
+            _consoleDriver.CursorVisible = false;
 
             ClearAll();
 
-            template(_screenBuffer);
+            template(_offscreenBuffer);
 
             if (_errorMessage != null)
             {
-                _screenBuffer.WriteErrorMessage(_errorMessage);
+                _offscreenBuffer.WriteErrorMessage(_errorMessage);
 
                 _errorMessage = null;
             }
 
-            _screenBuffer.RenderToConsole();
+            _offscreenBuffer.RenderToConsole();
 
-            ConsoleDriver.CursorVisible = _cursorVisible;
+            _consoleDriver.CursorVisible = _cursorVisible;
         }
 
-        public void Render<TModel>(Action<ScreenBuffer, TModel> template, TModel result)
+        public void Render<TModel>(Action<OffscreenBuffer, TModel> template, TModel result)
         {
-            ConsoleDriver.CursorVisible = false;
+            _consoleDriver.CursorVisible = false;
 
             ClearAll();
 
-            template(_screenBuffer, result);
+            template(_offscreenBuffer, result);
 
-            _screenBuffer.RenderToConsole();
+            _offscreenBuffer.RenderToConsole();
 
-            ConsoleDriver.WriteLine();
+            _consoleDriver.WriteLine();
 
-            ConsoleDriver.CursorVisible = _cursorVisible;
+            _consoleDriver.CursorVisible = _cursorVisible;
         }
 
         private void ClearAll()
         {
-            var bottom = _screenBuffer.CursorBottom;
+            var bottom = _offscreenBuffer.CursorBottom;
 
-            for (var i = 0; i < _screenBuffer.LineCount; i++)
+            for (var i = 0; i < _offscreenBuffer.LineCount; i++)
             {
-                ConsoleDriver.ClearLine(bottom - i);
+                _consoleDriver.ClearLine(bottom - i);
             }
 
-            _screenBuffer.Clear();
+            _offscreenBuffer.Clear();
         }
     }
 }

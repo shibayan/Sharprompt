@@ -11,12 +11,14 @@ namespace Sharprompt.Forms
     {
         protected FormBase(bool cursorVisible = true)
         {
-            Renderer = new FormRenderer(cursorVisible);
+            ConsoleDriver = new DefaultConsoleDriver();
+
+            Renderer = new FormRenderer(ConsoleDriver, cursorVisible);
         }
 
-        protected FormRenderer Renderer { get; }
+        protected IConsoleDriver ConsoleDriver { get; }
 
-        protected IConsoleDriver ConsoleDriver => Renderer.ConsoleDriver;
+        protected FormRenderer Renderer { get; }
 
         public void Dispose()
         {
@@ -42,9 +44,9 @@ namespace Sharprompt.Forms
 
         protected abstract bool TryGetResult(out T result);
 
-        protected abstract void InputTemplate(ScreenBuffer screenBuffer);
+        protected abstract void InputTemplate(OffscreenBuffer screenBuffer);
 
-        protected abstract void FinishTemplate(ScreenBuffer screenBuffer, T result);
+        protected abstract void FinishTemplate(OffscreenBuffer screenBuffer, T result);
 
         protected bool TryValidate(object input, IList<Func<object, ValidationResult>> validators)
         {
