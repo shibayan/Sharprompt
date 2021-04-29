@@ -6,9 +6,9 @@ using Sharprompt.Drivers;
 
 namespace Sharprompt.Internal
 {
-    internal class ScreenBuffer
+    internal class OffscreenBuffer
     {
-        public ScreenBuffer(IConsoleDriver consoleDriver)
+        public OffscreenBuffer(IConsoleDriver consoleDriver)
         {
             _consoleDriver = consoleDriver;
         }
@@ -90,7 +90,7 @@ namespace Sharprompt.Internal
 
         public void RenderToConsole()
         {
-            for (int i = 0; i < _outputBuffer.Count; i++)
+            for (var i = 0; i < _outputBuffer.Count; i++)
             {
                 var lineBuffer = _outputBuffer[i];
 

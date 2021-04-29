@@ -72,7 +72,7 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(ScreenBuffer screenBuffer)
+        protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
             screenBuffer.WritePrompt(_message);
             screenBuffer.Write(_paginator.FilterTerm);
@@ -96,7 +96,7 @@ namespace Sharprompt.Forms
             }
         }
 
-        protected override void FinishTemplate(ScreenBuffer screenBuffer, T result)
+        protected override void FinishTemplate(OffscreenBuffer screenBuffer, T result)
         {
             screenBuffer.WriteFinish(_message);
             screenBuffer.Write(_valueSelector(result), Prompt.ColorSchema.Answer);

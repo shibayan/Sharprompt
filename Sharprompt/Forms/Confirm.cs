@@ -54,7 +54,7 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(ScreenBuffer screenBuffer)
+        protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
             screenBuffer.WritePrompt(_message);
 
@@ -74,7 +74,7 @@ namespace Sharprompt.Forms
             screenBuffer.SetCursorPosition();
         }
 
-        protected override void FinishTemplate(ScreenBuffer screenBuffer, bool result)
+        protected override void FinishTemplate(OffscreenBuffer screenBuffer, bool result)
         {
             screenBuffer.WriteFinish(_message);
             screenBuffer.Write(result ? "Yes" : "No", Prompt.ColorSchema.Answer);
