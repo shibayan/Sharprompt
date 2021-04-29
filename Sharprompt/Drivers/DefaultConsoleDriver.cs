@@ -6,7 +6,7 @@ using Sharprompt.Internal;
 
 namespace Sharprompt.Drivers
 {
-    internal class DefaultConsoleDriver : IConsoleDriver
+    internal sealed class DefaultConsoleDriver : IConsoleDriver
     {
         static DefaultConsoleDriver()
         {
@@ -30,7 +30,7 @@ namespace Sharprompt.Drivers
 
         #region IDisposable
 
-        public virtual void Dispose()
+        public void Dispose()
         {
             Reset();
 
@@ -41,7 +41,7 @@ namespace Sharprompt.Drivers
 
         #region IConsoleDriver
 
-        public virtual void Beep() => Console.Write("\a");
+        public void Beep() => Console.Write("\a");
 
         public void Reset()
         {
@@ -54,18 +54,18 @@ namespace Sharprompt.Drivers
             }
         }
 
-        public virtual void ClearLine(int top)
+        public void ClearLine(int top)
         {
             SetCursorPosition(0, top);
 
-            Write("\x1b[2K");
+            Console.Write("\x1b[2K");
         }
 
-        public virtual ConsoleKeyInfo ReadKey() => Console.ReadKey(true);
+        public ConsoleKeyInfo ReadKey() => Console.ReadKey(true);
 
-        public virtual string ReadLine()
+        public string ReadLine()
         {
-            int startIndex = 0;
+            var startIndex = 0;
             var inputBuffer = new StringBuilder();
 
             while (true)
@@ -85,15 +85,7 @@ namespace Sharprompt.Drivers
 
                         var width = EastAsianWidth.GetWidth(inputBuffer[startIndex]);
 
-                        if (Console.CursorLeft - width < 0)
-                        {
-                            Console.CursorTop -= 1;
-                            Console.CursorLeft = Console.BufferWidth - width;
-                        }
-                        else
-                        {
-                            Console.CursorLeft -= width;
-                        }
+                        HandleLeftAllow(width);
                     }
                     else
                     {
@@ -106,15 +98,7 @@ namespace Sharprompt.Drivers
                     {
                         var width = EastAsianWidth.GetWidth(inputBuffer[startIndex]);
 
-                        if (Console.CursorLeft + width >= Console.BufferWidth)
-                        {
-                            Console.CursorTop += 1;
-                            Console.CursorLeft = 0;
-                        }
-                        else
-                        {
-                            Console.CursorLeft += width;
-                        }
+                        HandleRightAllow(width);
 
                         startIndex += 1;
                     }
@@ -131,21 +115,13 @@ namespace Sharprompt.Drivers
 
                         var width = EastAsianWidth.GetWidth(inputBuffer[startIndex]);
 
-                        if (Console.CursorLeft - width < 0)
-                        {
-                            Console.CursorTop -= 1;
-                            Console.CursorLeft = Console.BufferWidth - 1;
-                        }
-                        else
-                        {
-                            Console.CursorLeft -= width;
-                        }
+                        HandleLeftAllow(width);
 
                         inputBuffer.Remove(startIndex, 1);
 
                         var (left, top) = GetCursorPosition();
 
-                        for (int i = startIndex; i < inputBuffer.Length; i++)
+                        for (var i = startIndex; i < inputBuffer.Length; i++)
                         {
                             Console.Write(inputBuffer[i]);
                         }
@@ -169,7 +145,7 @@ namespace Sharprompt.Drivers
 
                         var (left, top) = GetCursorPosition();
 
-                        for (int i = startIndex; i < inputBuffer.Length; i++)
+                        for (var i = startIndex; i < inputBuffer.Length; i++)
                         {
                             Console.Write(inputBuffer[i]);
                         }
@@ -189,7 +165,7 @@ namespace Sharprompt.Drivers
 
                     var (left, top) = GetCursorPosition();
 
-                    for (int i = startIndex; i < inputBuffer.Length; i++)
+                    for (var i = startIndex; i < inputBuffer.Length; i++)
                     {
                         Console.Write(inputBuffer[i]);
                     }
@@ -216,26 +192,18 @@ namespace Sharprompt.Drivers
             return inputBuffer.ToString();
         }
 
-        public virtual void Write(string value)
-        {
-            Console.Write(value);
-        }
-
-        public virtual void Write(string value, ConsoleColor color)
+        public void Write(string value, ConsoleColor color)
         {
             Console.ForegroundColor = color;
             Console.Write(value);
             Console.ResetColor();
         }
 
-        public virtual void WriteLine()
-        {
-            Console.WriteLine();
-        }
+        public void WriteLine() => Console.WriteLine();
 
         public (int left, int top) GetCursorPosition() => (Console.CursorLeft, Console.CursorTop);
 
-        public virtual void SetCursorPosition(int left, int top)
+        public void SetCursorPosition(int left, int top)
         {
             if (top < 0)
             {
@@ -249,25 +217,51 @@ namespace Sharprompt.Drivers
             Console.SetCursorPosition(left, top);
         }
 
-        public virtual bool CursorVisible
+        public bool CursorVisible
         {
             get => Console.CursorVisible;
             set => Console.CursorVisible = value;
         }
 
-        public virtual int CursorLeft => Console.CursorLeft;
+        public int CursorLeft => Console.CursorLeft;
 
-        public virtual int CursorTop => Console.CursorTop;
+        public int CursorTop => Console.CursorTop;
 
-        public virtual int BufferWidth => Console.BufferWidth;
+        public int BufferWidth => Console.BufferWidth;
 
-        public virtual int BufferHeight => Console.BufferHeight;
+        public int BufferHeight => Console.BufferHeight;
 
         #endregion
 
         private void RequestCancellation(object sender, ConsoleCancelEventArgs e)
         {
             Reset();
+        }
+
+        private void HandleLeftAllow(int width)
+        {
+            if (Console.CursorLeft - width < 0)
+            {
+                Console.CursorTop -= 1;
+                Console.CursorLeft = Console.BufferWidth - width;
+            }
+            else
+            {
+                Console.CursorLeft -= width;
+            }
+        }
+
+        private void HandleRightAllow(int width)
+        {
+            if (Console.CursorLeft + width >= Console.BufferWidth)
+            {
+                Console.CursorTop += 1;
+                Console.CursorLeft = 0;
+            }
+            else
+            {
+                Console.CursorLeft += width;
+            }
         }
     }
 }

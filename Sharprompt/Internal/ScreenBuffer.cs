@@ -90,7 +90,7 @@ namespace Sharprompt.Internal
 
         public void RenderToConsole()
         {
-            for (int i = 0; i < _outputBuffer.Count; i++)
+            for (var i = 0; i < _outputBuffer.Count; i++)
             {
                 var lineBuffer = _outputBuffer[i];
 

@@ -18,8 +18,8 @@ namespace Sharprompt.Internal
 
         public static bool IsFullWidth(int codePoint)
         {
-            int left = 0;
-            int right = _ranges.Length - 1;
+            var left = 0;
+            var right = _ranges.Length - 1;
 
             while (left <= right)
             {
