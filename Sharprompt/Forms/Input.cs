@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 
 using Sharprompt.Internal;
-using Sharprompt.Models;
 
 namespace Sharprompt.Forms
 {

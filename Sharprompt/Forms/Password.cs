@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 using Sharprompt.Internal;
-using Sharprompt.Models;
 
 namespace Sharprompt.Forms
 {

@@ -5,7 +5,6 @@ using System.Linq;
 
 using Sharprompt.Forms;
 using Sharprompt.Internal;
-using Sharprompt.Models;
 
 namespace Sharprompt
 {
@@ -16,6 +15,15 @@ namespace Sharprompt
             using var form = new Input<T>(options);
 
             return form.Start();
+        }
+
+        public static T Input<T>(Action<InputOptions> configure)
+        {
+            var options = new InputOptions();
+
+            configure(options);
+
+            return Input<T>(options);
         }
 
         public static T Input<T>(string message, object defaultValue = null, IList<Func<object, ValidationResult>> validators = null)
@@ -44,6 +52,15 @@ namespace Sharprompt
             return form.Start();
         }
 
+        public static string Password(Action<PasswordOptions> configure)
+        {
+            var options = new PasswordOptions();
+
+            configure(options);
+
+            return Password(options);
+        }
+
         public static string Password(string message, IList<Func<object, ValidationResult>> validators = null)
         {
             var options = new PasswordOptions
@@ -69,6 +86,15 @@ namespace Sharprompt
             return form.Start();
         }
 
+        public static bool Confirm(Action<ConfirmOptions> configure)
+        {
+            var options = new ConfirmOptions();
+
+            configure(options);
+
+            return Confirm(options);
+        }
+
         public static bool Confirm(string message, bool? defaultValue = null)
         {
             var options = new ConfirmOptions
@@ -85,6 +111,15 @@ namespace Sharprompt
             using var form = new Select<T>(options);
 
             return form.Start();
+        }
+
+        public static T Select<T>(Action<SelectOptions<T>> configure)
+        {
+            var options = new SelectOptions<T>();
+
+            configure(options);
+
+            return Select(options);
         }
 
         public static T Select<T>(string message, int? pageSize = null, T? defaultValue = null) where T : struct, Enum
@@ -122,6 +157,15 @@ namespace Sharprompt
             using var form = new MultiSelect<T>(options);
 
             return form.Start();
+        }
+
+        public static IEnumerable<T> MultiSelect<T>(Action<MultiSelectOptions<T>> configure)
+        {
+            var options = new MultiSelectOptions<T>();
+
+            configure(options);
+
+            return MultiSelect(options);
         }
 
         public static IEnumerable<T> MultiSelect<T>(string message, int? pageSize = null, int minimum = 1, int maximum = -1, IEnumerable<T> defaultValues = null) where T : struct, Enum

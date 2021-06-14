@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Sharprompt.Models
+namespace Sharprompt
 {
     public class InputOptions
     {

@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 using Sharprompt.Internal;
-using Sharprompt.Models;
 
 namespace Sharprompt.Forms
 {

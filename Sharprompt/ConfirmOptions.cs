@@ -1,4 +1,4 @@
-﻿namespace Sharprompt.Models
+﻿namespace Sharprompt
 {
     public class ConfirmOptions
     {
