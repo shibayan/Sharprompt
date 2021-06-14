@@ -16,7 +16,7 @@ namespace Sharprompt.Internal
             return value.Sum(x => GetWidth(x));
         }
 
-        public static bool IsFullWidth(int codePoint)
+        private static bool IsFullWidth(int codePoint)
         {
             var left = 0;
             var right = _ranges.Length - 1;
@@ -49,6 +49,10 @@ namespace Sharprompt.Internal
             return false;
         }
 
+        private static bool IsEastAsianLanguage => _languages.Contains(CultureInfo.CurrentCulture.TwoLetterISOLanguageName);
+
+        private static readonly string[] _languages = { "ja", "ko", "zh" };
+
         private readonly struct EastAsianWidthRange
         {
             public EastAsianWidthRange(int start, ushort count, bool ambiguous)
@@ -64,10 +68,6 @@ namespace Sharprompt.Internal
 
             public bool Ambiguous { get; }
         }
-
-        private static bool IsEastAsianLanguage => _languages.Contains(CultureInfo.CurrentCulture.TwoLetterISOLanguageName);
-
-        private static readonly string[] _languages = { "ja", "ko", "zh" };
 
         private static readonly EastAsianWidthRange[] _ranges =
         {

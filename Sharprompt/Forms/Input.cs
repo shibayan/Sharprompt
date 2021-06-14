@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
@@ -10,16 +9,15 @@ namespace Sharprompt.Forms
 {
     internal class Input<T> : FormBase<T>
     {
-        public Input(string message, Optional<T> defaultValue, IList<Func<object, ValidationResult>> validators)
+        public Input(InputOptions options)
         {
-            _message = message;
-            _defaultValue = defaultValue;
-            _validators = validators;
+            _defaultValue = Optional<T>.Create(options.DefaultValue);
+
+            _options = options;
         }
 
-        private readonly string _message;
+        private readonly InputOptions _options;
         private readonly Optional<T> _defaultValue;
-        private readonly IList<Func<object, ValidationResult>> _validators;
 
         private readonly Type _targetType = typeof(T);
         private readonly Type _underlyingType = Nullable.GetUnderlyingType(typeof(T));
@@ -57,7 +55,7 @@ namespace Sharprompt.Forms
                             result = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
                         }
 
-                        if (!TryValidate(result, _validators))
+                        if (!TryValidate(result, _options.Validators))
                         {
                             result = default;
 
@@ -119,7 +117,7 @@ namespace Sharprompt.Forms
 
         protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
-            screenBuffer.WritePrompt(_message);
+            screenBuffer.WritePrompt(_options.Message);
 
             if (_defaultValue.HasValue)
             {
@@ -139,7 +137,7 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(OffscreenBuffer screenBuffer, T result)
         {
-            screenBuffer.WriteFinish(_message);
+            screenBuffer.WriteFinish(_options.Message);
 
             if (result != null)
             {

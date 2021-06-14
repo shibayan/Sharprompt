@@ -99,7 +99,7 @@ namespace Sharprompt
             public IEnumerable<ValidationAttribute> Validations { get; }
         }
 
-        private static readonly MethodInfo _inputMethod = typeof(Prompt).GetMethod(nameof(Input));
+        private static readonly MethodInfo _inputMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(Input) && x.GetParameters().Length == 3);
         private static readonly MethodInfo _selectMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(Select) && x.GetParameters().Length == 3);
         private static readonly MethodInfo _multiSelectMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(MultiSelect) && x.GetParameters().Length == 5);
     }

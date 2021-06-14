@@ -9,17 +9,16 @@ namespace Sharprompt.Forms
 {
     internal class Select<T> : FormBase<T>
     {
-        public Select(string message, IEnumerable<T> items, int? pageSize, Optional<T> defaultValue, Func<T, string> valueSelector)
+        public Select(SelectOptions<T> options)
             : base(false)
         {
-            _message = message;
-            _paginator = new Paginator<T>(items, pageSize, defaultValue, valueSelector);
-            _valueSelector = valueSelector;
+            _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector);
+
+            _options = options;
         }
 
-        private readonly string _message;
+        private readonly SelectOptions<T> _options;
         private readonly Paginator<T> _paginator;
-        private readonly Func<T, string> _valueSelector;
 
         private readonly StringBuilder _filterBuffer = new StringBuilder();
 
@@ -74,14 +73,14 @@ namespace Sharprompt.Forms
 
         protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
-            screenBuffer.WritePrompt(_message);
+            screenBuffer.WritePrompt(_options.Message);
             screenBuffer.Write(_paginator.FilterTerm);
 
             var subset = _paginator.ToSubset();
 
             foreach (var item in subset)
             {
-                var value = _valueSelector(item);
+                var value = _options.TextSelector(item);
 
                 screenBuffer.WriteLine();
 
@@ -98,8 +97,8 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(OffscreenBuffer screenBuffer, T result)
         {
-            screenBuffer.WriteFinish(_message);
-            screenBuffer.Write(_valueSelector(result), Prompt.ColorSchema.Answer);
+            screenBuffer.WriteFinish(_options.Message);
+            screenBuffer.Write(_options.TextSelector(result), Prompt.ColorSchema.Answer);
         }
     }
 }

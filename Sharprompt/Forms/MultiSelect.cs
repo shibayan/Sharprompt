@@ -10,37 +10,32 @@ namespace Sharprompt.Forms
 {
     internal class MultiSelect<T> : FormBase<IEnumerable<T>>
     {
-        public MultiSelect(string message, IEnumerable<T> items, int? pageSize, int minimum, int maximum, IEnumerable<T> defaultValues, Func<T, string> textSelector)
+        public MultiSelect(MultiSelectOptions<T> options)
             : base(false)
         {
             // throw early when invalid options are passed
-            if (minimum < 0)
+            if (options.Minimum < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(minimum), $"The minimum ({minimum}) is not valid");
+                throw new ArgumentOutOfRangeException(nameof(options.Minimum), $"The minimum ({options.Minimum}) is not valid");
             }
 
-            if (maximum != -1 && maximum < minimum)
+            if (options.Maximum < options.Minimum)
             {
-                throw new ArgumentException($"The maximum ({maximum}) is not valid when minimum is set to ({minimum})", nameof(maximum));
+                throw new ArgumentException($"The maximum ({options.Maximum}) is not valid when minimum is set to ({options.Minimum})", nameof(options.Maximum));
             }
 
-            _message = message;
-            _paginator = new Paginator<T>(items, pageSize, Optional<T>.Empty, textSelector);
-            _minimum = minimum;
-            _maximum = maximum;
-            _textSelector = textSelector;
+            _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Empty, options.TextSelector);
 
-            if (defaultValues != null)
+            if (options.DefaultValues != null)
             {
-                _selectedItems.AddRange(defaultValues);
+                _selectedItems.AddRange(options.DefaultValues);
             }
+
+            _options = options;
         }
 
-        private readonly string _message;
+        private readonly MultiSelectOptions<T> _options;
         private readonly Paginator<T> _paginator;
-        private readonly int _minimum;
-        private readonly int _maximum;
-        private readonly Func<T, string> _textSelector;
 
         private readonly List<T> _selectedItems = new List<T>();
         private readonly StringBuilder _filterBuffer = new StringBuilder();
@@ -51,11 +46,11 @@ namespace Sharprompt.Forms
 
             switch (keyInfo.Key)
             {
-                case ConsoleKey.Enter when _selectedItems.Count >= _minimum:
+                case ConsoleKey.Enter when _selectedItems.Count >= _options.Minimum:
                     result = _selectedItems;
                     return true;
                 case ConsoleKey.Enter:
-                    Renderer.SetValidationResult(new ValidationResult($"A minimum selection of {_minimum} items is required"));
+                    Renderer.SetValidationResult(new ValidationResult($"A minimum selection of {_options.Minimum} items is required"));
                     break;
                 case ConsoleKey.Spacebar when _paginator.TryGetSelectedItem(out var currentItem):
                 {
@@ -110,7 +105,7 @@ namespace Sharprompt.Forms
 
         protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
-            screenBuffer.WritePrompt(_message);
+            screenBuffer.WritePrompt(_options.Message);
             screenBuffer.Write(_paginator.FilterTerm);
 
             if (string.IsNullOrEmpty(_paginator.FilterTerm))
@@ -122,7 +117,7 @@ namespace Sharprompt.Forms
 
             foreach (var item in subset)
             {
-                var value = _textSelector(item);
+                var value = _options.TextSelector(item);
 
                 screenBuffer.WriteLine();
 
@@ -153,8 +148,8 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(OffscreenBuffer screenBuffer, IEnumerable<T> result)
         {
-            screenBuffer.WriteFinish(_message);
-            screenBuffer.Write(string.Join(", ", result.Select(_textSelector)), Prompt.ColorSchema.Answer);
+            screenBuffer.WriteFinish(_options.Message);
+            screenBuffer.Write(string.Join(", ", result.Select(_options.TextSelector)), Prompt.ColorSchema.Answer);
         }
     }
 }
