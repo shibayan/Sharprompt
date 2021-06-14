@@ -50,11 +50,6 @@ namespace Sharprompt.Forms
 
         protected bool TryValidate(object input, IList<Func<object, ValidationResult>> validators)
         {
-            if (validators == null)
-            {
-                return true;
-            }
-
             foreach (var validator in validators)
             {
                 var result = validator(input);
