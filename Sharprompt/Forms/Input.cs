@@ -5,16 +5,17 @@ using System.Linq;
 using System.Text;
 
 using Sharprompt.Internal;
+using Sharprompt.Models;
 
 namespace Sharprompt.Forms
 {
     internal class Input<T> : FormBase<T>
     {
-        public Input(string message, Optional<T> defaultValue, IList<Func<object, ValidationResult>> validators)
+        public Input(InputOptions options)
         {
-            _message = message;
-            _defaultValue = defaultValue;
-            _validators = validators;
+            _message = options.Message;
+            _defaultValue = Optional<T>.Create(options.DefaultValue);
+            _validators = options.Validators;
         }
 
         private readonly string _message;

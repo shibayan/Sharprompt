@@ -4,17 +4,18 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 using Sharprompt.Internal;
+using Sharprompt.Models;
 
 namespace Sharprompt.Forms
 {
     internal class Select<T> : FormBase<T>
     {
-        public Select(string message, IEnumerable<T> items, int? pageSize, Optional<T> defaultValue, Func<T, string> valueSelector)
+        public Select(SelectOptions<T> options)
             : base(false)
         {
-            _message = message;
-            _paginator = new Paginator<T>(items, pageSize, defaultValue, valueSelector);
-            _valueSelector = valueSelector;
+            _message = options.Message;
+            _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector);
+            _valueSelector = options.TextSelector;
         }
 
         private readonly string _message;

@@ -4,15 +4,16 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 using Sharprompt.Internal;
+using Sharprompt.Models;
 
 namespace Sharprompt.Forms
 {
     internal class Password : FormBase<string>
     {
-        public Password(string message, IList<Func<object, ValidationResult>> validators)
+        public Password(PasswordOptions options)
         {
-            _message = message;
-            _validators = validators;
+            _message = options.Message;
+            _validators = options.Validators;
         }
 
         private readonly string _message;

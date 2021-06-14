@@ -5,34 +5,35 @@ using System.Linq;
 using System.Text;
 
 using Sharprompt.Internal;
+using Sharprompt.Models;
 
 namespace Sharprompt.Forms
 {
     internal class MultiSelect<T> : FormBase<IEnumerable<T>>
     {
-        public MultiSelect(string message, IEnumerable<T> items, int? pageSize, int minimum, int maximum, IEnumerable<T> defaultValues, Func<T, string> textSelector)
+        public MultiSelect(MultiSelectOptions<T> options)
             : base(false)
         {
             // throw early when invalid options are passed
-            if (minimum < 0)
+            if (options.Minimum < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(minimum), $"The minimum ({minimum}) is not valid");
+                throw new ArgumentOutOfRangeException(nameof(options.Minimum), $"The minimum ({options.Minimum}) is not valid");
             }
 
-            if (maximum != -1 && maximum < minimum)
+            if (options.Maximum < options.Minimum)
             {
-                throw new ArgumentException($"The maximum ({maximum}) is not valid when minimum is set to ({minimum})", nameof(maximum));
+                throw new ArgumentException($"The maximum ({options.Maximum}) is not valid when minimum is set to ({options.Minimum})", nameof(options.Maximum));
             }
 
-            _message = message;
-            _paginator = new Paginator<T>(items, pageSize, Optional<T>.Empty, textSelector);
-            _minimum = minimum;
-            _maximum = maximum;
-            _textSelector = textSelector;
+            _message = options.Message;
+            _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Empty, options.TextSelector);
+            _minimum = options.Minimum;
+            _maximum = options.Maximum;
+            _textSelector = options.TextSelector;
 
-            if (defaultValues != null)
+            if (options.DefaultValues != null)
             {
-                _selectedItems.AddRange(defaultValues);
+                _selectedItems.AddRange(options.DefaultValues);
             }
         }
 

@@ -1,15 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 using Sharprompt.Internal;
+using Sharprompt.Models;
 
 namespace Sharprompt.Forms
 {
     internal class Confirm : FormBase<bool>
     {
-        public Confirm(string message, bool? defaultValue)
+        public Confirm(ConfirmOptions options)
         {
-            _message = message;
-            _defaultValue = defaultValue;
+            _message = options.Message;
+            _defaultValue = options.DefaultValue;
         }
 
         private readonly string _message;
