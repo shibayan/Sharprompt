@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 using Sharprompt.Internal;
@@ -11,12 +9,10 @@ namespace Sharprompt.Forms
     {
         public Password(PasswordOptions options)
         {
-            _message = options.Message;
-            _validators = options.Validators;
+            _options = options;
         }
 
-        private readonly string _message;
-        private readonly IList<Func<object, ValidationResult>> _validators;
+        private readonly PasswordOptions _options;
 
         private readonly StringBuilder _inputBuffer = new StringBuilder();
 
@@ -30,7 +26,7 @@ namespace Sharprompt.Forms
                 {
                     result = _inputBuffer.ToString();
 
-                    if (TryValidate(result, _validators))
+                    if (TryValidate(result, _options.Validators))
                     {
                         return true;
                     }
@@ -61,7 +57,7 @@ namespace Sharprompt.Forms
 
         protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
-            screenBuffer.WritePrompt(_message);
+            screenBuffer.WritePrompt(_options.Message);
             screenBuffer.Write(new string('*', _inputBuffer.Length));
 
             screenBuffer.SetCursorPosition();
@@ -69,7 +65,7 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(OffscreenBuffer screenBuffer, string result)
         {
-            screenBuffer.WriteFinish(_message);
+            screenBuffer.WriteFinish(_options.Message);
             screenBuffer.Write(new string('*', _inputBuffer.Length), Prompt.ColorSchema.Answer);
         }
     }

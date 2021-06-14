@@ -8,12 +8,10 @@ namespace Sharprompt.Forms
     {
         public Confirm(ConfirmOptions options)
         {
-            _message = options.Message;
-            _defaultValue = options.DefaultValue;
+            _options = options;
         }
 
-        private readonly string _message;
-        private readonly bool? _defaultValue;
+        private readonly ConfirmOptions _options;
 
         protected override bool TryGetResult(out bool result)
         {
@@ -21,9 +19,9 @@ namespace Sharprompt.Forms
 
             if (string.IsNullOrEmpty(input))
             {
-                if (_defaultValue != null)
+                if (_options.DefaultValue != null)
                 {
-                    result = _defaultValue.Value;
+                    result = _options.DefaultValue.Value;
 
                     return true;
                 }
@@ -56,13 +54,13 @@ namespace Sharprompt.Forms
 
         protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
-            screenBuffer.WritePrompt(_message);
+            screenBuffer.WritePrompt(_options.Message);
 
-            if (_defaultValue == null)
+            if (_options.DefaultValue == null)
             {
                 screenBuffer.Write("(y/n) ");
             }
-            else if (_defaultValue.Value)
+            else if (_options.DefaultValue.Value)
             {
                 screenBuffer.Write("(Y/n) ");
             }
@@ -76,7 +74,7 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(OffscreenBuffer screenBuffer, bool result)
         {
-            screenBuffer.WriteFinish(_message);
+            screenBuffer.WriteFinish(_options.Message);
             screenBuffer.Write(result ? "Yes" : "No", Prompt.ColorSchema.Answer);
         }
     }
