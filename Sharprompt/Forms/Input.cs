@@ -27,88 +27,92 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out T result)
         {
-            var keyInfo = ConsoleDriver.ReadKey();
-
-            switch (keyInfo.Key)
+            do
             {
-                case ConsoleKey.Enter:
+                var keyInfo = ConsoleDriver.ReadKey();
+
+                switch (keyInfo.Key)
                 {
-                    var input = _inputBuffer.ToString();
-
-                    try
+                    case ConsoleKey.Enter:
                     {
-                        if (string.IsNullOrEmpty(input))
-                        {
-                            if (_targetType.IsValueType && _underlyingType == null && !_defaultValue.HasValue)
-                            {
-                                Renderer.SetValidationResult(new ValidationResult("Value is required"));
+                        var input = _inputBuffer.ToString();
 
+                        try
+                        {
+                            if (string.IsNullOrEmpty(input))
+                            {
+                                if (_targetType.IsValueType && _underlyingType == null && !_defaultValue.HasValue)
+                                {
+                                    Renderer.SetValidationResult(new ValidationResult("Value is required"));
+
+                                    result = default;
+
+                                    return false;
+                                }
+
+                                result = _defaultValue;
+                            }
+                            else
+                            {
+                                result = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
+                            }
+
+                            if (!TryValidate(result, _options.Validators))
+                            {
                                 result = default;
 
                                 return false;
                             }
 
-                            result = _defaultValue;
+                            return true;
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            result = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
+                            Renderer.SetException(ex);
                         }
 
-                        if (!TryValidate(result, _options.Validators))
-                        {
-                            result = default;
-
-                            return false;
-                        }
-
-                        return true;
+                        break;
                     }
-                    catch (Exception ex)
-                    {
-                        Renderer.SetException(ex);
-                    }
-
-                    break;
-                }
-                case ConsoleKey.LeftArrow when _startIndex > 0:
-                    _startIndex -= 1;
-                    break;
-                case ConsoleKey.LeftArrow:
-                    ConsoleDriver.Beep();
-                    break;
-                case ConsoleKey.RightArrow when _startIndex < _inputBuffer.Length:
-                    _startIndex += 1;
-                    break;
-                case ConsoleKey.RightArrow:
-                    ConsoleDriver.Beep();
-                    break;
-                case ConsoleKey.Backspace when _startIndex > 0:
-                    _startIndex -= 1;
-
-                    _inputBuffer.Remove(_startIndex, 1);
-                    break;
-                case ConsoleKey.Backspace:
-                    ConsoleDriver.Beep();
-                    break;
-                case ConsoleKey.Delete when _startIndex < _inputBuffer.Length:
-                    _inputBuffer.Remove(_startIndex, 1);
-                    break;
-                case ConsoleKey.Delete:
-                    ConsoleDriver.Beep();
-                    break;
-                default:
-                {
-                    if (!char.IsControl(keyInfo.KeyChar))
-                    {
-                        _inputBuffer.Insert(_startIndex, keyInfo.KeyChar);
-
+                    case ConsoleKey.LeftArrow when _startIndex > 0:
+                        _startIndex -= 1;
+                        break;
+                    case ConsoleKey.LeftArrow:
+                        ConsoleDriver.Beep();
+                        break;
+                    case ConsoleKey.RightArrow when _startIndex < _inputBuffer.Length:
                         _startIndex += 1;
-                    }
+                        break;
+                    case ConsoleKey.RightArrow:
+                        ConsoleDriver.Beep();
+                        break;
+                    case ConsoleKey.Backspace when _startIndex > 0:
+                        _startIndex -= 1;
 
-                    break;
+                        _inputBuffer.Remove(_startIndex, 1);
+                        break;
+                    case ConsoleKey.Backspace:
+                        ConsoleDriver.Beep();
+                        break;
+                    case ConsoleKey.Delete when _startIndex < _inputBuffer.Length:
+                        _inputBuffer.Remove(_startIndex, 1);
+                        break;
+                    case ConsoleKey.Delete:
+                        ConsoleDriver.Beep();
+                        break;
+                    default:
+                    {
+                        if (!char.IsControl(keyInfo.KeyChar))
+                        {
+                            _inputBuffer.Insert(_startIndex, keyInfo.KeyChar);
+
+                            _startIndex += 1;
+                        }
+
+                        break;
+                    }
                 }
-            }
+
+            } while (ConsoleDriver.KeyAvailable);
 
             result = default;
 

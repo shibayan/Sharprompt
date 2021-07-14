@@ -24,47 +24,51 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out T result)
         {
-            var keyInfo = ConsoleDriver.ReadKey();
-
-            switch (keyInfo.Key)
+            do
             {
-                case ConsoleKey.Enter when _paginator.TryGetSelectedItem(out result):
-                    return true;
-                case ConsoleKey.Enter:
-                    Renderer.SetValidationResult(new ValidationResult("Value is required"));
-                    break;
-                case ConsoleKey.UpArrow:
-                    _paginator.PreviousItem();
-                    break;
-                case ConsoleKey.DownArrow:
-                    _paginator.NextItem();
-                    break;
-                case ConsoleKey.LeftArrow:
-                    _paginator.PreviousPage();
-                    break;
-                case ConsoleKey.RightArrow:
-                    _paginator.NextPage();
-                    break;
-                case ConsoleKey.Backspace when _filterBuffer.Length == 0:
-                    ConsoleDriver.Beep();
-                    break;
-                case ConsoleKey.Backspace:
-                    _filterBuffer.Length -= 1;
+                var keyInfo = ConsoleDriver.ReadKey();
 
-                    _paginator.UpdateFilter(_filterBuffer.ToString());
-                    break;
-                default:
+                switch (keyInfo.Key)
                 {
-                    if (!char.IsControl(keyInfo.KeyChar))
-                    {
-                        _filterBuffer.Append(keyInfo.KeyChar);
+                    case ConsoleKey.Enter when _paginator.TryGetSelectedItem(out result):
+                        return true;
+                    case ConsoleKey.Enter:
+                        Renderer.SetValidationResult(new ValidationResult("Value is required"));
+                        break;
+                    case ConsoleKey.UpArrow:
+                        _paginator.PreviousItem();
+                        break;
+                    case ConsoleKey.DownArrow:
+                        _paginator.NextItem();
+                        break;
+                    case ConsoleKey.LeftArrow:
+                        _paginator.PreviousPage();
+                        break;
+                    case ConsoleKey.RightArrow:
+                        _paginator.NextPage();
+                        break;
+                    case ConsoleKey.Backspace when _filterBuffer.Length == 0:
+                        ConsoleDriver.Beep();
+                        break;
+                    case ConsoleKey.Backspace:
+                        _filterBuffer.Length -= 1;
 
                         _paginator.UpdateFilter(_filterBuffer.ToString());
-                    }
+                        break;
+                    default:
+                    {
+                        if (!char.IsControl(keyInfo.KeyChar))
+                        {
+                            _filterBuffer.Append(keyInfo.KeyChar);
 
-                    break;
+                            _paginator.UpdateFilter(_filterBuffer.ToString());
+                        }
+
+                        break;
+                    }
                 }
-            }
+
+            } while (ConsoleDriver.KeyAvailable);
 
             result = default;
 
