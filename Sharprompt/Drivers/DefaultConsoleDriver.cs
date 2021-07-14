@@ -217,6 +217,8 @@ namespace Sharprompt.Drivers
             Console.SetCursorPosition(left, top);
         }
 
+        public bool KeyAvailable => Console.KeyAvailable;
+
         public bool CursorVisible
         {
             get => Console.CursorVisible;

@@ -18,37 +18,41 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out string result)
         {
-            var keyInfo = ConsoleDriver.ReadKey();
-
-            switch (keyInfo.Key)
+            do
             {
-                case ConsoleKey.Enter:
+                var keyInfo = ConsoleDriver.ReadKey();
+
+                switch (keyInfo.Key)
                 {
-                    result = _inputBuffer.ToString();
-
-                    if (TryValidate(result, _options.Validators))
+                    case ConsoleKey.Enter:
                     {
-                        return true;
-                    }
+                        result = _inputBuffer.ToString();
 
-                    break;
-                }
-                case ConsoleKey.Backspace when _inputBuffer.Length == 0:
-                    ConsoleDriver.Beep();
-                    break;
-                case ConsoleKey.Backspace:
-                    _inputBuffer.Length -= 1;
-                    break;
-                default:
-                {
-                    if (!char.IsControl(keyInfo.KeyChar))
+                        if (TryValidate(result, _options.Validators))
+                        {
+                            return true;
+                        }
+
+                        break;
+                    }
+                    case ConsoleKey.Backspace when _inputBuffer.Length == 0:
+                        ConsoleDriver.Beep();
+                        break;
+                    case ConsoleKey.Backspace:
+                        _inputBuffer.Length -= 1;
+                        break;
+                    default:
                     {
-                        _inputBuffer.Append(keyInfo.KeyChar);
-                    }
+                        if (!char.IsControl(keyInfo.KeyChar))
+                        {
+                            _inputBuffer.Append(keyInfo.KeyChar);
+                        }
 
-                    break;
+                        break;
+                    }
                 }
-            }
+
+            } while (ConsoleDriver.KeyAvailable);
 
             result = null;
 

@@ -13,6 +13,7 @@ namespace Sharprompt.Drivers
         void WriteLine();
         (int left, int top) GetCursorPosition();
         void SetCursorPosition(int left, int top);
+        bool KeyAvailable { get; }
         bool CursorVisible { get; set; }
         int CursorLeft { get; }
         int CursorTop { get; }

@@ -42,61 +42,65 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out IEnumerable<T> result)
         {
-            var keyInfo = ConsoleDriver.ReadKey();
-
-            switch (keyInfo.Key)
+            do
             {
-                case ConsoleKey.Enter when _selectedItems.Count >= _options.Minimum:
-                    result = _selectedItems;
-                    return true;
-                case ConsoleKey.Enter:
-                    Renderer.SetValidationResult(new ValidationResult($"A minimum selection of {_options.Minimum} items is required"));
-                    break;
-                case ConsoleKey.Spacebar when _paginator.TryGetSelectedItem(out var currentItem):
-                {
-                    if (_selectedItems.Contains(currentItem))
-                    {
-                        _selectedItems.Remove(currentItem);
-                    }
-                    else
-                    {
-                        _selectedItems.Add(currentItem);
-                    }
+                var keyInfo = ConsoleDriver.ReadKey();
 
-                    break;
-                }
-                case ConsoleKey.UpArrow:
-                    _paginator.PreviousItem();
-                    break;
-                case ConsoleKey.DownArrow:
-                    _paginator.NextItem();
-                    break;
-                case ConsoleKey.LeftArrow:
-                    _paginator.PreviousPage();
-                    break;
-                case ConsoleKey.RightArrow:
-                    _paginator.NextPage();
-                    break;
-                case ConsoleKey.Backspace when _filterBuffer.Length == 0:
-                    ConsoleDriver.Beep();
-                    break;
-                case ConsoleKey.Backspace:
-                    _filterBuffer.Length -= 1;
-
-                    _paginator.UpdateFilter(_filterBuffer.ToString());
-                    break;
-                default:
+                switch (keyInfo.Key)
                 {
-                    if (!char.IsControl(keyInfo.KeyChar))
+                    case ConsoleKey.Enter when _selectedItems.Count >= _options.Minimum:
+                        result = _selectedItems;
+                        return true;
+                    case ConsoleKey.Enter:
+                        Renderer.SetValidationResult(new ValidationResult($"A minimum selection of {_options.Minimum} items is required"));
+                        break;
+                    case ConsoleKey.Spacebar when _paginator.TryGetSelectedItem(out var currentItem):
                     {
-                        _filterBuffer.Append(keyInfo.KeyChar);
+                        if (_selectedItems.Contains(currentItem))
+                        {
+                            _selectedItems.Remove(currentItem);
+                        }
+                        else
+                        {
+                            _selectedItems.Add(currentItem);
+                        }
+
+                        break;
+                    }
+                    case ConsoleKey.UpArrow:
+                        _paginator.PreviousItem();
+                        break;
+                    case ConsoleKey.DownArrow:
+                        _paginator.NextItem();
+                        break;
+                    case ConsoleKey.LeftArrow:
+                        _paginator.PreviousPage();
+                        break;
+                    case ConsoleKey.RightArrow:
+                        _paginator.NextPage();
+                        break;
+                    case ConsoleKey.Backspace when _filterBuffer.Length == 0:
+                        ConsoleDriver.Beep();
+                        break;
+                    case ConsoleKey.Backspace:
+                        _filterBuffer.Length -= 1;
 
                         _paginator.UpdateFilter(_filterBuffer.ToString());
-                    }
+                        break;
+                    default:
+                    {
+                        if (!char.IsControl(keyInfo.KeyChar))
+                        {
+                            _filterBuffer.Append(keyInfo.KeyChar);
 
-                    break;
+                            _paginator.UpdateFilter(_filterBuffer.ToString());
+                        }
+
+                        break;
+                    }
                 }
-            }
+
+            } while (ConsoleDriver.KeyAvailable);
 
             result = null;
 
