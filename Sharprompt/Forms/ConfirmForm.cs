@@ -4,9 +4,9 @@ using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
 {
-    internal class Confirm : FormBase<bool>
+    internal class ConfirmForm : FormBase<bool>
     {
-        public Confirm(ConfirmOptions options)
+        public ConfirmForm(ConfirmOptions options)
         {
             _options = options;
         }

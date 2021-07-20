@@ -12,7 +12,7 @@ namespace Sharprompt
     {
         public static T Input<T>(InputOptions options)
         {
-            using var form = new Input<T>(options);
+            using var form = new InputForm<T>(options);
 
             return form.Start();
         }
@@ -47,7 +47,7 @@ namespace Sharprompt
 
         public static string Password(PasswordOptions options)
         {
-            using var form = new Password(options);
+            using var form = new PasswordForm(options);
 
             return form.Start();
         }
@@ -81,7 +81,7 @@ namespace Sharprompt
 
         public static bool Confirm(ConfirmOptions options)
         {
-            using var form = new Confirm(options);
+            using var form = new ConfirmForm(options);
 
             return form.Start();
         }
@@ -108,7 +108,7 @@ namespace Sharprompt
 
         public static T Select<T>(SelectOptions<T> options)
         {
-            using var form = new Select<T>(options);
+            using var form = new SelectForm<T>(options);
 
             return form.Start();
         }
@@ -154,7 +154,7 @@ namespace Sharprompt
 
         public static IEnumerable<T> MultiSelect<T>(MultiSelectOptions<T> options)
         {
-            using var form = new MultiSelect<T>(options);
+            using var form = new MultiSelectForm<T>(options);
 
             return form.Start();
         }

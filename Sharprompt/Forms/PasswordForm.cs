@@ -5,9 +5,9 @@ using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
 {
-    internal class Password : FormBase<string>
+    internal class PasswordForm : FormBase<string>
     {
-        public Password(PasswordOptions options)
+        public PasswordForm(PasswordOptions options)
         {
             _options = options;
         }
