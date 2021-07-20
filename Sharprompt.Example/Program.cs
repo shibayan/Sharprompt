@@ -38,6 +38,9 @@ namespace Sharprompt.Example
                     case ExampleType.MultiSelectWithEnum:
                         RunMultiSelectEnumSample();
                         break;
+                    case ExampleType.List:
+                        RunListSample();
+                        break;
                     case ExampleType.AutoForms:
                         RunAutoFormsSample();
                         break;
@@ -86,6 +89,12 @@ namespace Sharprompt.Example
         private static void RunMultiSelectEnumSample()
         {
             var value = Prompt.MultiSelect<MyEnum>("Select enum value", defaultValues: new[] { MyEnum.Bar });
+            Console.WriteLine($"You picked {string.Join(", ", value)}");
+        }
+
+        private static void RunListSample()
+        {
+            var value = Prompt.List<string>("Please add item(s)");
             Console.WriteLine($"You picked {string.Join(", ", value)}");
         }
 

@@ -197,5 +197,41 @@ namespace Sharprompt
 
             return MultiSelect(options);
         }
+
+        public static IEnumerable<T> List<T>(ListOptions<T> options)
+        {
+            using var form = new ListForm<T>(options);
+
+            return form.Start();
+        }
+
+        public static IEnumerable<T> List<T>(Action<ListOptions<T>> configure)
+        {
+            var options = new ListOptions<T>();
+
+            configure(options);
+
+            return List<T>(options);
+        }
+
+        public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = -1, IList<Func<object, ValidationResult>> validators = null)
+        {
+            var options = new ListOptions<T>
+            {
+                Message = message,
+                Minimum = minimum,
+                Maximum = maximum
+            };
+
+            if (validators != null)
+            {
+                foreach (var validator in validators)
+                {
+                    options.Validators.Add(validator);
+                }
+            }
+
+            return List<T>(options);
+        }
     }
 }
