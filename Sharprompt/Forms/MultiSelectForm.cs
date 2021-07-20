@@ -8,9 +8,9 @@ using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
 {
-    internal class MultiSelect<T> : FormBase<IEnumerable<T>>
+    internal class MultiSelectForm<T> : FormBase<IEnumerable<T>>
     {
-        public MultiSelect(MultiSelectOptions<T> options)
+        public MultiSelectForm(MultiSelectOptions<T> options)
             : base(false)
         {
             // throw early when invalid options are passed

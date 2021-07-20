@@ -7,9 +7,9 @@ using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
 {
-    internal class Input<T> : FormBase<T>
+    internal class InputForm<T> : FormBase<T>
     {
-        public Input(InputOptions options)
+        public InputForm(InputOptions options)
         {
             _defaultValue = Optional<T>.Create(options.DefaultValue);
 

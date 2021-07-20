@@ -7,9 +7,9 @@ using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
 {
-    internal class Select<T> : FormBase<T>
+    internal class SelectForm<T> : FormBase<T>
     {
-        public Select(SelectOptions<T> options)
+        public SelectForm(SelectOptions<T> options)
             : base(false)
         {
             _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector);
