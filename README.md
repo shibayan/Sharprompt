@@ -124,6 +124,8 @@ Console.WriteLine($"You picked {string.Join(", ", options)}");
 ```csharp
 Prompt.ColorSchema.Answer = ConsoleColor.DarkRed;
 Prompt.ColorSchema.Select = ConsoleColor.DarkCyan;
+Prompt.DefaultMessageValues.DefaultYesKey = 'S';
+Prompt.DefaultMessageValues.DefaultNoKey = 'N';
 
 var name = Prompt.Input<string>("What's your name?");
 Console.WriteLine($"Hello, {name}!");
