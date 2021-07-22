@@ -229,7 +229,7 @@ namespace Sharprompt
                 Items = items,
                 DefaultValue = defaultValue,
                 PageSize = pageSize,
-                TextSelector = textSelector ?? (x => x.ToString())
+                TextSelector = textSelector ?? (x => x?.ToString())
             };
 
             return Select(options,cancellationToken);

@@ -53,7 +53,6 @@ namespace Sharprompt.Forms
                         break;
                     case ConsoleKey.Backspace:
                         _filterBuffer.Length -= 1;
-
                         _paginator.UpdateFilter(_filterBuffer.ToString());
                         break;
                     default:
@@ -82,6 +81,11 @@ namespace Sharprompt.Forms
         {
             screenBuffer.WritePrompt(_options.Message);
             screenBuffer.Write(_paginator.FilterTerm);
+            if (_options.DefaultValue != null)
+            {
+                _paginator.TryGetSelectedItem(out var result);
+                screenBuffer.Write(_options.TextSelector(result), Prompt.ColorSchema.Answer);
+            }
 
             var subset = _paginator.ToSubset();
 
