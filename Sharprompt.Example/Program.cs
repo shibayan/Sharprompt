@@ -1,20 +1,83 @@
 ﻿using System;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 using Sharprompt.Example.Models;
 
 namespace Sharprompt.Example
 {
+
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
+        {
+            var host = Host.CreateDefaultBuilder(args)
+                    .UseConsoleLifetime()
+                    .UseEnvironment("CLI")
+                    .ConfigureServices((hostContext, services) =>
+                    {
+                        services.AddLogging(
+                          builder =>
+                          {
+                              builder.AddFilter("Microsoft", LogLevel.Warning)
+                                     .AddFilter("System", LogLevel.Warning);
+                          });
+                        services.AddHostedService<MainProgram>();
+                    }).Build();
+
+            await host.RunAsync();
+        }
+    }
+
+    internal class MainProgram : IHostedService
+    {
+
+        private readonly IHostApplicationLifetime _appLifetime;
+        private readonly CancellationToken _stopApp;
+        private Task _menutask;
+        public MainProgram(IHostApplicationLifetime appLifetime)
+        {
+            _appLifetime = appLifetime;
+            _stopApp = _appLifetime.ApplicationStopping;
+        }
+
+        public Task StartAsync(CancellationToken stoppingToken)
+        {
+            _menutask = Task.Run(() =>
+            {
+                ShowMenu();
+            }, stoppingToken);
+
+            return Task.CompletedTask;
+        }
+
+        public async Task StopAsync(CancellationToken stoppingToken)
+        {
+            if (_menutask != null)
+            {
+                await _menutask;
+                _menutask.Dispose();
+            }
+        }
+        public  void ShowMenu()
         {
             Console.OutputEncoding = Encoding.UTF8;
 
-            while (true)
+            while (!_stopApp.IsCancellationRequested)
             {
-                var type = Prompt.Select<ExampleType>("Choose prompt example");
+                Console.Clear();
 
+                var type = Prompt.Select<ExampleType>("Choose prompt example", _stopApp);
+
+                if (_stopApp.IsCancellationRequested)
+                {
+                    continue;
+                }
                 switch (type)
                 {
                     case ExampleType.Input:
@@ -47,61 +110,96 @@ namespace Sharprompt.Example
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+                if (!_stopApp.IsCancellationRequested)
+                {
+                    Prompt.AnyKey(_stopApp);
+                }
             }
         }
 
-        private static void RunInputSample()
+        private void RunInputSample()
         {
-            var name = Prompt.Input<string>("What's your name?", validators: new[] { Validators.Required(), Validators.MinLength(3) });
-            Console.WriteLine($"Hello, {name}!");
+            var name = Prompt.Input<string>("What's your name?", _stopApp,"teste", validators: new[] { Validators.Required(), Validators.MinLength(3) });
+            if (!_stopApp.IsCancellationRequested)
+            {
+                Console.WriteLine($"Hello, {name}!");
+            }
         }
 
-        private static void RunConfirmSample()
+        private void RunConfirmSample()
         {
-            var answer = Prompt.Confirm("Are you ready?");
-            Console.WriteLine($"Your answer is {answer}");
+            var answer = Prompt.Confirm("Are you ready?", _stopApp,true);
+            if (!_stopApp.IsCancellationRequested)
+            {
+                Console.WriteLine($"Your answer is {answer}");
+            }
         }
 
-        private static void RunPasswordSample()
+        private void RunPasswordSample()
         {
-            var secret = Prompt.Password("Type new password", new[] { Validators.Required(), Validators.MinLength(8) });
-            Console.WriteLine("Password OK");
+            var secret = Prompt.Password("Type new password",_stopApp, new[] { Validators.Required(), Validators.MinLength(8) });
+            if (!_stopApp.IsCancellationRequested)
+            {
+                Console.WriteLine("Password OK");
+            }
         }
 
-        private static void RunSelectSample()
+        private void RunListSample()
         {
-            var city = Prompt.Select("Select your city", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3);
-            Console.WriteLine($"Hello, {city}!");
+            var opt = new ListOptions<string>
+            {
+                 Message = "Please add item(s)",
+                 RemoveAllMatch = true
+            };
+            var value = Prompt.List(opt, _stopApp);
+            if (!_stopApp.IsCancellationRequested)
+            {
+                Console.WriteLine($"You picked {string.Join(", ", value)}");
+            }
+        }
+        private void RunSelectSample()
+        {
+            var city = Prompt.Select("Select your city", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" },_stopApp, defaultValue: "Singapore", pageSize: 3);
+            if (!_stopApp.IsCancellationRequested)
+            {
+                Console.WriteLine($"Hello, {city}!");
+            }
         }
 
-        private static void RunMultiSelectSample()
+        private void RunMultiSelectSample()
         {
-            var options = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3, defaultValues: new[] { "Tokyo" });
-            Console.WriteLine($"You picked {string.Join(", ", options)}");
+            var options = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" },_stopApp, pageSize: 3, defaultValues: new[] { "Tokyo" });
+            if (!_stopApp.IsCancellationRequested)
+            {
+                Console.WriteLine($"You picked {string.Join(", ", options)}");
+            }
         }
 
-        private static void RunSelectEnumSample()
+        private void RunSelectEnumSample()
         {
-            var value = Prompt.Select<MyEnum>("Select enum value", defaultValue: MyEnum.Bar);
-            Console.WriteLine($"You selected {value}");
+            var envalue = Prompt.Select<MyEnum>("Select enum value", _stopApp, defaultValue: MyEnum.Bar);
+            if (!_stopApp.IsCancellationRequested)
+            {
+                Console.WriteLine($"You selected {envalue}");
+            }
         }
 
-        private static void RunMultiSelectEnumSample()
+        private void RunMultiSelectEnumSample()
         {
-            var value = Prompt.MultiSelect<MyEnum>("Select enum value", defaultValues: new[] { MyEnum.Bar });
-            Console.WriteLine($"You picked {string.Join(", ", value)}");
+            var multvalue = Prompt.MultiSelect("Select enum value", _stopApp, defaultValues: new[] { MyEnum.Bar });
+            if (!_stopApp.IsCancellationRequested)
+            {
+                Console.WriteLine($"You picked {string.Join(", ", multvalue)}");
+            }
         }
 
-        private static void RunListSample()
+        private void RunAutoFormsSample()
         {
-            var value = Prompt.List<string>("Please add item(s)");
-            Console.WriteLine($"You picked {string.Join(", ", value)}");
-        }
-
-        private static void RunAutoFormsSample()
-        {
-            var model = Prompt.AutoForms<MyFormModel>();
-            Console.WriteLine("Forms OK");
+            var model = Prompt.AutoForms<MyFormModel>(_stopApp);
+            if (!_stopApp.IsCancellationRequested)
+            {
+                Console.WriteLine("Forms OK");
+            }
         }
     }
 }

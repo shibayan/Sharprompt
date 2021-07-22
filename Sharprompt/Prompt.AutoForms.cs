@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 using Sharprompt.Internal;
 
@@ -12,21 +13,25 @@ namespace Sharprompt
     {
         public static T AutoForms<T>() where T : new()
         {
+            return AutoForms<T>(CancellationToken.None);
+        }
+
+        public static T AutoForms<T>(CancellationToken cancellationToken) where T : new()
+        {
             var model = new T();
 
-            StartForms(model);
+            StartForms(model, cancellationToken);
 
             return model;
         }
 
-        public static T AutoForms<T>(T model)
+        public static T AutoForms<T>(T model, CancellationToken cancellationToken)
         {
-            StartForms(model);
-
+            StartForms(model, cancellationToken);
             return model;
         }
 
-        private static void StartForms<T>(T model)
+        private static void StartForms<T>(T model, CancellationToken cancellationToken)
         {
             var propertyMetadatas = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                                              .Select(x => new PropertyMetadata(x))
@@ -35,6 +40,11 @@ namespace Sharprompt
 
             foreach (var propertyMetadata in propertyMetadatas)
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+
                 var propertyInfo = propertyMetadata.PropertyInfo;
                 var validators = propertyMetadata.Validations.Select(x => new ValidationAttributeAdapter(x).GetValidator(propertyInfo.Name, model)).ToArray();
 
@@ -42,29 +52,28 @@ namespace Sharprompt
 
                 if (propertyMetadata.DataType == DataType.Password)
                 {
-                    propertyInfo.SetValue(model, Password(propertyMetadata.Prompt, validators));
+                    propertyInfo.SetValue(model, Password(propertyMetadata.Prompt,cancellationToken, validators));
                 }
                 else if (propertyMetadata.PropertyType == typeof(bool))
                 {
-                    propertyInfo.SetValue(model, Confirm(propertyMetadata.Prompt, (bool?)defaultValue));
+                    propertyInfo.SetValue(model, Confirm(propertyMetadata.Prompt,cancellationToken, (bool?)defaultValue));
                 }
                 else if (propertyMetadata.PropertyType.IsEnum)
                 {
                     var method = _selectMethod.MakeGenericMethod(propertyMetadata.PropertyType);
 
-                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, null, defaultValue));
+                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt,cancellationToken, null, defaultValue));
                 }
                 else if (propertyMetadata.IsCollection && propertyMetadata.PropertyType.GetGenericArguments()[0].IsEnum)
                 {
                     var method = _multiSelectMethod.MakeGenericMethod(propertyMetadata.PropertyType.GetGenericArguments()[0]);
 
-                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, null, 1, -1, defaultValue));
+                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt,cancellationToken, null, 1, -1, defaultValue));
                 }
                 else
                 {
                     var method = _inputMethod.MakeGenericMethod(propertyMetadata.PropertyType);
-
-                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, defaultValue, validators));
+                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, cancellationToken, defaultValue, validators));
                 }
             }
         }
@@ -72,6 +81,7 @@ namespace Sharprompt
         private static object InvokeMethod(MethodInfo methodInfo, params object[] parameters)
         {
             return methodInfo.Invoke(null, parameters);
+
         }
 
         private class PropertyMetadata
@@ -99,8 +109,8 @@ namespace Sharprompt
             public IEnumerable<ValidationAttribute> Validations { get; }
         }
 
-        private static readonly MethodInfo _inputMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(Input) && x.GetParameters().Length == 3);
-        private static readonly MethodInfo _selectMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(Select) && x.GetParameters().Length == 3);
-        private static readonly MethodInfo _multiSelectMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(MultiSelect) && x.GetParameters().Length == 5);
+        private static readonly MethodInfo _inputMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(Input) && x.GetParameters().Length == 4);
+        private static readonly MethodInfo _selectMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(Select) && x.GetParameters().Length == 4);
+        private static readonly MethodInfo _multiSelectMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(MultiSelect) && x.GetParameters().Length == 6);
     }
 }

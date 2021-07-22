@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 using Sharprompt.Internal;
 
@@ -12,8 +13,8 @@ namespace Sharprompt.Forms
         public InputForm(InputOptions options)
         {
             _defaultValue = Optional<T>.Create(options.DefaultValue);
-
             _options = options;
+            _initform = true;
         }
 
         private readonly InputOptions _options;
@@ -24,12 +25,20 @@ namespace Sharprompt.Forms
 
         private int _startIndex;
         private readonly StringBuilder _inputBuffer = new StringBuilder();
-
-        protected override bool TryGetResult(out T result)
+        private bool _initform; 
+        protected override bool TryGetResult(CancellationToken cancellationToken, out T result)
         {
             do
             {
-                var keyInfo = ConsoleDriver.ReadKey();
+                ConsoleKeyInfo keyInfo;
+                while (!ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested)
+                {
+                    Thread.Sleep(Prompt.DefaultMessageValues.IdleReadKey);
+                }
+                if (ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested)
+                {
+                    keyInfo = ConsoleDriver.ReadKey();
+                }
 
                 switch (keyInfo.Key)
                 {
@@ -43,7 +52,7 @@ namespace Sharprompt.Forms
                             {
                                 if (_targetType.IsValueType && _underlyingType == null && !_defaultValue.HasValue)
                                 {
-                                    Renderer.SetValidationResult(new ValidationResult("Value is required"));
+                                    Renderer.SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
 
                                     result = default;
 
@@ -101,18 +110,20 @@ namespace Sharprompt.Forms
                         break;
                     default:
                     {
-                        if (!char.IsControl(keyInfo.KeyChar))
+                        if (!cancellationToken.IsCancellationRequested)
                         {
-                            _inputBuffer.Insert(_startIndex, keyInfo.KeyChar);
+                            if (!char.IsControl(keyInfo.KeyChar))
+                            {
+                                _inputBuffer.Insert(_startIndex, keyInfo.KeyChar);
 
-                            _startIndex += 1;
+                                _startIndex += 1;
+                            }
                         }
-
                         break;
                     }
                 }
 
-            } while (ConsoleDriver.KeyAvailable);
+            } while (ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested);
 
             result = default;
 
@@ -121,12 +132,17 @@ namespace Sharprompt.Forms
 
         protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
-            screenBuffer.WritePrompt(_options.Message);
-
+            var prompt = _options.Message;
             if (_defaultValue.HasValue)
             {
-                screenBuffer.Write($"({_defaultValue.Value}) ");
+                if (_initform)
+                {
+                    _inputBuffer.Append(_defaultValue.Value);
+                }
+                prompt = $"{_options.Message} ({_defaultValue.Value}) ";
             }
+
+            screenBuffer.WritePrompt(prompt);
 
             var (left, top) = screenBuffer.GetCursorPosition();
 
@@ -134,15 +150,21 @@ namespace Sharprompt.Forms
 
             screenBuffer.Write(input);
 
+            if (_initform)
+            {
+                _startIndex = input.Length;
+            }
+
             var width = EastAsianWidth.GetWidth(input.Take(_startIndex)) + left;
 
-            screenBuffer.SetCursorPosition(width % screenBuffer.BufferWidth, top + (width / screenBuffer.BufferWidth));
+            screenBuffer.SetCursorPosition(width % screenBuffer.BufferWidth,  top + (width / screenBuffer.BufferWidth));
+
+            _initform = false;
         }
 
         protected override void FinishTemplate(OffscreenBuffer screenBuffer, T result)
         {
             screenBuffer.WriteFinish(_options.Message);
-
             if (result != null)
             {
                 screenBuffer.Write(result.ToString(), Prompt.ColorSchema.Answer);

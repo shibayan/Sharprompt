@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using System.Threading;
 
 using Sharprompt.Internal;
 
@@ -22,18 +23,25 @@ namespace Sharprompt.Forms
 
         private readonly StringBuilder _filterBuffer = new StringBuilder();
 
-        protected override bool TryGetResult(out T result)
+        protected override bool TryGetResult(CancellationToken cancellationToken,out T result)
         {
             do
             {
-                var keyInfo = ConsoleDriver.ReadKey();
-
+                ConsoleKeyInfo keyInfo;
+                while (!ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested)
+                {
+                    Thread.Sleep(Prompt.DefaultMessageValues.IdleReadKey);
+                }
+                if (ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested)
+                {
+                    keyInfo = ConsoleDriver.ReadKey();
+                }
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.Enter when _paginator.TryGetSelectedItem(out result):
                         return true;
                     case ConsoleKey.Enter:
-                        Renderer.SetValidationResult(new ValidationResult("Value is required"));
+                        Renderer.SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
                         break;
                     case ConsoleKey.UpArrow:
                         _paginator.PreviousItem();
@@ -57,18 +65,20 @@ namespace Sharprompt.Forms
                         break;
                     default:
                     {
-                        if (!char.IsControl(keyInfo.KeyChar))
+                        if (!cancellationToken.IsCancellationRequested)
                         {
-                            _filterBuffer.Append(keyInfo.KeyChar);
+                            if (!char.IsControl(keyInfo.KeyChar))
+                            {
+                                _filterBuffer.Append(keyInfo.KeyChar);
 
-                            _paginator.UpdateFilter(_filterBuffer.ToString());
+                                _paginator.UpdateFilter(_filterBuffer.ToString());
+                            }
                         }
-
                         break;
                     }
                 }
 
-            } while (ConsoleDriver.KeyAvailable);
+            } while (ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested);
 
             result = default;
 

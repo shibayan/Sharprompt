@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 using Sharprompt.Internal;
 
@@ -25,11 +26,19 @@ namespace Sharprompt.Forms
         private readonly StringBuilder _inputBuffer = new StringBuilder();
         private readonly List<T> _inputItems = new List<T>();
 
-        protected override bool TryGetResult(out IEnumerable<T> result)
+        protected override bool TryGetResult(CancellationToken cancellationToken,out IEnumerable<T> result)
         {
             do
             {
-                var keyInfo = ConsoleDriver.ReadKey();
+                ConsoleKeyInfo keyInfo;
+                while (!ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested)
+                {
+                    Thread.Sleep(Prompt.DefaultMessageValues.IdleReadKey);
+                }
+                if (ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested)
+                {
+                    keyInfo = ConsoleDriver.ReadKey();
+                }
 
                 switch (keyInfo.Key)
                 {
@@ -94,23 +103,68 @@ namespace Sharprompt.Forms
                     case ConsoleKey.Delete when _startIndex < _inputBuffer.Length:
                         _inputBuffer.Remove(_startIndex, 1);
                         break;
+                    case ConsoleKey.Delete when keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control):
+                    {
+                        var input = _inputBuffer.ToString();
+                        try
+                        {
+                            if (string.IsNullOrEmpty(input))
+                            {
+                                result = _inputItems;
+
+                                return true;
+                            }
+
+                            var inputValue = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
+
+                            if (!TryValidate(inputValue, _options.Validators))
+                            {
+                                result = _inputItems;
+
+                                return false;
+                            }
+
+                            _startIndex = 0;
+                            _inputBuffer.Clear();
+                            if (_options.RemoveAllMatch)
+                            {
+                                _inputItems.RemoveAll(x => x.Equals(inputValue));
+                            }
+                            else
+                            {
+                                if (_inputItems.Contains(inputValue))
+                                {
+                                    _inputItems.Remove(inputValue);
+                                }
+                            }
+                            result = _inputItems;
+                            return false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Renderer.SetException(ex);
+                        }
+                        break;
+                    }
                     case ConsoleKey.Delete:
                         ConsoleDriver.Beep();
                         break;
                     default:
                     {
-                        if (!char.IsControl(keyInfo.KeyChar))
+                        if (!cancellationToken.IsCancellationRequested)
                         {
-                            _inputBuffer.Insert(_startIndex, keyInfo.KeyChar);
+                            if (!char.IsControl(keyInfo.KeyChar))
+                            {
+                                _inputBuffer.Insert(_startIndex, keyInfo.KeyChar);
 
-                            _startIndex += 1;
+                                _startIndex += 1;
+                            }
                         }
-
                         break;
                     }
                 }
 
-            } while (ConsoleDriver.KeyAvailable);
+            } while (ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested);
 
             result = null;
 
@@ -119,7 +173,8 @@ namespace Sharprompt.Forms
 
         protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
-            screenBuffer.WritePrompt(_options.Message);
+            screenBuffer.WritePrompt($"{_options.Message} Ctrl-Del Remove");
+            screenBuffer.Write($"({string.Join(", ", _inputItems)}) ", Prompt.ColorSchema.Answer);
 
             var (left, top) = screenBuffer.GetCursorPosition();
 
@@ -128,6 +183,7 @@ namespace Sharprompt.Forms
             screenBuffer.Write(input);
 
             var width = EastAsianWidth.GetWidth(input.Take(_startIndex)) + left;
+
 
             screenBuffer.SetCursorPosition(width % screenBuffer.BufferWidth, top + (width / screenBuffer.BufferWidth));
         }

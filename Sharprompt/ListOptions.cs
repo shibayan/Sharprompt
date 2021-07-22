@@ -14,6 +14,8 @@ namespace Sharprompt
 
         public int Maximum { get; set; } = int.MaxValue;
 
+        public bool RemoveAllMatch { get; set; } = false;
+
         public IList<Func<object, ValidationResult>> Validators { get; } = new List<Func<object, ValidationResult>>();
     }
 }

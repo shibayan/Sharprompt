@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Sharprompt.Drivers;
 using Sharprompt.Internal;
@@ -25,24 +27,30 @@ namespace Sharprompt.Forms
             Renderer.Dispose();
         }
 
-        public T Start()
+        public T Start(CancellationToken stoptoken)
         {
             while (true)
             {
                 Renderer.Render(InputTemplate);
 
-                if (!TryGetResult(out var result))
+                if (!TryGetResult(stoptoken, out var result))
                 {
-                    continue;
+                    if (!stoptoken.IsCancellationRequested)
+                    {
+                        continue;
+                    }
                 }
 
-                Renderer.Render(FinishTemplate, result);
+                if (!stoptoken.IsCancellationRequested)
+                {
+                    Renderer.Render(FinishTemplate, result);
+                }
 
                 return result;
             }
         }
 
-        protected abstract bool TryGetResult(out T result);
+        protected abstract bool TryGetResult(CancellationToken stoptoken, out T result);
 
         protected abstract void InputTemplate(OffscreenBuffer screenBuffer);
 

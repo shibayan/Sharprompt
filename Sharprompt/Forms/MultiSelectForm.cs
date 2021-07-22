@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 using Sharprompt.Internal;
 
@@ -40,19 +41,26 @@ namespace Sharprompt.Forms
         private readonly List<T> _selectedItems = new List<T>();
         private readonly StringBuilder _filterBuffer = new StringBuilder();
 
-        protected override bool TryGetResult(out IEnumerable<T> result)
+        protected override bool TryGetResult(CancellationToken cancellationToken,out IEnumerable<T> result)
         {
             do
             {
-                var keyInfo = ConsoleDriver.ReadKey();
-
+                ConsoleKeyInfo keyInfo;
+                while (!ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested)
+                {
+                    Thread.Sleep(Prompt.DefaultMessageValues.IdleReadKey);
+                }
+                if (ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested)
+                {
+                    keyInfo = ConsoleDriver.ReadKey();
+                }
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.Enter when _selectedItems.Count >= _options.Minimum:
                         result = _selectedItems;
                         return true;
                     case ConsoleKey.Enter:
-                        Renderer.SetValidationResult(new ValidationResult($"A minimum selection of {_options.Minimum} items is required"));
+                        Renderer.SetValidationResult(new ValidationResult(string.Format(Prompt.DefaultMessageValues.DefaultMultiSelectMinSelectionMessage,_options.Minimum)));
                         break;
                     case ConsoleKey.Spacebar when _paginator.TryGetSelectedItem(out var currentItem):
                     {
@@ -64,7 +72,6 @@ namespace Sharprompt.Forms
                         {
                             _selectedItems.Add(currentItem);
                         }
-
                         break;
                     }
                     case ConsoleKey.UpArrow:
@@ -89,18 +96,20 @@ namespace Sharprompt.Forms
                         break;
                     default:
                     {
-                        if (!char.IsControl(keyInfo.KeyChar))
+                        if (!cancellationToken.IsCancellationRequested)
                         {
-                            _filterBuffer.Append(keyInfo.KeyChar);
+                            if (!char.IsControl(keyInfo.KeyChar))
+                            {
+                                _filterBuffer.Append(keyInfo.KeyChar);
 
-                            _paginator.UpdateFilter(_filterBuffer.ToString());
+                                _paginator.UpdateFilter(_filterBuffer.ToString());
+                            }
                         }
-
                         break;
                     }
                 }
 
-            } while (ConsoleDriver.KeyAvailable);
+            } while (ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested);
 
             result = null;
 
@@ -114,7 +123,8 @@ namespace Sharprompt.Forms
 
             if (string.IsNullOrEmpty(_paginator.FilterTerm))
             {
-                screenBuffer.Write(" Hit space to select", Prompt.ColorSchema.Answer);
+                screenBuffer.Write(Prompt.DefaultMessageValues.DefaultMultiSelectInputTemplateMessage, Prompt.ColorSchema.Answer);
+                screenBuffer.Write(string.Join(", ", _selectedItems.Select(_options.TextSelector)), Prompt.ColorSchema.Answer);
             }
 
             var subset = _paginator.ToSubset();

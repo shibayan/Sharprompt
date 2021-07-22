@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Threading;
 
 using Sharprompt.Internal;
 
@@ -16,11 +17,24 @@ namespace Sharprompt.Forms
 
         private readonly StringBuilder _inputBuffer = new StringBuilder();
 
-        protected override bool TryGetResult(out string result)
+        protected override bool TryGetResult(CancellationToken cancellationToken,out string result)
         {
             do
             {
-                var keyInfo = ConsoleDriver.ReadKey();
+                ConsoleKeyInfo keyInfo;
+                while (!ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested)
+                {
+                    Thread.Sleep(Prompt.DefaultMessageValues.IdleReadKey);
+                }
+                if (ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested)
+                {
+                    keyInfo = ConsoleDriver.ReadKey();
+                }
+                else
+                {
+                    result = default;
+                    return true;
+                }
 
                 switch (keyInfo.Key)
                 {
@@ -43,16 +57,18 @@ namespace Sharprompt.Forms
                         break;
                     default:
                     {
-                        if (!char.IsControl(keyInfo.KeyChar))
+                        if (!cancellationToken.IsCancellationRequested)
                         {
-                            _inputBuffer.Append(keyInfo.KeyChar);
+                            if (!char.IsControl(keyInfo.KeyChar))
+                            {
+                                _inputBuffer.Append(keyInfo.KeyChar);
+                            }
                         }
-
                         break;
                     }
                 }
 
-            } while (ConsoleDriver.KeyAvailable);
+            } while (ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested);
 
             result = null;
 
@@ -62,7 +78,7 @@ namespace Sharprompt.Forms
         protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
             screenBuffer.WritePrompt(_options.Message);
-            screenBuffer.Write(new string('*', _inputBuffer.Length));
+            screenBuffer.Write(new string(Prompt.DefaultMessageValues.DefautPasswordChar, _inputBuffer.Length));
 
             screenBuffer.SetCursorPosition();
         }
@@ -70,7 +86,7 @@ namespace Sharprompt.Forms
         protected override void FinishTemplate(OffscreenBuffer screenBuffer, string result)
         {
             screenBuffer.WriteFinish(_options.Message);
-            screenBuffer.Write(new string('*', _inputBuffer.Length), Prompt.ColorSchema.Answer);
+            screenBuffer.Write(new string(Prompt.DefaultMessageValues.DefautPasswordChar, _inputBuffer.Length), Prompt.ColorSchema.Answer);
         }
     }
 }

@@ -13,6 +13,10 @@ namespace Sharprompt.Internal
 
         public static int GetWidth(IEnumerable<char> value)
         {
+            if (value == null)
+            {
+                return 0;
+            }
             return value.Sum(x => GetWidth(x));
         }
 
