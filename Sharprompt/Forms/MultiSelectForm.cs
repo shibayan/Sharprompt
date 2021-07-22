@@ -45,15 +45,8 @@ namespace Sharprompt.Forms
         {
             do
             {
-                ConsoleKeyInfo keyInfo;
-                while (!ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested)
-                {
-                    Thread.Sleep(Prompt.DefaultMessageValues.IdleReadKey);
-                }
-                if (ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested)
-                {
-                    keyInfo = ConsoleDriver.ReadKey();
-                }
+                var keyInfo = ConsoleDriver.WaitKeypress(cancellationToken);
+
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.Enter when _selectedItems.Count >= _options.Minimum:

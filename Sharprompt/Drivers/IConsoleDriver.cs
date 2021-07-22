@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Threading;
 
 namespace Sharprompt.Drivers
 {
     internal interface IConsoleDriver : IDisposable
     {
+        ConsoleKeyInfo WaitKeypress(CancellationToken cancellationToken);
         void Beep();
         void Reset();
         void ClearLine(int top);

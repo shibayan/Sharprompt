@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 
 using Sharprompt.Internal;
 
@@ -40,6 +41,19 @@ namespace Sharprompt.Drivers
         #endregion
 
         #region IConsoleDriver
+
+        public ConsoleKeyInfo WaitKeypress(CancellationToken cancellationToken)
+        {
+            while (!KeyAvailable && !cancellationToken.IsCancellationRequested)
+            {
+                Thread.Sleep(Prompt.DefaultMessageValues.IdleReadKey);
+            }
+            if (KeyAvailable && !cancellationToken.IsCancellationRequested)
+            {
+                return ReadKey();
+            }
+            return new ConsoleKeyInfo();
+        }
 
         public void Beep() => Console.Write("\a");
 

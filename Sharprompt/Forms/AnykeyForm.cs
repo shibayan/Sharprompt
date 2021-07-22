@@ -17,15 +17,8 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(CancellationToken cancellationToken, out bool result)
         {
-            while (!ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested)
-            {
-                Thread.Sleep(Prompt.DefaultMessageValues.IdleReadKey);
-            }
-            if (ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested)
-            {
-                _ = ConsoleDriver.ReadKey();
-            }
-            else
+            _ = ConsoleDriver.WaitKeypress(cancellationToken);
+            if (cancellationToken.IsCancellationRequested)
             {
                 result = false;
                 return false;
