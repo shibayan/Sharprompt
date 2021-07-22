@@ -2,16 +2,21 @@
 
 ![Build](https://github.com/shibayan/Sharprompt/workflows/Build/badge.svg)
 [![License](https://img.shields.io/github/license/shibayan/Sharprompt)](https://github.com/shibayan/Sharprompt/blob/master/LICENSE)
-[![Downloads](https://img.shields.io/nuget/dt/Sharprompt)](https://www.nuget.org/packages/Sharprompt/)
+[![Downloads](https://img.shields.io/nuget/dt/Sharprompt)](https://www.nuget.org/packages/Sharprompt-FC/)
+
+# Sharprompt-FC
+
+[![License](https://img.shields.io/github/license/FRACerqueira/Sharprompt)](https://github.com/FRACerqueira/Sharprompt/blob/master/LICENSE)
+[![Downloads](https://img.shields.io/nuget/dt/Sharprompt-FC)](https://www.nuget.org/packages/Sharprompt-FC/)
 
 Interactive command line interface toolkit for C#
 
 ![sharprompt](https://user-images.githubusercontent.com/1356444/62227794-87506e00-b3f7-11e9-84ae-06c9a900448b.gif)
 
 ## NuGet Package
-
 Package Name | Target Framework | NuGet
 ---|---|---
+Sharprompt    | .NET Standard 2.0 | [![NuGet](https://img.shields.io/nuget/v/Sharprompt)](https://www.nuget.org/packages/Sharprompt/)
 Sharprompt-FC | .NET Standard 2.0 | [![NuGet](https://img.shields.io/nuget/v/Sharprompt-FC)](https://www.nuget.org/packages/Sharprompt-FC/)
 
 ## Install
