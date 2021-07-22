@@ -42,9 +42,10 @@ dotnet add package Sharprompt-FC
 
 - Support to Cancelation Token (enhancement)
 - Custom Prompter Messages (enhancement)
-
-- Prompt List with remove item (behavior macth all/one by listoption) (new/enhancement)
+- Prompt Input start buffer with default value (enhancement)
+- Prompt List with remove item (behavior macth all/one by listoption) (enhancement)
 - Prompt MultiSelect/List with Interative result (enhancement)
+- Prompt Confirm start buffer with default value and supress message when Is Control key(enhancement)
 - Prompt Confirm removed long answer (behavior change) 
 - Prompt Anykey (new) 
 
