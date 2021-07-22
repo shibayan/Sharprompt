@@ -32,6 +32,7 @@ dotnet add package Sharprompt
 - Automatic generation of data source using Enum value
 - Customize the color scheme
 - Unicode support (East asian width and Emoji)
+- Cancelation Token options
 
 ## Usage
 
@@ -59,6 +60,18 @@ Console.WriteLine($"Hello, {name}!");
 ```
 
 ![input](https://user-images.githubusercontent.com/1356444/62228275-50c72300-b3f8-11e9-8d51-63892e8eeaaa.gif)
+
+### Input Cancel prompts
+```csharp
+using (var tokenSource = new CancellationTokenSource(5000))
+{
+    var name = Prompt.Input<string>("What's your name? - Hurry up!", tokenSource.Token);
+    if (!tokenSource.IsCancellationRequested)
+    {
+        Console.WriteLine($"Hello, {name}!");
+    }
+}
+```
 
 ### Confirm
 
