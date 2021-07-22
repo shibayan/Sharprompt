@@ -64,7 +64,7 @@ Console.WriteLine($"Hello, {name}!");
 
 ![input](https://user-images.githubusercontent.com/1356444/62228275-50c72300-b3f8-11e9-8d51-63892e8eeaaa.gif)
 
-### Input Cancel prompts
+### Cancel prompts
 ```csharp
 using (var tokenSource = new CancellationTokenSource(5000))
 {
