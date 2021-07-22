@@ -48,7 +48,6 @@ Console.WriteLine("Password OK");
 // Confirmation prompt
 var answer = Prompt.Confirm("Are you ready?", defaultValue: true);
 Console.WriteLine($"Your answer is {answer}");
-```
 
 // Pause to key press
 Prompt.AnyKey();
