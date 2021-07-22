@@ -38,7 +38,7 @@ dotnet add package Sharprompt-FC
 - Customize the color scheme
 - Unicode support (East asian width and Emoji)
 
-## Fork with new features / enhancement  (2.4.0)
+## Fork (2.3.0) with new features / enhancement  (2.4.0)
 
 - Support to Cancelation Token (enhancement)
 - Custom Prompter Messages (enhancement)
