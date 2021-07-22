@@ -32,7 +32,7 @@ dotnet add package Sharprompt
 - Automatic generation of data source using Enum value
 - Customize the color scheme
 - Unicode support (East asian width and Emoji)
-- Cancelation Token options
+- Support to Cancelation Token 
 
 ## Usage
 
