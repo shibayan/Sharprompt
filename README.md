@@ -40,7 +40,7 @@ dotnet add package Sharprompt-FC
 
 ## Fork (2.3.0) with new features / enhancement  (2.4.0)
 
-- Support to Cancelation Token (enhancement)
+- Support to Cancelation Token for all promts (enhancement)
 - Custom Prompter Messages (enhancement)
 - Prompt Input start buffer with default value (enhancement)
 - Prompt List with remove item (behavior macth all/one by listoption) (enhancement)
