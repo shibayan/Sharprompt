@@ -12,16 +12,16 @@ Interactive command line interface toolkit for C#
 
 Package Name | Target Framework | NuGet
 ---|---|---
-Sharprompt | .NET Standard 2.0 | [![NuGet](https://img.shields.io/nuget/v/Sharprompt)](https://www.nuget.org/packages/Sharprompt/)
+Sharprompt-FC | .NET Standard 2.0 | [![NuGet](https://img.shields.io/nuget/v/Sharprompt-FC)](https://www.nuget.org/packages/Sharprompt-FC/)
 
 ## Install
 
 ```
-Install-Package Sharprompt
+Install-Package Sharprompt-FC
 ```
 
 ```
-dotnet add package Sharprompt
+dotnet add package Sharprompt-FC
 ```
 
 ## Features 
