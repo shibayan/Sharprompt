@@ -24,7 +24,7 @@ Install-Package Sharprompt
 dotnet add package Sharprompt
 ```
 
-## Features
+## Features 
 
 - Multi-platform support
 - Supports the popular Prompts (Input / Password / Select / etc)
@@ -32,7 +32,16 @@ dotnet add package Sharprompt
 - Automatic generation of data source using Enum value
 - Customize the color scheme
 - Unicode support (East asian width and Emoji)
-- Support to Cancelation Token 
+
+## Fork with new features / enhancement  (2.4.0)
+
+- Support to Cancelation Token (enhancement)
+- Custom Prompter Messages (enhancement)
+
+- Prompt List with remove item (behavior macth all/one by listoption) (new/enhancement)
+- Prompt MultiSelect/List with Interative result (enhancement)
+- Prompt Confirm removed long answer (behavior change) 
+- Prompt Anykey (new) 
 
 ## Usage
 
