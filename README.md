@@ -69,7 +69,7 @@ Console.WriteLine($"Hello, {name}!");
 using (var tokenSource = new CancellationTokenSource(5000))
 {
     var name = Prompt.Input<string>("What's your name? - Hurry up!", tokenSource.Token);
-    if (!tokenSource.IsCancellationRequested)
+    if (!tokenSource.Token.IsCancellationRequested)
     {
         Console.WriteLine($"Hello, {name}!");
     }
