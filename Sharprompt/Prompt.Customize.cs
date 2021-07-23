@@ -58,6 +58,8 @@ namespace Sharprompt
 
         public static class Symbols
         {
+            public static Symbol File { get; set; } = new Symbol("■", "-");
+            public static Symbol Folder { get; set; } = new Symbol("►", ">");
             public static Symbol Prompt { get; set; } = new Symbol("?", "?");
             public static Symbol Done { get; set; } = new Symbol("✔", "V");
             public static Symbol Error { get; set; } = new Symbol("»", ">>");

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,7 +65,7 @@ namespace Sharprompt.Example
                 _menutask.Dispose();
             }
         }
-        public  void ShowMenu()
+        public void ShowMenu()
         {
             Console.OutputEncoding = Encoding.UTF8;
 
@@ -104,6 +105,12 @@ namespace Sharprompt.Example
                     case ExampleType.List:
                         RunListSample();
                         break;
+                    case ExampleType.FolderSelect:
+                        RunFolderSample();
+                        break;
+                    case ExampleType.FileSelect:
+                        RunFileSample();
+                        break;
                     case ExampleType.AutoForms:
                         RunAutoFormsSample();
                         break;
@@ -119,7 +126,7 @@ namespace Sharprompt.Example
 
         private void RunInputSample()
         {
-            var name = Prompt.Input<string>("What's your name?", _stopApp,"teste", validators: new[] { Validators.Required(), Validators.MinLength(3) });
+            var name = Prompt.Input<string>("What's your name?", _stopApp, "teste", validators: new[] { Validators.Required(), Validators.MinLength(3) });
             if (!_stopApp.IsCancellationRequested)
             {
                 Console.WriteLine($"Hello, {name}!");
@@ -128,7 +135,7 @@ namespace Sharprompt.Example
 
         private void RunConfirmSample()
         {
-            var answer = Prompt.Confirm("Are you ready?", _stopApp,true);
+            var answer = Prompt.Confirm("Are you ready?", _stopApp, true);
             if (!_stopApp.IsCancellationRequested)
             {
                 Console.WriteLine($"Your answer is {answer}");
@@ -137,7 +144,7 @@ namespace Sharprompt.Example
 
         private void RunPasswordSample()
         {
-            var secret = Prompt.Password("Type new password",_stopApp, new[] { Validators.Required(), Validators.MinLength(8) });
+            var secret = Prompt.Password("Type new password", _stopApp, new[] { Validators.Required(), Validators.MinLength(8) });
             if (!_stopApp.IsCancellationRequested)
             {
                 Console.WriteLine("Password OK");
@@ -148,8 +155,8 @@ namespace Sharprompt.Example
         {
             var opt = new ListOptions<string>
             {
-                 Message = "Please add item(s)",
-                 RemoveAllMatch = true
+                Message = "Please add item(s)",
+                RemoveAllMatch = true
             };
             var value = Prompt.List(opt, _stopApp);
             if (!_stopApp.IsCancellationRequested)
@@ -159,7 +166,7 @@ namespace Sharprompt.Example
         }
         private void RunSelectSample()
         {
-            var city = Prompt.Select("Select your city", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" },_stopApp, defaultValue: "Singapore", pageSize: 3);
+            var city = Prompt.Select("Select your city", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, _stopApp, defaultValue: "Singapore", pageSize: 3);
             if (!_stopApp.IsCancellationRequested)
             {
                 Console.WriteLine($"Hello, {city}!");
@@ -168,7 +175,7 @@ namespace Sharprompt.Example
 
         private void RunMultiSelectSample()
         {
-            var options = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" },_stopApp, pageSize: 3, defaultValues: new[] { "Tokyo" });
+            var options = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, _stopApp, pageSize: 3, defaultValues: new[] { "Tokyo" });
             if (!_stopApp.IsCancellationRequested)
             {
                 Console.WriteLine($"You picked {string.Join(", ", options)}");
@@ -199,6 +206,33 @@ namespace Sharprompt.Example
             if (!_stopApp.IsCancellationRequested)
             {
                 Console.WriteLine("Forms OK");
+            }
+        }
+
+        private void RunFolderSample()
+        {
+            var folder = Prompt.FileBrowser(FileBrowserChoose.Folder, "Select/New folder", _stopApp, pageSize: 5, promptCurrentPath: false);
+            if (!_stopApp.IsCancellationRequested)
+            {
+                var dirfound = folder.NotFound ? "not found" : "found";
+                Console.WriteLine($"You picked, {Path.Combine(folder.PathValue,folder.SelectedValue)} and {dirfound}");
+            }
+        }
+
+        private void RunFileSample()
+        {
+            var file = Prompt.FileBrowser(FileBrowserChoose.File, "Select/New file", _stopApp, pageSize: 10, allowNotSelected:true);
+            if (!_stopApp.IsCancellationRequested)
+            {
+                if (string.IsNullOrEmpty(file.SelectedValue))
+                {
+                    Console.WriteLine("You chose nothing!");
+                }
+                else
+                {
+                    var filefound = file.NotFound ? "not found" : "found";
+                    Console.WriteLine($"You picked, {Path.Combine(file.PathValue, file.SelectedValue)} and {filefound}");
+                }
             }
         }
     }

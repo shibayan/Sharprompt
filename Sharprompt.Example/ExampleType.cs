@@ -10,6 +10,8 @@
         SelectWithEnum,
         MultiSelectWithEnum,
         List,
+        FolderSelect,
+        FileSelect,
         AutoForms
     }
 }

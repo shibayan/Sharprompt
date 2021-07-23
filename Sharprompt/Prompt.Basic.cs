@@ -75,7 +75,7 @@ namespace Sharprompt
 
         public static string Password(PasswordOptions options)
         {
-            return Password(options,CancellationToken.None);
+            return Password(options, CancellationToken.None);
         }
 
         public static string Password(PasswordOptions options, CancellationToken cancellationToken)
@@ -88,7 +88,7 @@ namespace Sharprompt
 
         public static string Password(Action<PasswordOptions> configure)
         {
-            return Password(configure,CancellationToken.None);
+            return Password(configure, CancellationToken.None);
         }
 
         public static string Password(Action<PasswordOptions> configure, CancellationToken cancellationToken)
@@ -120,7 +120,7 @@ namespace Sharprompt
                 }
             }
 
-            return Password(options,cancellationToken);
+            return Password(options, cancellationToken);
         }
 
         public static bool Confirm(ConfirmOptions options)
@@ -146,12 +146,12 @@ namespace Sharprompt
 
             configure(options);
 
-            return Confirm(options,cancellationToken);
+            return Confirm(options, cancellationToken);
         }
 
         public static bool Confirm(string message, bool? defaultValue = null)
         {
-            return Confirm(message, CancellationToken.None,defaultValue);
+            return Confirm(message, CancellationToken.None, defaultValue);
         }
 
         public static bool Confirm(string message, CancellationToken cancellationToken, bool? defaultValue = null)
@@ -162,7 +162,7 @@ namespace Sharprompt
                 DefaultValue = defaultValue
             };
 
-            return Confirm(options,cancellationToken);
+            return Confirm(options, cancellationToken);
         }
 
         public static T Select<T>(SelectOptions<T> options)
@@ -188,12 +188,12 @@ namespace Sharprompt
 
             configure(options);
 
-            return Select(options,cancellationToken);
+            return Select(options, cancellationToken);
         }
 
         public static T Select<T>(string message, int? pageSize = null, T? defaultValue = null) where T : struct, Enum
         {
-            return Select(message, CancellationToken.None,pageSize,defaultValue);
+            return Select(message, CancellationToken.None, pageSize, defaultValue);
         }
 
         public static T Select<T>(string message, CancellationToken cancellationToken, int? pageSize = null, T? defaultValue = null) where T : struct, Enum
@@ -218,7 +218,7 @@ namespace Sharprompt
 
         public static T Select<T>(string message, IEnumerable<T> items, int? pageSize = null, object defaultValue = null, Func<T, string> textSelector = null)
         {
-            return Select(message,items, CancellationToken.None, pageSize, defaultValue);
+            return Select(message, items, CancellationToken.None, pageSize, defaultValue);
         }
 
         public static T Select<T>(string message, IEnumerable<T> items, CancellationToken cancellationToken, int? pageSize = null, object defaultValue = null, Func<T, string> textSelector = null)
@@ -232,7 +232,7 @@ namespace Sharprompt
                 TextSelector = textSelector ?? (x => x?.ToString())
             };
 
-            return Select(options,cancellationToken);
+            return Select(options, cancellationToken);
         }
 
         public static IEnumerable<T> MultiSelect<T>(MultiSelectOptions<T> options)
@@ -259,12 +259,12 @@ namespace Sharprompt
 
             configure(options);
 
-            return MultiSelect(options,cancellationToken);
+            return MultiSelect(options, cancellationToken);
         }
 
         public static IEnumerable<T> MultiSelect<T>(string message, int? pageSize = null, int minimum = 1, int maximum = -1, IEnumerable<T> defaultValues = null) where T : struct, Enum
         {
-            return MultiSelect(message, CancellationToken.None,pageSize,minimum,maximum,defaultValues);
+            return MultiSelect(message, CancellationToken.None, pageSize, minimum, maximum, defaultValues);
         }
 
         public static IEnumerable<T> MultiSelect<T>(string message, CancellationToken cancellationToken, int? pageSize = null, int minimum = 1, int maximum = -1, IEnumerable<T> defaultValues = null) where T : struct, Enum
@@ -290,7 +290,7 @@ namespace Sharprompt
 
         public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items, int? pageSize = null, int minimum = 1, int maximum = -1, IEnumerable<T> defaultValues = null, Func<T, string> textSelector = null)
         {
-            return MultiSelect(message, items,CancellationToken.None, pageSize, minimum, maximum, defaultValues);
+            return MultiSelect(message, items, CancellationToken.None, pageSize, minimum, maximum, defaultValues);
         }
 
         public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items, CancellationToken cancellationToken, int? pageSize = null, int minimum = 1, int maximum = -1, IEnumerable<T> defaultValues = null, Func<T, string> textSelector = null)
@@ -304,7 +304,7 @@ namespace Sharprompt
                 TextSelector = x => x.ToString()
             };
 
-            return MultiSelect(options,cancellationToken);
+            return MultiSelect(options, cancellationToken);
         }
         public static IEnumerable<T> List<T>(ListOptions<T> options)
         {
@@ -318,7 +318,7 @@ namespace Sharprompt
 
         public static IEnumerable<T> List<T>(Action<ListOptions<T>> configure)
         {
-            return List(configure,CancellationToken.None);
+            return List(configure, CancellationToken.None);
         }
         public static IEnumerable<T> List<T>(Action<ListOptions<T>> configure, CancellationToken cancellationToken)
         {
@@ -326,7 +326,7 @@ namespace Sharprompt
 
             configure(options);
 
-            return List(options,cancellationToken);
+            return List(options, cancellationToken);
         }
 
         public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = -1, IList<Func<object, ValidationResult>> validators = null)
@@ -351,7 +351,60 @@ namespace Sharprompt
                 }
             }
 
-            return List(options,cancellationToken);
+            return List(options, cancellationToken);
         }
+
+        public static PathSelected FileBrowser(PathOptions options)
+        {
+            return FileBrowser(options, CancellationToken.None);
+        }
+
+        public static PathSelected FileBrowser(PathOptions options, CancellationToken cancellationToken)
+        {
+            using var form = new FileBrowserForm(options);
+
+            return form.Start(cancellationToken);
+        }
+
+        public static PathSelected FileBrowser(Action<PathOptions> configure)
+        {
+            return FileBrowser(configure, CancellationToken.None);
+        }
+
+        public static PathSelected FileBrowser(Action<PathOptions> configure, CancellationToken cancellationToken)
+        {
+            var options = new PathOptions();
+
+            configure(options);
+
+            return FileBrowser(options, cancellationToken);
+        }
+
+        public static PathSelected FileBrowser(FileBrowserChoose fileBrowserChoose, string message, string defaultValue = null, string prefixExtension = null, bool allowNotSelected = false, string rootFolder = null, string searchPattern = null, int? pageSize = null, bool supressHidden = true, bool promptCurrentPath = true, bool promptSearchPattern = true, bool showMarkup = true)
+        {
+            return FileBrowser(fileBrowserChoose, message, CancellationToken.None, defaultValue, prefixExtension, allowNotSelected, rootFolder, searchPattern, pageSize, supressHidden, promptCurrentPath, promptSearchPattern, showMarkup);
+        }
+
+        public static PathSelected FileBrowser(FileBrowserChoose fileBrowserChoose, string message, CancellationToken cancellationToken, string defaultValue = null, string prefixExtension = null, bool allowNotSelected = false, string rootFolder = null, string searchPattern = null, int? pageSize = null, bool supressHidden = true, bool promptCurrentPath = true, bool promptSearchPattern = true, bool showMarkup = true)
+        {
+            var options = new PathOptions
+            {
+                AllowNotSelected = allowNotSelected,
+                BrowserChoose = fileBrowserChoose,
+                DefaultValue = defaultValue,
+                PageSize = pageSize,
+                PrefixExtension = prefixExtension,
+                PromptCurrentPath = promptCurrentPath,
+                PromptSearchPattern = promptSearchPattern,
+                RootFolder = rootFolder,
+                SearchPattern = searchPattern,
+                ShowMarkup = showMarkup,
+                SupressHidden = supressHidden,
+                Message = message
+            };
+            return FileBrowser(options, cancellationToken);
+        }
+
+
     }
 }
