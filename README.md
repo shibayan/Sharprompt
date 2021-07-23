@@ -143,7 +143,7 @@ if (!_stopApp.IsCancellationRequested)
     Console.WriteLine($"You picked, {Path.Combine(folder.PathValue,folder.SelectedValue)} and {dirfound}");
 }
 
-var file = Prompt.FileBrowser(FileBrowserChoose.File, "Select/New file", _stopApp, pageSize: 10);
+            var file = Prompt.FileBrowser(FileBrowserChoose.File, "Select/New file", _stopApp, pageSize: 10, allowNotSelected:true);
 if (!_stopApp.IsCancellationRequested)
 {
     if (string.IsNullOrEmpty(file.SelectedValue))
