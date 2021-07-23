@@ -40,14 +40,15 @@ dotnet add package Sharprompt-FC
 
 ## Fork (2.3.0) with new features / enhancement  (2.4.0)
 
-- Support to Cancelation Token (enhancement)
+- Support to Cancelation Token for all promts (enhancement)
 - Custom Prompter Messages (enhancement)
 - Prompt Input start buffer with default value (enhancement)
 - Prompt List with remove item (behavior macth all/one by listoption) (enhancement)
-- Prompt MultiSelect/List with Interative result (enhancement)
+- Prompt Select/MultiSelect/List with Interative result (enhancement)
 - Prompt Confirm start buffer with default value and supress message when Is Control key(enhancement)
 - Prompt Confirm removed long answer (behavior change) 
 - Prompt Anykey (new) 
+- Prompt FileBrowser (preview - Browser file/folder) 
 
 ## Usage
 
@@ -131,6 +132,34 @@ Console.WriteLine($"You selected {value}");
 var cities = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3);
 Console.WriteLine($"You picked {string.Join(", ", options)}");
 ```
+
+### FileBrowser
+
+```csharp
+var folder = Prompt.FileBrowser(FileBrowserChoose.Folder, "Select/New folder", _stopApp, pageSize: 5, promptCurrentPath: false);
+if (!_stopApp.IsCancellationRequested)
+{
+    var dirfound = folder.NotFound ? "not found" : "found";
+    Console.WriteLine($"You picked, {Path.Combine(folder.PathValue,folder.SelectedValue)} and {dirfound}");
+}
+
+            var file = Prompt.FileBrowser(FileBrowserChoose.File, "Select/New file", _stopApp, pageSize: 10, allowNotSelected:true);
+if (!_stopApp.IsCancellationRequested)
+{
+    if (string.IsNullOrEmpty(file.SelectedValue))
+    {
+        Console.WriteLine("You chose nothing!");
+    }
+    else
+    {
+        var filefound = file.NotFound ? "not found" : "found";
+        Console.WriteLine($"You picked, {Path.Combine(file.PathValue, file.SelectedValue)} and {filefound}");
+    }
+}
+
+```
+
+
 
 ## Configuration
 
