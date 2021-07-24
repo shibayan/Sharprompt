@@ -34,9 +34,7 @@ namespace Sharprompt.Internal
                     continue;
                 }
 
-                var end = range.Start + range.Count;
-
-                if (codePoint > end)
+                if (codePoint > range.Start + range.Count)
                 {
                     left = middle + 1;
 

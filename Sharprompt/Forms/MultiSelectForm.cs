@@ -13,7 +13,6 @@ namespace Sharprompt.Forms
         public MultiSelectForm(MultiSelectOptions<T> options)
             : base(false)
         {
-            // throw early when invalid options are passed
             if (options.Minimum < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(options.Minimum), $"The minimum ({options.Minimum}) is not valid");
@@ -62,7 +61,14 @@ namespace Sharprompt.Forms
                         }
                         else
                         {
-                            _selectedItems.Add(currentItem);
+                            if (_selectedItems.Count >= _options.Maximum)
+                            {
+                                Renderer.SetValidationResult(new ValidationResult($"A maximum selection of {_options.Maximum} items is required"));
+                            }
+                            else
+                            {
+                                _selectedItems.Add(currentItem);
+                            }
                         }
 
                         break;

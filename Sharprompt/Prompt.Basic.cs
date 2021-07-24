@@ -178,6 +178,8 @@ namespace Sharprompt
                 Items = items,
                 DefaultValues = defaultValues?.Select(x => (EnumValue<T>)x),
                 PageSize = pageSize,
+                Minimum = minimum,
+                Maximum = maximum,
                 TextSelector = x => x.DisplayName
             };
 
@@ -192,6 +194,8 @@ namespace Sharprompt
                 Items = items,
                 DefaultValues = defaultValues,
                 PageSize = pageSize,
+                Minimum = minimum,
+                Maximum = maximum,
                 TextSelector = x => x.ToString()
             };
 
