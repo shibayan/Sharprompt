@@ -168,7 +168,7 @@ namespace Sharprompt
             return MultiSelect(options);
         }
 
-        public static IEnumerable<T> MultiSelect<T>(string message, int? pageSize = null, int minimum = 1, int maximum = -1, IEnumerable<T> defaultValues = null) where T : struct, Enum
+        public static IEnumerable<T> MultiSelect<T>(string message, int? pageSize = null, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = null) where T : struct, Enum
         {
             var items = EnumValue<T>.GetValues();
 
@@ -184,7 +184,7 @@ namespace Sharprompt
             return MultiSelect(options).Select(x => x.Value);
         }
 
-        public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items, int? pageSize = null, int minimum = 1, int maximum = -1, IEnumerable<T> defaultValues = null, Func<T, string> textSelector = null)
+        public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items, int? pageSize = null, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = null, Func<T, string> textSelector = null)
         {
             var options = new MultiSelectOptions<T>
             {
@@ -211,10 +211,10 @@ namespace Sharprompt
 
             configure(options);
 
-            return List<T>(options);
+            return List(options);
         }
 
-        public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = -1, IList<Func<object, ValidationResult>> validators = null)
+        public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = int.MaxValue, IList<Func<object, ValidationResult>> validators = null)
         {
             var options = new ListOptions<T>
             {
@@ -231,7 +231,7 @@ namespace Sharprompt
                 }
             }
 
-            return List<T>(options);
+            return List(options);
         }
     }
 }

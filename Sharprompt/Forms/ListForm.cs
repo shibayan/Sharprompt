@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 
@@ -39,19 +40,31 @@ namespace Sharprompt.Forms
 
                         try
                         {
+                            result = _inputItems;
+
                             if (string.IsNullOrEmpty(input))
                             {
-                                result = _inputItems;
+                                if (_inputItems.Count >= _options.Minimum)
+                                {
+                                    return true;
+                                }
 
-                                return true;
+                                Renderer.SetValidationResult(new ValidationResult($"A minimum input of {_options.Minimum} items is required"));
+
+                                return false;
+                            }
+
+                            if (_inputItems.Count >= _options.Maximum)
+                            {
+                                Renderer.SetValidationResult(new ValidationResult($"A maximum input of {_options.Maximum} items is required"));
+
+                                return false;
                             }
 
                             var inputValue = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
 
                             if (!TryValidate(inputValue, _options.Validators))
                             {
-                                result = _inputItems;
-
                                 return false;
                             }
 
@@ -59,8 +72,6 @@ namespace Sharprompt.Forms
                             _inputBuffer.Clear();
 
                             _inputItems.Add(inputValue);
-
-                            result = _inputItems;
 
                             return false;
                         }
