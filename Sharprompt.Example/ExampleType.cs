@@ -9,6 +9,7 @@
         MultiSelect,
         SelectWithEnum,
         MultiSelectWithEnum,
+        List,
         AutoForms
     }
 }
