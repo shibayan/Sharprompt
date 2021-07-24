@@ -45,7 +45,7 @@ namespace Sharprompt.Forms
                 }
             }
 
-            Renderer.SetValidationResult(new ValidationResult("Value is invalid"));
+            SetValidationResult(new ValidationResult("Value is invalid"));
 
             result = default;
 

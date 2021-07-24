@@ -33,7 +33,7 @@ namespace Sharprompt.Forms
                     case ConsoleKey.Enter when _paginator.TryGetSelectedItem(out result):
                         return true;
                     case ConsoleKey.Enter:
-                        Renderer.SetValidationResult(new ValidationResult("Value is required"));
+                        SetValidationResult(new ValidationResult("Value is required"));
                         break;
                     case ConsoleKey.UpArrow:
                         _paginator.PreviousItem();

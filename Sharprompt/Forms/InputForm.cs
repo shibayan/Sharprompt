@@ -43,7 +43,7 @@ namespace Sharprompt.Forms
                             {
                                 if (_targetType.IsValueType && _underlyingType == null && !_defaultValue.HasValue)
                                 {
-                                    Renderer.SetValidationResult(new ValidationResult("Value is required"));
+                                    SetValidationResult(new ValidationResult("Value is required"));
 
                                     result = default;
 
@@ -68,7 +68,7 @@ namespace Sharprompt.Forms
                         }
                         catch (Exception ex)
                         {
-                            Renderer.SetException(ex);
+                            SetException(ex);
                         }
 
                         break;

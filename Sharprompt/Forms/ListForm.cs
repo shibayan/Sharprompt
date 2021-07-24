@@ -59,14 +59,14 @@ namespace Sharprompt.Forms
                                     return true;
                                 }
 
-                                Renderer.SetValidationResult(new ValidationResult($"A minimum input of {_options.Minimum} items is required"));
+                                SetValidationResult(new ValidationResult($"A minimum input of {_options.Minimum} items is required"));
 
                                 return false;
                             }
 
                             if (_inputItems.Count >= _options.Maximum)
                             {
-                                Renderer.SetValidationResult(new ValidationResult($"A maximum input of {_options.Maximum} items is required"));
+                                SetValidationResult(new ValidationResult($"A maximum input of {_options.Maximum} items is required"));
 
                                 return false;
                             }
@@ -87,7 +87,7 @@ namespace Sharprompt.Forms
                         }
                         catch (Exception ex)
                         {
-                            Renderer.SetException(ex);
+                            SetException(ex);
                         }
 
                         break;

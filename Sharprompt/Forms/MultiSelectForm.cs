@@ -51,7 +51,7 @@ namespace Sharprompt.Forms
                         result = _selectedItems;
                         return true;
                     case ConsoleKey.Enter:
-                        Renderer.SetValidationResult(new ValidationResult($"A minimum selection of {_options.Minimum} items is required"));
+                        SetValidationResult(new ValidationResult($"A minimum selection of {_options.Minimum} items is required"));
                         break;
                     case ConsoleKey.Spacebar when _paginator.TryGetSelectedItem(out var currentItem):
                     {
@@ -63,7 +63,7 @@ namespace Sharprompt.Forms
                         {
                             if (_selectedItems.Count >= _options.Maximum)
                             {
-                                Renderer.SetValidationResult(new ValidationResult($"A maximum selection of {_options.Maximum} items is required"));
+                                SetValidationResult(new ValidationResult($"A maximum selection of {_options.Maximum} items is required"));
                             }
                             else
                             {
