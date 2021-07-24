@@ -9,6 +9,7 @@
     <Authors>shibayan</Authors>
     <Company>shibayan</Company>
     <Description>Interactive command line interface toolkit for C#</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>https://github.com/shibayan/Sharprompt/releases</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/shibayan/Sharprompt</RepositoryUrl>
@@ -17,6 +18,10 @@
 
   <ItemGroup>
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
 </Project>
