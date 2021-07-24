@@ -12,6 +12,16 @@ namespace Sharprompt.Forms
     {
         public ListForm(ListOptions<T> options)
         {
+            if (options.Minimum < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(options.Minimum), $"The minimum ({options.Minimum}) is not valid");
+            }
+
+            if (options.Maximum < options.Minimum)
+            {
+                throw new ArgumentException($"The maximum ({options.Maximum}) is not valid when minimum is set to ({options.Minimum})", nameof(options.Maximum));
+            }
+
             _options = options;
 
             _inputItems.AddRange(options.DefaultValues ?? Enumerable.Empty<T>());

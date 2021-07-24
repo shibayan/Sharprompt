@@ -13,7 +13,7 @@ namespace Sharprompt
 
         public int? PageSize { get; set; }
 
-        public int Minimum { get; set; } = 0;
+        public int Minimum { get; set; } = 1;
 
         public int Maximum { get; set; } = int.MaxValue;
 
