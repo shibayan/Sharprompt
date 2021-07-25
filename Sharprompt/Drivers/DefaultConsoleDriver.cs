@@ -83,9 +83,7 @@ namespace Sharprompt.Drivers
                     {
                         startIndex -= 1;
 
-                        var width = EastAsianWidth.GetWidth(inputBuffer[startIndex]);
-
-                        HandleLeftAllow(width);
+                        HandleLeftAllow(inputBuffer[startIndex].GetWidth());
                     }
                     else
                     {
@@ -96,9 +94,7 @@ namespace Sharprompt.Drivers
                 {
                     if (startIndex < inputBuffer.Length)
                     {
-                        var width = EastAsianWidth.GetWidth(inputBuffer[startIndex]);
-
-                        HandleRightAllow(width);
+                        HandleRightAllow(inputBuffer[startIndex].GetWidth());
 
                         startIndex += 1;
                     }
@@ -113,7 +109,7 @@ namespace Sharprompt.Drivers
                     {
                         startIndex -= 1;
 
-                        var width = EastAsianWidth.GetWidth(inputBuffer[startIndex]);
+                        var width = inputBuffer[startIndex].GetWidth();
 
                         HandleLeftAllow(width);
 
@@ -139,7 +135,7 @@ namespace Sharprompt.Drivers
                 {
                     if (startIndex < inputBuffer.Length)
                     {
-                        var width = EastAsianWidth.GetWidth(inputBuffer[startIndex]);
+                        var width = inputBuffer[startIndex].GetWidth();
 
                         inputBuffer.Remove(startIndex, 1);
 
@@ -170,7 +166,7 @@ namespace Sharprompt.Drivers
                         Console.Write(inputBuffer[i]);
                     }
 
-                    left += EastAsianWidth.GetWidth(keyInfo.KeyChar);
+                    left += keyInfo.KeyChar.GetWidth();
 
                     if (left >= Console.BufferWidth)
                     {

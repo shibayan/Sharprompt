@@ -23,7 +23,7 @@ namespace Sharprompt.Internal
 
         public int BufferWidth => _consoleDriver.BufferWidth;
 
-        public int LineCount => _outputBuffer.Count + _outputBuffer.Sum(x => (x.Sum(xs => EastAsianWidth.GetWidth(xs.Text)) - 1) / _consoleDriver.BufferWidth);
+        public int LineCount => _outputBuffer.Count + _outputBuffer.Sum(x => (x.Sum(xs => xs.Text.GetWidth()) - 1) / BufferWidth);
 
         public void Clear()
         {
@@ -69,7 +69,7 @@ namespace Sharprompt.Internal
 
         public (int left, int top) GetCursorPosition()
         {
-            var left = _outputBuffer.Last().Sum(x => EastAsianWidth.GetWidth(x.Text)) % _consoleDriver.BufferWidth;
+            var left = _outputBuffer.Last().Sum(x => x.Text.GetWidth()) % BufferWidth;
             var top = LineCount - 1;
 
             return (left, top);

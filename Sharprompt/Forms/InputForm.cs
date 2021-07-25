@@ -134,7 +134,7 @@ namespace Sharprompt.Forms
 
             screenBuffer.Write(input);
 
-            var width = EastAsianWidth.GetWidth(input.Take(_startIndex)) + left;
+            var width = left + input.Take(_startIndex).GetWidth();
 
             screenBuffer.SetCursorPosition(width % screenBuffer.BufferWidth, top + (width / screenBuffer.BufferWidth));
         }
