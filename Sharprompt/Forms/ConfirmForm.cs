@@ -1,4 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
 
 using Sharprompt.Internal;
 
@@ -13,39 +16,93 @@ namespace Sharprompt.Forms
 
         private readonly ConfirmOptions _options;
 
+        private int _startIndex;
+        private readonly StringBuilder _inputBuffer = new StringBuilder();
+
         protected override bool TryGetResult(out bool result)
         {
-            var input = ConsoleDriver.ReadLine();
-
-            if (string.IsNullOrEmpty(input))
+            do
             {
-                if (_options.DefaultValue != null)
+                var keyInfo = ConsoleDriver.ReadKey();
+
+                switch (keyInfo.Key)
                 {
-                    result = _options.DefaultValue.Value;
+                    case ConsoleKey.Enter:
+                    {
+                        var input = _inputBuffer.ToString();
 
-                    return true;
+                        if (string.IsNullOrEmpty(input))
+                        {
+                            if (_options.DefaultValue != null)
+                            {
+                                result = _options.DefaultValue.Value;
+
+                                return true;
+                            }
+                        }
+                        else
+                        {
+                            var lowerInput = input.ToLower();
+
+                            if (lowerInput == "y" || lowerInput == "yes")
+                            {
+                                result = true;
+
+                                return true;
+                            }
+
+                            if (lowerInput == "n" || lowerInput == "no")
+                            {
+                                result = false;
+
+                                return true;
+                            }
+                        }
+
+                        SetValidationResult(new ValidationResult("Value is invalid"));
+
+                        break;
+                    }
+                    case ConsoleKey.LeftArrow when _startIndex > 0:
+                        _startIndex -= 1;
+                        break;
+                    case ConsoleKey.LeftArrow:
+                        ConsoleDriver.Beep();
+                        break;
+                    case ConsoleKey.RightArrow when _startIndex < _inputBuffer.Length:
+                        _startIndex += 1;
+                        break;
+                    case ConsoleKey.RightArrow:
+                        ConsoleDriver.Beep();
+                        break;
+                    case ConsoleKey.Backspace when _startIndex > 0:
+                        _startIndex -= 1;
+
+                        _inputBuffer.Remove(_startIndex, 1);
+                        break;
+                    case ConsoleKey.Backspace:
+                        ConsoleDriver.Beep();
+                        break;
+                    case ConsoleKey.Delete when _startIndex < _inputBuffer.Length:
+                        _inputBuffer.Remove(_startIndex, 1);
+                        break;
+                    case ConsoleKey.Delete:
+                        ConsoleDriver.Beep();
+                        break;
+                    default:
+                    {
+                        if (!char.IsControl(keyInfo.KeyChar))
+                        {
+                            _inputBuffer.Insert(_startIndex, keyInfo.KeyChar);
+
+                            _startIndex += 1;
+                        }
+
+                        break;
+                    }
                 }
-            }
-            else
-            {
-                var lowerInput = input.ToLower();
 
-                if (lowerInput == "y" || lowerInput == "yes")
-                {
-                    result = true;
-
-                    return true;
-                }
-
-                if (lowerInput == "n" || lowerInput == "no")
-                {
-                    result = false;
-
-                    return true;
-                }
-            }
-
-            SetValidationResult(new ValidationResult("Value is invalid"));
+            } while (ConsoleDriver.KeyAvailable);
 
             result = default;
 
@@ -69,7 +126,15 @@ namespace Sharprompt.Forms
                 screenBuffer.Write("(y/N) ");
             }
 
-            screenBuffer.SetCursorPosition();
+            var (left, top) = screenBuffer.GetCursorPosition();
+
+            var input = _inputBuffer.ToString();
+
+            screenBuffer.Write(input);
+
+            var width = left + input.Take(_startIndex).GetWidth();
+
+            screenBuffer.SetCursorPosition(width % screenBuffer.BufferWidth, top + (width / screenBuffer.BufferWidth));
         }
 
         protected override void FinishTemplate(OffscreenBuffer screenBuffer, bool result)
