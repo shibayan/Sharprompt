@@ -12,6 +12,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>https://github.com/shibayan/Sharprompt/releases</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>cli;command-line;interactive;prompt</PackageTags>
     <RepositoryUrl>https://github.com/shibayan/Sharprompt</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>

@@ -13,30 +13,30 @@ namespace Sharprompt.Forms
         {
             ConsoleDriver = new DefaultConsoleDriver();
 
-            Renderer = new FormRenderer(ConsoleDriver, cursorVisible);
+            _formRenderer = new FormRenderer(ConsoleDriver, cursorVisible);
         }
+
+        private readonly FormRenderer _formRenderer;
 
         protected IConsoleDriver ConsoleDriver { get; }
 
-        protected FormRenderer Renderer { get; }
-
         public void Dispose()
         {
-            Renderer.Dispose();
+            _formRenderer.Dispose();
         }
 
         public T Start()
         {
             while (true)
             {
-                Renderer.Render(InputTemplate);
+                _formRenderer.Render(InputTemplate);
 
                 if (!TryGetResult(out var result))
                 {
                     continue;
                 }
 
-                Renderer.Render(FinishTemplate, result);
+                _formRenderer.Render(FinishTemplate, result);
 
                 return result;
             }
@@ -48,6 +48,16 @@ namespace Sharprompt.Forms
 
         protected abstract void FinishTemplate(OffscreenBuffer screenBuffer, T result);
 
+        protected void SetValidationResult(ValidationResult validationResult)
+        {
+            _formRenderer.ErrorMessage = validationResult.ErrorMessage;
+        }
+
+        protected void SetException(Exception exception)
+        {
+            _formRenderer.ErrorMessage = exception.Message;
+        }
+
         protected bool TryValidate(object input, IList<Func<object, ValidationResult>> validators)
         {
             foreach (var validator in validators)
@@ -56,7 +66,7 @@ namespace Sharprompt.Forms
 
                 if (result != ValidationResult.Success)
                 {
-                    Renderer.SetValidationResult(result);
+                    SetValidationResult(result);
 
                     return false;
                 }

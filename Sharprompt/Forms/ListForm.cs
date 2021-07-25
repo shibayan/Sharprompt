@@ -59,14 +59,14 @@ namespace Sharprompt.Forms
                                     return true;
                                 }
 
-                                Renderer.SetValidationResult(new ValidationResult($"A minimum input of {_options.Minimum} items is required"));
+                                SetValidationResult(new ValidationResult($"A minimum input of {_options.Minimum} items is required"));
 
                                 return false;
                             }
 
                             if (_inputItems.Count >= _options.Maximum)
                             {
-                                Renderer.SetValidationResult(new ValidationResult($"A maximum input of {_options.Maximum} items is required"));
+                                SetValidationResult(new ValidationResult($"A maximum input of {_options.Maximum} items is required"));
 
                                 return false;
                             }
@@ -87,7 +87,7 @@ namespace Sharprompt.Forms
                         }
                         catch (Exception ex)
                         {
-                            Renderer.SetException(ex);
+                            SetException(ex);
                         }
 
                         break;
@@ -95,26 +95,20 @@ namespace Sharprompt.Forms
                     case ConsoleKey.LeftArrow when _startIndex > 0:
                         _startIndex -= 1;
                         break;
-                    case ConsoleKey.LeftArrow:
-                        ConsoleDriver.Beep();
-                        break;
                     case ConsoleKey.RightArrow when _startIndex < _inputBuffer.Length:
                         _startIndex += 1;
-                        break;
-                    case ConsoleKey.RightArrow:
-                        ConsoleDriver.Beep();
                         break;
                     case ConsoleKey.Backspace when _startIndex > 0:
                         _startIndex -= 1;
 
                         _inputBuffer.Remove(_startIndex, 1);
                         break;
-                    case ConsoleKey.Backspace:
-                        ConsoleDriver.Beep();
-                        break;
                     case ConsoleKey.Delete when _startIndex < _inputBuffer.Length:
                         _inputBuffer.Remove(_startIndex, 1);
                         break;
+                    case ConsoleKey.LeftArrow:
+                    case ConsoleKey.RightArrow:
+                    case ConsoleKey.Backspace:
                     case ConsoleKey.Delete:
                         ConsoleDriver.Beep();
                         break;
@@ -154,7 +148,7 @@ namespace Sharprompt.Forms
                 screenBuffer.Write($"  {inputItem}");
             }
 
-            var width = EastAsianWidth.GetWidth(input.Take(_startIndex)) + left;
+            var width = left + input.Take(_startIndex).GetWidth();
 
             screenBuffer.SetCursorPosition(width % screenBuffer.BufferWidth, top + (width / screenBuffer.BufferWidth));
         }
