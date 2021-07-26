@@ -21,10 +21,7 @@ namespace Sharprompt.Forms
 
         public string ErrorMessage { get; set; }
 
-        public void Dispose()
-        {
-            _consoleDriver.Dispose();
-        }
+        public void Dispose() => _consoleDriver.Dispose();
 
         public void Render(Action<OffscreenBuffer> template)
         {

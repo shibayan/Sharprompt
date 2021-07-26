@@ -12,18 +12,12 @@
 
         public T Value { get; }
 
-        public static implicit operator T(Optional<T> optional) => optional.Value;
-
         public static readonly Optional<T> Empty = new Optional<T>();
 
-        public static Optional<T> Create(T value)
-        {
-            return value == null ? Empty : new Optional<T>(value);
-        }
+        public static implicit operator T(Optional<T> optional) => optional.Value;
 
-        public static Optional<T> Create(object value)
-        {
-            return value == null ? Empty : new Optional<T>((T)value);
-        }
+        public static Optional<T> Create(T value) => value == null ? Empty : new Optional<T>(value);
+
+        public static Optional<T> Create(object value) => value == null ? Empty : new Optional<T>((T)value);
     }
 }

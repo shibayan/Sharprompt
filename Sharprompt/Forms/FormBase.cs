@@ -20,10 +20,7 @@ namespace Sharprompt.Forms
 
         protected IConsoleDriver ConsoleDriver { get; }
 
-        public void Dispose()
-        {
-            _formRenderer.Dispose();
-        }
+        public void Dispose() => _formRenderer.Dispose();
 
         public T Start()
         {
@@ -48,15 +45,9 @@ namespace Sharprompt.Forms
 
         protected abstract void FinishTemplate(OffscreenBuffer screenBuffer, T result);
 
-        protected void SetValidationResult(ValidationResult validationResult)
-        {
-            _formRenderer.ErrorMessage = validationResult.ErrorMessage;
-        }
+        protected void SetValidationResult(ValidationResult validationResult) => _formRenderer.ErrorMessage = validationResult.ErrorMessage;
 
-        protected void SetException(Exception exception)
-        {
-            _formRenderer.ErrorMessage = exception.Message;
-        }
+        protected void SetException(Exception exception) => _formRenderer.ErrorMessage = exception.Message;
 
         protected bool TryValidate(object input, IList<Func<object, ValidationResult>> validators)
         {

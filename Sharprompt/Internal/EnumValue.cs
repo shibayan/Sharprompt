@@ -22,24 +22,13 @@ namespace Sharprompt.Internal
         public int Order { get; }
         public T Value { get; }
 
+        public bool Equals(EnumValue<T> other) => other != null && EqualityComparer<T>.Default.Equals(Value, other.Value);
+
         public override bool Equals(object obj) => Equals(obj as EnumValue<T>);
-
-        public bool Equals(EnumValue<T> other)
-        {
-            if (other == null)
-            {
-                return false;
-            }
-
-            return EqualityComparer<T>.Default.Equals(Value, other.Value);
-        }
 
         public override int GetHashCode() => Value.GetHashCode();
 
-        public static implicit operator EnumValue<T>(T value)
-        {
-            return new EnumValue<T>(value);
-        }
+        public static implicit operator EnumValue<T>(T value) => new EnumValue<T>(value);
 
         public static IEnumerable<EnumValue<T>> GetValues()
         {
