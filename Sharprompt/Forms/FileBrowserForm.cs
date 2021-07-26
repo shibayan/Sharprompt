@@ -17,7 +17,7 @@ namespace Sharprompt.Forms
         private readonly PathOptions _options;
         private readonly StringBuilder _filterBuffer = new StringBuilder();
         private PathSelected _defaultopt;
-        private string _currentFolder;
+        private string _currentPath;
         private Paginator<PathSelected> _paginator;
 
         public FileBrowserForm(PathOptions options) : base(false)
@@ -50,14 +50,14 @@ namespace Sharprompt.Forms
             if (!string.IsNullOrEmpty(defvalue))
             {
                 var fi = new FileInfo(defvalue);
-                _defaultopt = new PathSelected(fi.Directory?.FullName ?? "", fi.Name, false, true, _options.ShowMarkup, !_options.PromptCurrentPath);
-                _currentFolder = fi.Directory.FullName;
+                _defaultopt = new PathSelected(fi.Directory?.FullName ?? "", fi.Name, false, true, _options.ShowMarkup, !_options.ShowNavigationCurrentPath);
+                _currentPath = fi.Directory.FullName;
             }
             else
             {
                 var di = new DirectoryInfo(Directory.GetCurrentDirectory());
-                _defaultopt = new PathSelected(di.FullName ?? "", "", true, true, _options.ShowMarkup, !_options.PromptCurrentPath);
-                _currentFolder = di.FullName;
+                _defaultopt = new PathSelected(di.FullName ?? "", "", true, true, _options.ShowMarkup, !_options.ShowNavigationCurrentPath);
+                _currentPath = di.FullName;
             }
             _paginator = new Paginator<PathSelected>(ItensFolders(_defaultopt.PathValue), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.TextSelector);
         }
@@ -78,8 +78,8 @@ namespace Sharprompt.Forms
                 throw new ArgumentException("Root folder not found or invalid");
             }
             var di = new DirectoryInfo(defvalue);
-            _defaultopt = new PathSelected(di.Parent?.FullName ?? "", di.Name, false, false, _options.ShowMarkup, !_options.PromptCurrentPath);
-            _currentFolder = defvalue;
+            _defaultopt = new PathSelected(di.Parent?.FullName ?? "", di.Name, false, false, _options.ShowMarkup, !_options.ShowNavigationCurrentPath);
+            _currentPath = defvalue;
             _paginator = new Paginator<PathSelected>(ItensFolders(defvalue), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.TextSelector);
         }
 
@@ -96,10 +96,6 @@ namespace Sharprompt.Forms
             {
                 prompt += $" ({_options.SearchPattern})";
             }
-            if (_options.PromptCurrentPath)
-            {
-                prompt += $" | {_currentFolder}";
-            }
             screenBuffer.WritePrompt(prompt);
             screenBuffer.Write(_paginator.FilterTerm);
             if (_options.DefaultValue != null && _options.StartWithDefaultValue)
@@ -108,6 +104,22 @@ namespace Sharprompt.Forms
                 {
                     screenBuffer.Write(_options.TextSelector(result), Prompt.ColorSchema.Answer);
                 }
+            }
+
+            if (_options.ShowKeyNavigation)
+            {
+                screenBuffer.WriteLine();
+                if (_paginator.PageCount > 1)
+                {
+                    screenBuffer.Write(Prompt.Messages.KeyNavPaging, Prompt.ColorSchema.KeyNavigation);
+                }
+
+                screenBuffer.Write(Prompt.Messages.FolderKeyNavigation, Prompt.ColorSchema.KeyNavigation);
+            }
+            if (_options.ShowNavigationCurrentPath)
+            {
+                screenBuffer.WriteLine();
+                screenBuffer.Write($"{Prompt.Messages.FolderCurrentPath} {_currentPath}", Prompt.ColorSchema.KeyNavigation);
             }
 
             var subset = _paginator.ToSubset();
@@ -132,7 +144,7 @@ namespace Sharprompt.Forms
                 if (_paginator.PageCount > 1)
                 {
                     screenBuffer.WriteLine();
-                    screenBuffer.Write($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)");
+                    screenBuffer.Write(_paginator.PaginationMessage(),Prompt.ColorSchema.PaginationInfo);
                 }
             }
         }
@@ -145,21 +157,25 @@ namespace Sharprompt.Forms
 
                 switch (keyInfo.Key)
                 {
-                    case ConsoleKey.Enter when _options.BrowserChoose == FileBrowserChoose.File:
+                    case ConsoleKey.Enter when keyInfo.Modifiers == 0 &&  _options.BrowserChoose == FileBrowserChoose.File:
                     {
                         if (_paginator.TryGetSelectedItem(out var resultpreview))
                         {
                             if (resultpreview.IsFile)
                             {
-                                result = new PathSelected(_currentFolder, resultpreview.SelectedValue, false, false, false, !_options.PromptCurrentPath);
+                                result = new PathSelected(_currentPath, resultpreview.SelectedValue, false, false, false, !_options.ShowNavigationCurrentPath);
                                 return true;
+                            }
+                            else
+                            {
+                                SetValidationResult(new ValidationResult(Prompt.Messages.FileNotSelected));
                             }
                             break;
                         }
                         var newfile = _filterBuffer.ToString();
                         if (string.IsNullOrEmpty(newfile) && !_options.AllowNotSelected)
                         {
-                            SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
+                            SetValidationResult(new ValidationResult(Prompt.Messages.Required));
                             break;
                         }
                         if (!string.IsNullOrEmpty(_options.PrefixExtension))
@@ -169,20 +185,20 @@ namespace Sharprompt.Forms
                                 newfile += _options.PrefixExtension;
                             }
                         }
-                        result = new PathSelected(_currentFolder, newfile, true, true, false, !_options.PromptCurrentPath);
+                        result = new PathSelected(_currentPath, newfile, true, true, false, !_options.ShowNavigationCurrentPath);
                         return true;
                     }
-                    case ConsoleKey.Enter when _options.BrowserChoose == FileBrowserChoose.Folder:
+                    case ConsoleKey.Enter when keyInfo.Modifiers == 0 && _options.BrowserChoose == FileBrowserChoose.Folder:
                     {
                         if (_paginator.TryGetSelectedItem(out var resultpreview))
                         {
-                            result = new PathSelected(_currentFolder, resultpreview.SelectedValue, false, false, false, !_options.PromptCurrentPath);
+                            result = new PathSelected(_currentPath, resultpreview.SelectedValue, false, false, false, !_options.ShowNavigationCurrentPath);
                             return true;
                         }
                         var newfolder = _filterBuffer.ToString();
                         if (string.IsNullOrEmpty(newfolder) && !_options.AllowNotSelected)
                         {
-                            SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
+                            SetValidationResult(new ValidationResult(Prompt.Messages.Required));
                             break;
                         }
                         if (!string.IsNullOrEmpty(_options.PrefixExtension))
@@ -192,43 +208,43 @@ namespace Sharprompt.Forms
                                 newfolder += _options.PrefixExtension;
                             }
                         }
-                        result = new PathSelected(_currentFolder, newfolder,true,false,false, !_options.PromptCurrentPath);
+                        result = new PathSelected(_currentPath, newfolder,true,false,false, !_options.ShowNavigationCurrentPath);
                         return true;
                     }
-                    case ConsoleKey.UpArrow:
+                    case ConsoleKey.UpArrow when keyInfo.Modifiers == 0:
                         _paginator.PreviousItem();
                         break;
-                    case ConsoleKey.DownArrow:
+                    case ConsoleKey.DownArrow when keyInfo.Modifiers == 0:
                         _paginator.NextItem();
                         break;
                     case ConsoleKey.LeftArrow when keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control) && _options.BrowserChoose == FileBrowserChoose.File:
                     {
-                        if (_currentFolder == _options.RootFolder)
+                        if (_currentPath == _options.RootFolder)
                         {
                             break;
                         }
-                        var di = new DirectoryInfo(_currentFolder);
+                        var di = new DirectoryInfo(_currentPath);
                         if (di.Parent == null)
                         {
                             break;
                         }
-                        _currentFolder = di.Parent.FullName;
+                        _currentPath = di.Parent.FullName;
                         _paginator = new Paginator<PathSelected>(ItensFolders(di.Parent.FullName), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.TextSelector);
                         break;
                     }
 
                     case ConsoleKey.LeftArrow when keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control) && _options.BrowserChoose == FileBrowserChoose.Folder:
                     {
-                        if (_currentFolder == _options.RootFolder)
+                        if (_currentPath == _options.RootFolder)
                         {
                             break;
                         }
-                        var di = new DirectoryInfo(_currentFolder);
+                        var di = new DirectoryInfo(_currentPath);
                         if (di.Parent == null)
                         {
                             break;
                         }
-                        _currentFolder = di.Parent.FullName;
+                        _currentPath = di.Parent.FullName;
                         _paginator = new Paginator<PathSelected>(ItensFolders(di.Parent.FullName), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.TextSelector);
                         break;
                     }
@@ -238,10 +254,10 @@ namespace Sharprompt.Forms
                         {
                             if (!resultpreview.IsFile)
                             {
-                                if (IsDirectoryHasChilds(Path.Combine(_currentFolder, resultpreview.SelectedValue)))
+                                if (IsDirectoryHasChilds(Path.Combine(_currentPath, resultpreview.SelectedValue)))
                                 {
-                                    _currentFolder = Path.Combine(_currentFolder, resultpreview.SelectedValue);
-                                    _paginator = new Paginator<PathSelected>(ItensFolders(_currentFolder), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.TextSelector);
+                                    _currentPath = Path.Combine(_currentPath, resultpreview.SelectedValue);
+                                    _paginator = new Paginator<PathSelected>(ItensFolders(_currentPath), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.TextSelector);
                                 }
                             }
                         }
@@ -251,21 +267,21 @@ namespace Sharprompt.Forms
                     {
                         if (_paginator.TryGetSelectedItem(out var resultpreview))
                         {
-                            if (IsDirectoryHasChilds(Path.Combine(_currentFolder,resultpreview.SelectedValue)))
+                            if (IsDirectoryHasChilds(Path.Combine(_currentPath,resultpreview.SelectedValue)))
                             {
-                                _currentFolder = Path.Combine(_currentFolder, resultpreview.SelectedValue);
-                                _paginator = new Paginator<PathSelected>(ItensFolders(_currentFolder), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.TextSelector);
+                                _currentPath = Path.Combine(_currentPath, resultpreview.SelectedValue);
+                                _paginator = new Paginator<PathSelected>(ItensFolders(_currentPath), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.TextSelector);
                             }
                         }
                         break;
                     }
-                    case ConsoleKey.RightArrow:
+                    case ConsoleKey.RightArrow when keyInfo.Modifiers == 0:
                         _paginator.NextPage();
                         break;
-                    case ConsoleKey.Backspace when _filterBuffer.Length == 0:
+                    case ConsoleKey.Backspace when keyInfo.Modifiers == 0 && _filterBuffer.Length == 0:
                         ConsoleDriver.Beep();
                         break;
-                    case ConsoleKey.Backspace:
+                    case ConsoleKey.Backspace when keyInfo.Modifiers == 0:
                         _filterBuffer.Length -= 1;
                         _paginator.UpdateFilter(_filterBuffer.ToString());
                         break;
@@ -314,7 +330,7 @@ namespace Sharprompt.Forms
                 if (IsValidFile(item))
                 {
                     var fi = new FileInfo(item);
-                    result.Add(new PathSelected(fi.Directory?.FullName ?? "", fi.Name, false, true, _options.ShowMarkup, !_options.PromptCurrentPath));
+                    result.Add(new PathSelected(fi.Directory?.FullName ?? "", fi.Name, false, true, _options.ShowMarkup, !_options.ShowNavigationCurrentPath));
                 }
             }
             foreach (var item in Directory.GetDirectories(folder))
@@ -322,7 +338,7 @@ namespace Sharprompt.Forms
                 if (IsValidDirectory(item))
                 {
                     var di = new DirectoryInfo(item);
-                    result.Add(new PathSelected(di.Parent?.FullName ?? "", di.Name, false, false, _options.ShowMarkup, !_options.PromptCurrentPath));
+                    result.Add(new PathSelected(di.Parent?.FullName ?? "", di.Name, false, false, _options.ShowMarkup, !_options.ShowNavigationCurrentPath));
                 }
             }
             return result.OrderBy(x => x.SelectedValue).ToArray();
@@ -336,7 +352,7 @@ namespace Sharprompt.Forms
                 if (IsValidDirectory(item))
                 {
                     var di = new DirectoryInfo(item);
-                    result.Add(new PathSelected(di.Parent?.FullName ?? "", di.Name, false, false, _options.ShowMarkup, !_options.PromptCurrentPath));
+                    result.Add(new PathSelected(di.Parent?.FullName ?? "", di.Name, false, false, _options.ShowMarkup, !_options.ShowNavigationCurrentPath));
                 }
             }
             return result.OrderBy(x => x.SelectedValue).ToArray();

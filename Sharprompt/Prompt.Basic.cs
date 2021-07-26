@@ -323,7 +323,7 @@ namespace Sharprompt
                 DefaultValue = defaultValue,
                 PageSize = pageSize,
                 PrefixExtension = prefixExtension,
-                PromptCurrentPath = promptCurrentPath,
+                ShowNavigationCurrentPath = promptCurrentPath,
                 PromptSearchPattern = promptSearchPattern,
                 RootFolder = rootFolder,
                 SearchPattern = searchPattern,

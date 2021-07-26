@@ -40,7 +40,7 @@ namespace Sharprompt.Forms
 
                 switch (keyInfo.Key)
                 {
-                    case ConsoleKey.Enter:
+                    case ConsoleKey.Enter when keyInfo.Modifiers == 0:
                     {
                         {
                             var input = _inputBuffer.ToString();
@@ -54,46 +54,46 @@ namespace Sharprompt.Forms
                                     return true;
                                 }
 
-                                SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
+                                SetValidationResult(new ValidationResult(Prompt.Messages.Required));
                             }
                             else
                             {
                                 var lowerInput = input.ToLower();
 
-                                if (lowerInput == Prompt.DefaultMessageValues.DefaultYesKey.ToString().ToLower()
-                                    || lowerInput == Prompt.DefaultMessageValues.DefaultLongYesKey.ToLower())
+                                if (lowerInput == Prompt.Messages.YesKey.ToString().ToLower()
+                                    || lowerInput == Prompt.Messages.LongYesKey.ToLower())
                                 {
                                     result = true;
 
                                     return true;
                                 }
 
-                                if (lowerInput == Prompt.DefaultMessageValues.DefaultNoKey.ToString().ToLower()
-                                    || lowerInput == Prompt.DefaultMessageValues.DefaultLongNoKey.ToLower())
+                                if (lowerInput == Prompt.Messages.NoKey.ToString().ToLower()
+                                    || lowerInput == Prompt.Messages.LongNoKey.ToLower())
                                 {
                                     result = false;
 
                                     return true;
                                 }
 
-                                SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultInvalidValueMessage));
+                                SetValidationResult(new ValidationResult(Prompt.Messages.Invalid));
                             }
 
                             break;
                         }
                     }
-                    case ConsoleKey.LeftArrow when _startIndex > 0:
+                    case ConsoleKey.LeftArrow when keyInfo.Modifiers == 0 && _startIndex > 0:
                         _startIndex -= 1;
                         break;
-                    case ConsoleKey.RightArrow when _startIndex < _inputBuffer.Length:
+                    case ConsoleKey.RightArrow when keyInfo.Modifiers == 0 && _startIndex < _inputBuffer.Length:
                         _startIndex += 1;
                         break;
-                    case ConsoleKey.Backspace when _startIndex > 0:
+                    case ConsoleKey.Backspace when keyInfo.Modifiers == 0 && _startIndex > 0:
                         _startIndex -= 1;
 
                         _inputBuffer.Remove(_startIndex, 1);
                         break;
-                    case ConsoleKey.Delete when _startIndex < _inputBuffer.Length:
+                    case ConsoleKey.Delete when !char.IsControl(keyInfo.KeyChar) && _startIndex < _inputBuffer.Length:
                         _inputBuffer.Remove(_startIndex, 1);
                         break;
                     case ConsoleKey.LeftArrow:
@@ -129,17 +129,18 @@ namespace Sharprompt.Forms
 
             screenBuffer.WritePrompt(_options.Message);
 
+
             if (_options.DefaultValue == null)
             {
-                screenBuffer.Write($"({char.ToLower(Prompt.DefaultMessageValues.DefaultYesKey)}/{ char.ToLower(Prompt.DefaultMessageValues.DefaultNoKey)}) ");
+                screenBuffer.Write($"({char.ToLower(Prompt.Messages.YesKey)}/{ char.ToLower(Prompt.Messages.NoKey)}) ");
             }
             else if (_options.DefaultValue.Value)
             {
-                screenBuffer.Write($"({char.ToUpper(Prompt.DefaultMessageValues.DefaultYesKey)}/{char.ToLower(Prompt.DefaultMessageValues.DefaultNoKey)}) ");
+                screenBuffer.Write($"({char.ToUpper(Prompt.Messages.YesKey)}/{char.ToLower(Prompt.Messages.NoKey)}) ");
             }
             else
             {
-                screenBuffer.Write($"({char.ToLower(Prompt.DefaultMessageValues.DefaultYesKey)}/{char.ToUpper(Prompt.DefaultMessageValues.DefaultNoKey)}) ");
+                screenBuffer.Write($"({char.ToLower(Prompt.Messages.YesKey)}/{char.ToUpper(Prompt.Messages.NoKey)}) ");
             }
 
             if (_options.DefaultValue.HasValue)
@@ -148,11 +149,11 @@ namespace Sharprompt.Forms
                 {
                     if (_options.DefaultValue.Value)
                     {
-                        _inputBuffer.Append(Prompt.DefaultMessageValues.DefaultYesKey.ToString());
+                        _inputBuffer.Append(Prompt.Messages.YesKey.ToString());
                     }
                     else
                     {
-                        _inputBuffer.Append(Prompt.DefaultMessageValues.DefaultNoKey.ToString());
+                        _inputBuffer.Append(Prompt.Messages.NoKey.ToString());
                     }
                     _startIndex = 1;
                 }
@@ -168,13 +169,19 @@ namespace Sharprompt.Forms
 
             screenBuffer.SetCursorPosition(width % screenBuffer.BufferWidth, top + (width / screenBuffer.BufferWidth));
 
+            if (_options.ShowKeyNavigation)
+            {
+                screenBuffer.WriteLine();
+                screenBuffer.Write(Prompt.Messages.ConfirmKeyNavigation, Prompt.ColorSchema.KeyNavigation);
+            }
+
             _initform = false;
         }
 
         protected override void FinishTemplate(OffscreenBuffer screenBuffer, bool result)
         {
             screenBuffer.WriteFinish(_options.Message);
-            screenBuffer.Write(result ? Prompt.DefaultMessageValues.DefaultYesKey.ToString() : Prompt.DefaultMessageValues.DefaultNoKey.ToString(), Prompt.ColorSchema.Answer);
+            screenBuffer.Write(result ? Prompt.Messages.YesKey.ToString() : Prompt.Messages.NoKey.ToString(), Prompt.ColorSchema.Answer);
         }
     }
 }

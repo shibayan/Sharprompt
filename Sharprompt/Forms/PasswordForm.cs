@@ -24,7 +24,7 @@ namespace Sharprompt.Forms
                 var keyInfo = ConsoleDriver.WaitKeypress(cancellationToken);
                 switch (keyInfo.Key)
                 {
-                    case ConsoleKey.Enter:
+                    case ConsoleKey.Enter when keyInfo.Modifiers == 0:
                     {
                         result = _inputBuffer.ToString();
 
@@ -35,10 +35,10 @@ namespace Sharprompt.Forms
 
                         break;
                     }
-                    case ConsoleKey.Backspace when _inputBuffer.Length == 0:
+                    case ConsoleKey.Backspace when keyInfo.Modifiers == 0 && _inputBuffer.Length == 0:
                         ConsoleDriver.Beep();
                         break;
-                    case ConsoleKey.Backspace:
+                    case ConsoleKey.Backspace when keyInfo.Modifiers == 0:
                         _inputBuffer.Length -= 1;
                         break;
                     default:
@@ -64,7 +64,7 @@ namespace Sharprompt.Forms
         protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
             screenBuffer.WritePrompt(_options.Message);
-            screenBuffer.Write(new string(Prompt.DefaultMessageValues.DefautPasswordChar, _inputBuffer.Length));
+            screenBuffer.Write(new string(Prompt.Messages.PasswordChar, _inputBuffer.Length));
 
             screenBuffer.SetCursorPosition();
         }
@@ -72,7 +72,7 @@ namespace Sharprompt.Forms
         protected override void FinishTemplate(OffscreenBuffer screenBuffer, string result)
         {
             screenBuffer.WriteFinish(_options.Message);
-            screenBuffer.Write(new string(Prompt.DefaultMessageValues.DefautPasswordChar, _inputBuffer.Length), Prompt.ColorSchema.Answer);
+            screenBuffer.Write(new string(Prompt.Messages.PasswordChar, _inputBuffer.Length), Prompt.ColorSchema.Answer);
         }
     }
 }

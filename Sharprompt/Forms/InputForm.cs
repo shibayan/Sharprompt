@@ -34,7 +34,7 @@ namespace Sharprompt.Forms
 
                 switch (keyInfo.Key)
                 {
-                    case ConsoleKey.Enter:
+                    case ConsoleKey.Enter when keyInfo.Modifiers == 0:
                     {
                         var input = _inputBuffer.ToString();
 
@@ -44,7 +44,7 @@ namespace Sharprompt.Forms
                             {
                                 if (_targetType.IsValueType && _underlyingType == null && !_defaultValue.HasValue)
                                 {
-                                    SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
+                                    SetValidationResult(new ValidationResult(Prompt.Messages.Required));
 
                                     result = default;
 
@@ -74,18 +74,18 @@ namespace Sharprompt.Forms
 
                         break;
                     }
-                    case ConsoleKey.LeftArrow when _startIndex > 0:
+                    case ConsoleKey.LeftArrow when keyInfo.Modifiers == 0 && _startIndex > 0:
                         _startIndex -= 1;
                         break;
-                    case ConsoleKey.RightArrow when _startIndex < _inputBuffer.Length:
+                    case ConsoleKey.RightArrow when keyInfo.Modifiers == 0 && _startIndex < _inputBuffer.Length:
                         _startIndex += 1;
                         break;
-                    case ConsoleKey.Backspace when _startIndex > 0:
+                    case ConsoleKey.Backspace when keyInfo.Modifiers == 0 && _startIndex > 0:
                         _startIndex -= 1;
 
                         _inputBuffer.Remove(_startIndex, 1);
                         break;
-                    case ConsoleKey.Delete when _startIndex < _inputBuffer.Length:
+                    case ConsoleKey.Delete when keyInfo.Modifiers == 0 &&  _startIndex < _inputBuffer.Length:
                         _inputBuffer.Remove(_startIndex, 1);
                         break;
                     case ConsoleKey.LeftArrow:

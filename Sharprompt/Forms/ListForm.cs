@@ -44,7 +44,7 @@ namespace Sharprompt.Forms
 
                 switch (keyInfo.Key)
                 {
-                    case ConsoleKey.Enter:
+                    case ConsoleKey.Enter when keyInfo.Modifiers == 0:
                     {
                         var input = _inputBuffer.ToString();
 
@@ -59,14 +59,14 @@ namespace Sharprompt.Forms
                                     return true;
                                 }
 
-                                SetValidationResult(new ValidationResult(string.Format(Prompt.DefaultMessageValues.DefaultListMinSelectionMessage, _options.Minimum)));
+                                SetValidationResult(new ValidationResult(string.Format(Prompt.Messages.ListMinSelection, _options.Minimum)));
 
                                 return false;
                             }
 
                             if (_inputItems.Count >= _options.Maximum)
                             {
-                                SetValidationResult(new ValidationResult(string.Format(Prompt.DefaultMessageValues.DefaultListMaxSelectionMessage, _options.Maximum)));
+                                SetValidationResult(new ValidationResult(string.Format(Prompt.Messages.ListMaxSelection, _options.Maximum)));
 
                                 return false;
                             }
@@ -97,18 +97,18 @@ namespace Sharprompt.Forms
 
                         break;
                     }
-                    case ConsoleKey.LeftArrow when _startIndex > 0:
+                    case ConsoleKey.LeftArrow when keyInfo.Modifiers == 0 &&  _startIndex > 0:
                         _startIndex -= 1;
                         break;
-                    case ConsoleKey.RightArrow when _startIndex < _inputBuffer.Length:
+                    case ConsoleKey.RightArrow when keyInfo.Modifiers == 0 &&  _startIndex < _inputBuffer.Length:
                         _startIndex += 1;
                         break;
-                    case ConsoleKey.Backspace when _startIndex > 0:
+                    case ConsoleKey.Backspace when keyInfo.Modifiers == 0 &&  _startIndex > 0:
                         _startIndex -= 1;
 
                         _inputBuffer.Remove(_startIndex, 1);
                         break;
-                    case ConsoleKey.Delete when _startIndex < _inputBuffer.Length:
+                    case ConsoleKey.Delete when keyInfo.Modifiers == 0 &&  _startIndex < _inputBuffer.Length:
                         _inputBuffer.Remove(_startIndex, 1);
                         break;
                     case ConsoleKey.Delete when keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control):
@@ -184,7 +184,7 @@ namespace Sharprompt.Forms
 
         protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
-            screenBuffer.WritePrompt($"{_options.Message} Ctrl-Del Remove");
+            screenBuffer.WritePrompt(_options.Message);
             screenBuffer.Write($"({string.Join(", ", _inputItems)}) ", Prompt.ColorSchema.Answer);
 
             var (left, top) = screenBuffer.GetCursorPosition();
@@ -196,6 +196,14 @@ namespace Sharprompt.Forms
             var width = left + input.Take(_startIndex).GetWidth();
 
             screenBuffer.SetCursorPosition(width % screenBuffer.BufferWidth, top + (width / screenBuffer.BufferWidth));
+
+            if (_options.ShowKeyNavigation)
+            {
+                screenBuffer.WriteLine();
+                screenBuffer.Write(Prompt.Messages.ListKeyNavigation, Prompt.ColorSchema.KeyNavigation);
+            }
+
+
         }
 
         protected override void FinishTemplate(OffscreenBuffer screenBuffer, IEnumerable<T> result)

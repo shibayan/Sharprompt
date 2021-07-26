@@ -12,12 +12,12 @@ namespace Sharprompt
             {
                 if (input == null)
                 {
-                    return new ValidationResult(errorMessage ?? Prompt.DefaultMessageValues.DefaultRequiredMessage);
+                    return new ValidationResult(errorMessage ?? Prompt.Messages.Required);
                 }
 
                 if (input is string strValue && string.IsNullOrEmpty(strValue))
                 {
-                    return new ValidationResult(errorMessage ?? Prompt.DefaultMessageValues.DefaultRequiredMessage);
+                    return new ValidationResult(errorMessage ?? Prompt.Messages.Required);
                 }
 
                 return ValidationResult.Success;
@@ -38,7 +38,7 @@ namespace Sharprompt
                     return ValidationResult.Success;
                 }
 
-                return new ValidationResult(errorMessage ?? Prompt.DefaultMessageValues.DefaultMinLengthMessage);
+                return new ValidationResult(errorMessage ?? Prompt.Messages.MinLength);
             };
         }
 
@@ -56,7 +56,7 @@ namespace Sharprompt
                     return ValidationResult.Success;
                 }
 
-                return new ValidationResult(errorMessage ?? Prompt.DefaultMessageValues.DefauMaxLengthhMessage);
+                return new ValidationResult(errorMessage ?? Prompt.Messages.MaxLength);
             };
         }
 
@@ -74,7 +74,7 @@ namespace Sharprompt
                     return ValidationResult.Success;
                 }
 
-                return new ValidationResult(errorMessage ?? Prompt.DefaultMessageValues.DefaultRegularExpressionMessage);
+                return new ValidationResult(errorMessage ?? Prompt.Messages.NoMatchRegex);
             };
         }
     }

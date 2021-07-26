@@ -36,7 +36,9 @@ namespace Sharprompt
 
         public bool SupressHidden { get; set; } = true;
 
-        public bool PromptCurrentPath { get; set; } = true;
+        public bool ShowNavigationCurrentPath { get; set; } = true;
+
+        public bool ShowKeyNavigation { get; set; } = true;
 
         public bool PromptSearchPattern { get; set; } = true;
 

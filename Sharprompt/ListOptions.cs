@@ -8,6 +8,8 @@ namespace Sharprompt
     {
         public string Message { get; set; }
 
+        public bool ShowKeyNavigation { get; set; } = true;
+
         public IEnumerable<T> DefaultValues { get; set; }
 
         public int Minimum { get; set; } = 1;

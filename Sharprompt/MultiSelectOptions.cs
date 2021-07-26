@@ -7,6 +7,8 @@ namespace Sharprompt
     {
         public bool StartWithDefaultValue { get; set; } = true;
 
+        public bool ShowKeyNavigation { get; set; } = true;
+
         public bool ShowPagination { get; set; } = true;
 
         public string Message { get; set; }

@@ -46,7 +46,7 @@ namespace Sharprompt.Drivers
         {
             while (!KeyAvailable && !cancellationToken.IsCancellationRequested)
             {
-                cancellationToken.WaitHandle.WaitOne(Prompt.DefaultMessageValues.IdleReadKey);
+                cancellationToken.WaitHandle.WaitOne(Prompt.Messages.IdleReadKey);
             }
             if (KeyAvailable && !cancellationToken.IsCancellationRequested)
             {

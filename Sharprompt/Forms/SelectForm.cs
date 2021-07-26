@@ -31,29 +31,29 @@ namespace Sharprompt.Forms
 
                 switch (keyInfo.Key)
                 {
-                    case ConsoleKey.Enter when _paginator.TryGetSelectedItem(out result):
+                    case ConsoleKey.Enter when keyInfo.Modifiers == 0 && _paginator.TryGetSelectedItem(out result) :
                         return true;
-                    case ConsoleKey.Enter:
+                    case ConsoleKey.Enter when keyInfo.Modifiers == 0:
                     {
-                        SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
+                        SetValidationResult(new ValidationResult(Prompt.Messages.Required));
                         break;
                     }
-                    case ConsoleKey.UpArrow:
+                    case ConsoleKey.UpArrow when keyInfo.Modifiers == 0:
                         _paginator.PreviousItem();
                         break;
-                    case ConsoleKey.DownArrow:
+                    case ConsoleKey.DownArrow when keyInfo.Modifiers == 0:
                         _paginator.NextItem();
                         break;
-                    case ConsoleKey.LeftArrow:
+                    case ConsoleKey.LeftArrow when keyInfo.Modifiers == 0:
                         _paginator.PreviousPage();
                         break;
-                    case ConsoleKey.RightArrow:
+                    case ConsoleKey.RightArrow when keyInfo.Modifiers == 0:
                         _paginator.NextPage();
                         break;
-                    case ConsoleKey.Backspace when _filterBuffer.Length == 0:
+                    case ConsoleKey.Backspace when keyInfo.Modifiers == 0 && _filterBuffer.Length == 0:
                         ConsoleDriver.Beep();
                         break;
-                    case ConsoleKey.Backspace:
+                    case ConsoleKey.Backspace when keyInfo.Modifiers == 0:
                         _filterBuffer.Length -= 1;
                         _paginator.UpdateFilter(_filterBuffer.ToString());
                         break;
@@ -89,6 +89,16 @@ namespace Sharprompt.Forms
                 screenBuffer.Write(_options.TextSelector(result), Prompt.ColorSchema.Answer);
             }
 
+            if (_options.ShowKeyNavigation)
+            {
+                screenBuffer.WriteLine();
+                if (_paginator.PageCount > 1)
+                {
+                    screenBuffer.Write(Prompt.Messages.KeyNavPaging, Prompt.ColorSchema.KeyNavigation);
+                }
+                screenBuffer.Write(Prompt.Messages.SelectKeyNavigation, Prompt.ColorSchema.KeyNavigation);
+            }
+
             var subset = _paginator.ToSubset();
 
             foreach (var item in subset)
@@ -112,7 +122,7 @@ namespace Sharprompt.Forms
                 if (_paginator.PageCount > 1)
                 {
                     screenBuffer.WriteLine();
-                    screenBuffer.Write($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)");
+                    screenBuffer.Write(_paginator.PaginationMessage());
                 }
             }
         }

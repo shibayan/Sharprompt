@@ -27,7 +27,7 @@ namespace Sharprompt.Forms
 
         protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
-            screenBuffer.Write(Prompt.DefaultMessageValues.DefaultAnyKeyMessage);
+            screenBuffer.Write(Prompt.Messages.AnyKey);
             screenBuffer.SetCursorPosition();
         }
 
