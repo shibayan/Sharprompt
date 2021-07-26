@@ -24,7 +24,7 @@ namespace Sharprompt.Drivers
 
         public DefaultConsoleDriver()
         {
-            Console.CancelKeyPress += RequestCancellation;
+            Console.CancelKeyPress += CancelKeyPressHandler;
         }
 
         #region IDisposable
@@ -33,7 +33,7 @@ namespace Sharprompt.Drivers
         {
             Reset();
 
-            Console.CancelKeyPress -= RequestCancellation;
+            Console.CancelKeyPress -= CancelKeyPressHandler;
         }
 
         #endregion
@@ -46,11 +46,6 @@ namespace Sharprompt.Drivers
         {
             Console.CursorVisible = true;
             Console.ResetColor();
-
-            if (CursorLeft != 0)
-            {
-                WriteLine();
-            }
         }
 
         public void ClearLine(int top)
@@ -103,11 +98,13 @@ namespace Sharprompt.Drivers
 
         public int BufferHeight => Console.BufferHeight;
 
+        public Action RequestCancellation { get; set; }
+
         #endregion
 
-        private void RequestCancellation(object sender, ConsoleCancelEventArgs e)
+        private void CancelKeyPressHandler(object sender, ConsoleCancelEventArgs e)
         {
-            Reset();
+            RequestCancellation?.Invoke();
         }
     }
 }

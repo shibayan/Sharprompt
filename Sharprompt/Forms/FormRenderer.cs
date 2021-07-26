@@ -30,7 +30,7 @@ namespace Sharprompt.Forms
         {
             _consoleDriver.CursorVisible = false;
 
-            ClearAll();
+            _offscreenBuffer.ClearConsole();
 
             template(_offscreenBuffer);
 
@@ -50,7 +50,7 @@ namespace Sharprompt.Forms
         {
             _consoleDriver.CursorVisible = false;
 
-            ClearAll();
+            _offscreenBuffer.ClearConsole();
 
             template(_offscreenBuffer, result);
 
@@ -59,18 +59,6 @@ namespace Sharprompt.Forms
             _consoleDriver.WriteLine();
 
             _consoleDriver.CursorVisible = _cursorVisible;
-        }
-
-        private void ClearAll()
-        {
-            var bottom = _offscreenBuffer.CursorBottom;
-
-            for (var i = 0; i < _offscreenBuffer.LineCount; i++)
-            {
-                _consoleDriver.ClearLine(bottom - i);
-            }
-
-            _offscreenBuffer.Clear();
         }
     }
 }

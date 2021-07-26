@@ -11,6 +11,8 @@ namespace Sharprompt.Internal
         public OffscreenBuffer(IConsoleDriver consoleDriver)
         {
             _consoleDriver = consoleDriver;
+
+            _consoleDriver.RequestCancellation = RequestCancellation;
         }
 
         private readonly IConsoleDriver _consoleDriver;
@@ -108,6 +110,26 @@ namespace Sharprompt.Internal
             CursorBottom = _consoleDriver.CursorTop;
 
             _consoleDriver.SetCursorPosition(_cursorLeft, _consoleDriver.CursorTop - (LineCount - _cursorTop - 1));
+        }
+
+        public void ClearConsole()
+        {
+            var bottom = CursorBottom;
+
+            for (var i = 0; i < LineCount; i++)
+            {
+                _consoleDriver.ClearLine(bottom - i);
+            }
+
+            Clear();
+        }
+
+        private void RequestCancellation()
+        {
+            _consoleDriver.SetCursorPosition(0, CursorBottom);
+            _consoleDriver.Reset();
+
+            Environment.Exit(1);
         }
 
         private class TextInfo
