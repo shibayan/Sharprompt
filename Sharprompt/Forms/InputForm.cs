@@ -121,7 +121,7 @@ namespace Sharprompt.Forms
             var prompt = _options.Message;
             if (_defaultValue.HasValue)
             {
-                if (_initform)
+                if (_initform && _options.StartWithDefaultValue)
                 {
                     _inputBuffer.Append(_defaultValue.Value);
                 }
@@ -136,7 +136,7 @@ namespace Sharprompt.Forms
 
             screenBuffer.Write(input);
 
-            if (_initform)
+            if (_initform && _options.StartWithDefaultValue)
             {
                 _startIndex = input.Length;
             }

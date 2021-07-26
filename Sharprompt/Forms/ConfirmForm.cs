@@ -127,24 +127,7 @@ namespace Sharprompt.Forms
         protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
 
-            var input = string.Empty;
-
             screenBuffer.WritePrompt(_options.Message);
-
-            if (_options.DefaultValue.HasValue)
-            {
-                if (_initform)
-                {
-                    if (_options.DefaultValue.Value)
-                    {
-                        input = Prompt.DefaultMessageValues.DefaultYesKey.ToString();
-                    }
-                    else
-                    {
-                        input = Prompt.DefaultMessageValues.DefaultNoKey.ToString();
-                    }
-                }
-            }
 
             if (_options.DefaultValue == null)
             {
@@ -159,10 +142,25 @@ namespace Sharprompt.Forms
                 screenBuffer.Write($"({char.ToLower(Prompt.DefaultMessageValues.DefaultYesKey)}/{char.ToUpper(Prompt.DefaultMessageValues.DefaultNoKey)}) ");
             }
 
+            if (_options.DefaultValue.HasValue)
+            {
+                if (_initform && _options.StartWithDefaultValue)
+                {
+                    if (_options.DefaultValue.Value)
+                    {
+                        _inputBuffer.Append(Prompt.DefaultMessageValues.DefaultYesKey.ToString());
+                    }
+                    else
+                    {
+                        _inputBuffer.Append(Prompt.DefaultMessageValues.DefaultNoKey.ToString());
+                    }
+                    _startIndex = 1;
+                }
+            }
 
             var (left, top) = screenBuffer.GetCursorPosition();
 
-            input = _inputBuffer.ToString();
+            var input = _inputBuffer.ToString();
 
             screenBuffer.Write(input);
 

@@ -5,6 +5,7 @@ namespace Sharprompt
 {
     public class SelectOptions<T>
     {
+        public bool StartWithDefaultValue { get; set; } = true;
 
         public bool ShowPagination { get; set; } = true;
 

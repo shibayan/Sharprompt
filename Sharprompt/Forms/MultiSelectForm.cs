@@ -125,7 +125,10 @@ namespace Sharprompt.Forms
             if (string.IsNullOrEmpty(_paginator.FilterTerm))
             {
                 screenBuffer.Write(Prompt.DefaultMessageValues.DefaultMultiSelectInputTemplateMessage, Prompt.ColorSchema.Answer);
-                screenBuffer.Write(string.Join(", ", _selectedItems.Select(_options.TextSelector)), Prompt.ColorSchema.Answer);
+                if (_options.StartWithDefaultValue)
+                {
+                    screenBuffer.Write(string.Join(", ", _selectedItems.Select(_options.TextSelector)), Prompt.ColorSchema.Answer);
+                }
             }
 
             var subset = _paginator.ToSubset();

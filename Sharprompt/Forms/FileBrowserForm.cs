@@ -102,7 +102,7 @@ namespace Sharprompt.Forms
             }
             screenBuffer.WritePrompt(prompt);
             screenBuffer.Write(_paginator.FilterTerm);
-            if (_options.DefaultValue != null)
+            if (_options.DefaultValue != null && _options.StartWithDefaultValue)
             {
                 if (_paginator.TryGetSelectedItem(out var result))
                 {

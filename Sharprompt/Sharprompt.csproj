@@ -6,17 +6,15 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Authors>shibayan with (Fork by Fernando Cerqueira)</Authors>
+    <Authors>shibayan</Authors>
     <Company>shibayan</Company>
     <Description>Interactive command line interface toolkit for C#</Description>
-    <PackageReleaseNotes>https://github.com/FRACerqueira/Sharprompt/releases ; https://github.com/shibayan/Sharprompt/releases</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>https://github.com/shibayan/Sharprompt/releases</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/FRACerqueira/Sharprompt</RepositoryUrl>
+    <PackageTags>cli;command-line;interactive;prompt</PackageTags>
+    <RepositoryUrl>https://github.com/shibayan/Sharprompt</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>2.4.0</Version>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageProjectUrl>https://github.com/FRACerqueira/Sharprompt</PackageProjectUrl>
-    <PackageId>Sharprompt-FC</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
