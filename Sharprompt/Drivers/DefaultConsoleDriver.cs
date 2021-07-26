@@ -46,11 +46,6 @@ namespace Sharprompt.Drivers
         {
             Console.CursorVisible = true;
             Console.ResetColor();
-
-            if (CursorLeft != 0)
-            {
-                WriteLine();
-            }
         }
 
         public void ClearLine(int top)
