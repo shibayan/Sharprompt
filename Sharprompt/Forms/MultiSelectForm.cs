@@ -154,6 +154,12 @@ namespace Sharprompt.Forms
                     }
                 }
             }
+
+            if (_paginator.PageCount > 1)
+            {
+                screenBuffer.WriteLine();
+                screenBuffer.Write($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)");
+            }
         }
 
         protected override void FinishTemplate(OffscreenBuffer screenBuffer, IEnumerable<T> result)
