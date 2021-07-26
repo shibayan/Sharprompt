@@ -69,7 +69,9 @@ namespace Sharprompt.Example
         {
             Console.OutputEncoding = Encoding.UTF8;
 
-            while (!_stopApp.IsCancellationRequested)
+            var quit = false;
+
+            while (!_stopApp.IsCancellationRequested && !quit)
             {
                 Console.Clear();
 
@@ -114,14 +116,23 @@ namespace Sharprompt.Example
                     case ExampleType.AutoForms:
                         RunAutoFormsSample();
                         break;
+                    case ExampleType.Quit:
+                        quit = true;
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-                if (!_stopApp.IsCancellationRequested)
+                if (!_stopApp.IsCancellationRequested && !quit)
                 {
                     Prompt.AnyKey(_stopApp);
                 }
             }
+            if (!quit)
+            {
+                Environment.ExitCode = 1;
+            }
+            Console.Clear();
+            _appLifetime.StopApplication();
         }
 
         private void RunInputSample()

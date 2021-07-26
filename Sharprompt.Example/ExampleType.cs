@@ -12,6 +12,7 @@
         List,
         FolderSelect,
         FileSelect,
-        AutoForms
+        AutoForms,
+        Quit
     }
 }
