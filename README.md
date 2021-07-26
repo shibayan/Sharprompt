@@ -46,9 +46,8 @@ dotnet add package Sharprompt-FC
 - Prompt List with remove item (behavior macth all/one by listoption) (enhancement)
 - Prompt Select/MultiSelect/List with Interative result (enhancement)
 - Prompt Confirm start buffer with default value and supress message when Is Control key(enhancement)
-- Prompt Confirm removed long answer (behavior change) 
 - Prompt Anykey (new) 
-- Prompt FileBrowser (preview - Browser file/folder) 
+- Prompt FileBrowser (new(preview) - Browser file/folder) 
 
 ## Usage
 
