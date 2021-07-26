@@ -4,13 +4,17 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Sharprompt
 {
-    public class InputOptions
+    public class ListOptions<T>
     {
-        public bool StartWithDefaultValue { get; set; } = true;
-
         public string Message { get; set; }
 
-        public object DefaultValue { get; set; }
+        public IEnumerable<T> DefaultValues { get; set; }
+
+        public int Minimum { get; set; } = 1;
+
+        public int Maximum { get; set; } = int.MaxValue;
+
+        public bool RemoveAllMatch { get; set; } = false;
 
         public IList<Func<object, ValidationResult>> Validators { get; } = new List<Func<object, ValidationResult>>();
     }

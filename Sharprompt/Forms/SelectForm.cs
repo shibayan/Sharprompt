@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using System.Threading;
 
 using Sharprompt.Internal;
 
@@ -22,19 +23,21 @@ namespace Sharprompt.Forms
 
         private readonly StringBuilder _filterBuffer = new StringBuilder();
 
-        protected override bool TryGetResult(out T result)
+        protected override bool TryGetResult(CancellationToken cancellationToken,out T result)
         {
             do
             {
-                var keyInfo = ConsoleDriver.ReadKey();
+                var keyInfo = ConsoleDriver.WaitKeypress(cancellationToken);
 
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.Enter when _paginator.TryGetSelectedItem(out result):
                         return true;
                     case ConsoleKey.Enter:
-                        Renderer.SetValidationResult(new ValidationResult("Value is required"));
+                    {
+                        SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
                         break;
+                    }
                     case ConsoleKey.UpArrow:
                         _paginator.PreviousItem();
                         break;
@@ -52,23 +55,24 @@ namespace Sharprompt.Forms
                         break;
                     case ConsoleKey.Backspace:
                         _filterBuffer.Length -= 1;
-
                         _paginator.UpdateFilter(_filterBuffer.ToString());
                         break;
                     default:
                     {
-                        if (!char.IsControl(keyInfo.KeyChar))
+                        if (!cancellationToken.IsCancellationRequested)
                         {
-                            _filterBuffer.Append(keyInfo.KeyChar);
+                            if (!char.IsControl(keyInfo.KeyChar))
+                            {
+                                _filterBuffer.Append(keyInfo.KeyChar);
 
-                            _paginator.UpdateFilter(_filterBuffer.ToString());
+                                _paginator.UpdateFilter(_filterBuffer.ToString());
+                            }
                         }
-
                         break;
                     }
                 }
 
-            } while (ConsoleDriver.KeyAvailable);
+            } while (ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested);
 
             result = default;
 
@@ -79,6 +83,11 @@ namespace Sharprompt.Forms
         {
             screenBuffer.WritePrompt(_options.Message);
             screenBuffer.Write(_paginator.FilterTerm);
+            if (_options.DefaultValue != null && _options.StartWithDefaultValue)
+            {
+                _paginator.TryGetSelectedItem(out var result);
+                screenBuffer.Write(_options.TextSelector(result), Prompt.ColorSchema.Answer);
+            }
 
             var subset = _paginator.ToSubset();
 
@@ -95,6 +104,15 @@ namespace Sharprompt.Forms
                 else
                 {
                     screenBuffer.Write($"  {value}");
+                }
+            }
+
+            if (_options.ShowPagination)
+            {
+                if (_paginator.PageCount > 1)
+                {
+                    screenBuffer.WriteLine();
+                    screenBuffer.Write($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)");
                 }
             }
         }

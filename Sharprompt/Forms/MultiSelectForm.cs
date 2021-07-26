@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 using Sharprompt.Internal;
 
@@ -40,11 +41,11 @@ namespace Sharprompt.Forms
         private readonly List<T> _selectedItems = new List<T>();
         private readonly StringBuilder _filterBuffer = new StringBuilder();
 
-        protected override bool TryGetResult(out IEnumerable<T> result)
+        protected override bool TryGetResult(CancellationToken cancellationToken,out IEnumerable<T> result)
         {
             do
             {
-                var keyInfo = ConsoleDriver.ReadKey();
+                var keyInfo = ConsoleDriver.WaitKeypress(cancellationToken);
 
                 switch (keyInfo.Key)
                 {
@@ -52,7 +53,7 @@ namespace Sharprompt.Forms
                         result = _selectedItems;
                         return true;
                     case ConsoleKey.Enter:
-                        Renderer.SetValidationResult(new ValidationResult($"A minimum selection of {_options.Minimum} items is required"));
+                        SetValidationResult(new ValidationResult(string.Format(Prompt.DefaultMessageValues.DefaultMultiSelectMinSelectionMessage,_options.Minimum)));
                         break;
                     case ConsoleKey.Spacebar when _paginator.TryGetSelectedItem(out var currentItem):
                     {
@@ -62,7 +63,14 @@ namespace Sharprompt.Forms
                         }
                         else
                         {
-                            _selectedItems.Add(currentItem);
+                            if (_selectedItems.Count >= _options.Maximum)
+                            {
+                                SetValidationResult(new ValidationResult(string.Format(Prompt.DefaultMessageValues.DefaultMultiSelectMaxSelectionMessage, _options.Maximum)));
+                            }
+                            else
+                            {
+                                _selectedItems.Add(currentItem);
+                            }
                         }
 
                         break;
@@ -89,18 +97,20 @@ namespace Sharprompt.Forms
                         break;
                     default:
                     {
-                        if (!char.IsControl(keyInfo.KeyChar))
+                        if (!cancellationToken.IsCancellationRequested)
                         {
-                            _filterBuffer.Append(keyInfo.KeyChar);
+                            if (!char.IsControl(keyInfo.KeyChar))
+                            {
+                                _filterBuffer.Append(keyInfo.KeyChar);
 
-                            _paginator.UpdateFilter(_filterBuffer.ToString());
+                                _paginator.UpdateFilter(_filterBuffer.ToString());
+                            }
                         }
-
                         break;
                     }
                 }
 
-            } while (ConsoleDriver.KeyAvailable);
+            } while (ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested);
 
             result = null;
 
@@ -114,7 +124,11 @@ namespace Sharprompt.Forms
 
             if (string.IsNullOrEmpty(_paginator.FilterTerm))
             {
-                screenBuffer.Write(" Hit space to select", Prompt.ColorSchema.Answer);
+                screenBuffer.Write(Prompt.DefaultMessageValues.DefaultMultiSelectInputTemplateMessage, Prompt.ColorSchema.Answer);
+                if (_options.StartWithDefaultValue)
+                {
+                    screenBuffer.Write(string.Join(", ", _selectedItems.Select(_options.TextSelector)), Prompt.ColorSchema.Answer);
+                }
             }
 
             var subset = _paginator.ToSubset();
@@ -146,6 +160,14 @@ namespace Sharprompt.Forms
                     {
                         screenBuffer.Write($"  {Prompt.Symbols.NotSelect} {value}");
                     }
+                }
+            }
+            if (_options.ShowPagination)
+            {
+                if (_paginator.PageCount > 1)
+                {
+                    screenBuffer.WriteLine();
+                    screenBuffer.Write($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)");
                 }
             }
         }

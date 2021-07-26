@@ -16,7 +16,7 @@ namespace Sharprompt.Example.Models
         public string Password { get; set; }
 
         [Display(Prompt = "Select enum value", Order = 3)]
-        public MyEnum? MyEnum { get; set; }
+        public MyEnum MyEnum { get; set; }
 
         [Display(Prompt = "Select enum values", Order = 4)]
         public IEnumerable<MyEnum> MyEnums { get; set; }

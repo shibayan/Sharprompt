@@ -6,14 +6,18 @@ namespace Sharprompt.Internal
 {
     internal static class EastAsianWidth
     {
-        public static int GetWidth(int codePoint)
+        public static int GetWidth(this char codePoint)
         {
             return IsFullWidth(codePoint) ? 2 : 1;
         }
 
-        public static int GetWidth(IEnumerable<char> value)
+        public static int GetWidth(this IEnumerable<char> value)
         {
-            return value.Sum(x => GetWidth(x));
+            if (value == null)
+            {
+                return 0;
+            }
+            return value.Sum(GetWidth);
         }
 
         private static bool IsFullWidth(int codePoint)
@@ -34,9 +38,7 @@ namespace Sharprompt.Internal
                     continue;
                 }
 
-                var end = range.Start + range.Count;
-
-                if (codePoint > end)
+                if (codePoint > range.Start + range.Count)
                 {
                     left = middle + 1;
 
@@ -343,4 +345,5 @@ namespace Sharprompt.Internal
             new EastAsianWidthRange(1048576, 65533, true)
         };
     }
+
 }
