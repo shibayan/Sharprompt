@@ -101,6 +101,17 @@ var cities = Prompt.MultiSelect("Which cities would you like to visit?", new[] {
 Console.WriteLine($"You picked {string.Join(", ", options)}");
 ```
 
+![multiselect](https://user-images.githubusercontent.com/1356444/127033929-3278e39c-e260-4aed-9c3c-3cfd7d3f3549.gif)
+
+### List
+
+```csharp
+var value = Prompt.List<string>("Please add item(s)");
+Console.WriteLine($"You picked {string.Join(", ", value)}");
+```
+
+![list](https://user-images.githubusercontent.com/1356444/127033968-cf70bd1b-bcd1-4c4f-bdbe-74aae52cdb86.gif)
+
 ## Configuration
 
 ### Custom Prompter
