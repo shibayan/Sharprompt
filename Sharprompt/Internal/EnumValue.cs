@@ -28,7 +28,7 @@ namespace Sharprompt.Internal
 
         public override int GetHashCode() => Value.GetHashCode();
 
-        public static implicit operator EnumValue<T>(T value) => new EnumValue<T>(value);
+        public static implicit operator EnumValue<T>(T value) => new(value);
 
         public static IEnumerable<EnumValue<T>> GetValues()
         {

@@ -89,7 +89,7 @@ namespace Sharprompt.Internal
             InitializeCollection();
         }
 
-        public ArraySegment<T> ToSubset() => new ArraySegment<T>(_filteredItems, _pageSize * _selectedPage, Count);
+        public ArraySegment<T> ToSubset() => new(_filteredItems, _pageSize * _selectedPage, Count);
 
         private void InitializeCollection()
         {

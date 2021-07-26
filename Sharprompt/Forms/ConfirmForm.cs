@@ -17,7 +17,7 @@ namespace Sharprompt.Forms
         private readonly ConfirmOptions _options;
 
         private int _startIndex;
-        private readonly StringBuilder _inputBuffer = new StringBuilder();
+        private readonly StringBuilder _inputBuffer = new();
 
         protected override bool TryGetResult(out bool result)
         {

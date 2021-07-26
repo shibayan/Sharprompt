@@ -23,7 +23,7 @@ namespace Sharprompt.Forms
         private readonly Type _underlyingType = Nullable.GetUnderlyingType(typeof(T));
 
         private int _startIndex;
-        private readonly StringBuilder _inputBuffer = new StringBuilder();
+        private readonly StringBuilder _inputBuffer = new();
 
         protected override bool TryGetResult(out T result)
         {

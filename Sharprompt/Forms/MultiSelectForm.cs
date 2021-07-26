@@ -36,8 +36,8 @@ namespace Sharprompt.Forms
         private readonly MultiSelectOptions<T> _options;
         private readonly Paginator<T> _paginator;
 
-        private readonly List<T> _selectedItems = new List<T>();
-        private readonly StringBuilder _filterBuffer = new StringBuilder();
+        private readonly List<T> _selectedItems = new();
+        private readonly StringBuilder _filterBuffer = new();
 
         protected override bool TryGetResult(out IEnumerable<T> result)
         {

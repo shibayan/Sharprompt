@@ -12,7 +12,7 @@
 
         public T Value { get; }
 
-        public static readonly Optional<T> Empty = new Optional<T>();
+        public static readonly Optional<T> Empty = new();
 
         public static implicit operator T(Optional<T> optional) => optional.Value;
 
