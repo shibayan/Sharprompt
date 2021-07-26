@@ -34,8 +34,10 @@ namespace Sharprompt.Forms
                     case ConsoleKey.Enter when _paginator.TryGetSelectedItem(out result):
                         return true;
                     case ConsoleKey.Enter:
-                        Renderer.SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
+                    {
+                        SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
                         break;
+                    }
                     case ConsoleKey.UpArrow:
                         _paginator.PreviousItem();
                         break;
@@ -102,6 +104,15 @@ namespace Sharprompt.Forms
                 else
                 {
                     screenBuffer.Write($"  {value}");
+                }
+            }
+
+            if (_options.ShowPagination)
+            {
+                if (_paginator.PageCount > 1)
+                {
+                    screenBuffer.WriteLine();
+                    screenBuffer.Write($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)");
                 }
             }
         }

@@ -11,23 +11,18 @@ namespace Sharprompt
 {
     public static partial class Prompt
     {
-        public static T AutoForms<T>() where T : new()
-        {
-            return AutoForms<T>(CancellationToken.None);
-        }
-
-        public static T AutoForms<T>(CancellationToken cancellationToken) where T : new()
+        public static T AutoForms<T>(CancellationToken? cancellationToken) where T : new()
         {
             var model = new T();
 
-            StartForms(model, cancellationToken);
+            StartForms(model, cancellationToken??CancellationToken.None);
 
             return model;
         }
 
-        public static T AutoForms<T>(T model, CancellationToken cancellationToken)
+        public static T AutoForms<T>(T model, CancellationToken? cancellationToken)
         {
-            StartForms(model, cancellationToken);
+            StartForms(model, cancellationToken??CancellationToken.None);
             return model;
         }
 

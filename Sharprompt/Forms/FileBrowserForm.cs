@@ -127,6 +127,14 @@ namespace Sharprompt.Forms
                     screenBuffer.Write($"  {value}");
                 }
             }
+            if (_options.ShowPagination)
+            {
+                if (_paginator.PageCount > 1)
+                {
+                    screenBuffer.WriteLine();
+                    screenBuffer.Write($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)");
+                }
+            }
         }
 
         protected override bool TryGetResult(CancellationToken cancellationToken, out PathSelected result)
@@ -151,7 +159,7 @@ namespace Sharprompt.Forms
                         var newfile = _filterBuffer.ToString();
                         if (string.IsNullOrEmpty(newfile) && !_options.AllowNotSelected)
                         {
-                            Renderer.SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
+                            SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
                             break;
                         }
                         if (!string.IsNullOrEmpty(_options.PrefixExtension))
@@ -174,7 +182,7 @@ namespace Sharprompt.Forms
                         var newfolder = _filterBuffer.ToString();
                         if (string.IsNullOrEmpty(newfolder) && !_options.AllowNotSelected)
                         {
-                            Renderer.SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
+                            SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
                             break;
                         }
                         if (!string.IsNullOrEmpty(_options.PrefixExtension))
@@ -224,9 +232,6 @@ namespace Sharprompt.Forms
                         _paginator = new Paginator<PathSelected>(ItensFolders(di.Parent.FullName), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.TextSelector);
                         break;
                     }
-                    case ConsoleKey.LeftArrow:
-                        _paginator.PreviousPage();
-                        break;
                     case ConsoleKey.RightArrow when keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control) && _options.BrowserChoose == FileBrowserChoose.File:
                     {
                         if (_paginator.TryGetSelectedItem(out var resultpreview))
@@ -263,6 +268,10 @@ namespace Sharprompt.Forms
                     case ConsoleKey.Backspace:
                         _filterBuffer.Length -= 1;
                         _paginator.UpdateFilter(_filterBuffer.ToString());
+                        break;
+                    case ConsoleKey.LeftArrow:
+                    case ConsoleKey.Delete:
+                        ConsoleDriver.Beep();
                         break;
                     default:
                     {

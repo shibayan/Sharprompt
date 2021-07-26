@@ -20,21 +20,11 @@ namespace Sharprompt.Forms
         private readonly IConsoleDriver _consoleDriver;
         private readonly OffscreenBuffer _offscreenBuffer;
 
-        private string _errorMessage;
+        public string ErrorMessage { get; set; }
 
         public void Dispose()
         {
             _consoleDriver.Dispose();
-        }
-
-        public void SetValidationResult(ValidationResult result)
-        {
-            _errorMessage = result.ErrorMessage;
-        }
-
-        public void SetException(Exception exception)
-        {
-            _errorMessage = exception.Message;
         }
 
         public void Render(Action<OffscreenBuffer> template)
@@ -45,11 +35,11 @@ namespace Sharprompt.Forms
 
             template(_offscreenBuffer);
 
-            if (_errorMessage != null)
+            if (ErrorMessage != null)
             {
-                _offscreenBuffer.WriteErrorMessage(_errorMessage);
+                _offscreenBuffer.WriteErrorMessage(ErrorMessage);
 
-                _errorMessage = null;
+                ErrorMessage = null;
             }
 
             _offscreenBuffer.RenderToConsole();

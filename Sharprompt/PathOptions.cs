@@ -6,6 +6,8 @@ namespace Sharprompt
 {
     public class PathOptions
     {
+        public bool ShowPagination { get; set; } = true;
+
         public FileBrowserChoose BrowserChoose { get; set; }
 
         public string PrefixExtension { get; set; }

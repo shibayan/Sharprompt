@@ -36,7 +36,9 @@ namespace Sharprompt
                 }
             }
             public static char DefaultYesKey { get; set; } = 'Y';
+            public static string DefaultLongYesKey { get; set; } = "Yes";
             public static char DefaultNoKey { get; set; } = 'N';
+            public static string DefaultLongNoKey { get; set; } = "No";
             public static string DefaultAnyKeyMessage { get; set; } = "Press any key";
             public static string DefaultInvalidValueMessage { get; set; } = "Value is invalid";
             public static string DefaultRequiredMessage { get; set; } = "Value is required";
@@ -45,6 +47,9 @@ namespace Sharprompt
             public static string DefaultRegularExpressionMessage { get; set; } = "Value is not match pattern";
             public static char DefautPasswordChar { get; set; } = '*';
             public static string DefaultMultiSelectMinSelectionMessage { get; set; } = "A minimum selection of {0} items is required";
+            public static string DefaultMultiSelectMaxSelectionMessage { get; set; } = "A maximum selection of {0} items is required";
+            public static string DefaultListMinSelectionMessage { get; set; } = "A minimum input of {0} items is required";
+            public static string DefaultListMaxSelectionMessage { get; set; } = "A maximum input of {0} items is required";
             public static string DefaultMultiSelectInputTemplateMessage { get; set; } = "(Hit space to select) ";
 
         }

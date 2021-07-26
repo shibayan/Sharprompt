@@ -53,7 +53,7 @@ namespace Sharprompt.Forms
                         result = _selectedItems;
                         return true;
                     case ConsoleKey.Enter:
-                        Renderer.SetValidationResult(new ValidationResult(string.Format(Prompt.DefaultMessageValues.DefaultMultiSelectMinSelectionMessage,_options.Minimum)));
+                        SetValidationResult(new ValidationResult(string.Format(Prompt.DefaultMessageValues.DefaultMultiSelectMinSelectionMessage,_options.Minimum)));
                         break;
                     case ConsoleKey.Spacebar when _paginator.TryGetSelectedItem(out var currentItem):
                     {
@@ -63,8 +63,16 @@ namespace Sharprompt.Forms
                         }
                         else
                         {
-                            _selectedItems.Add(currentItem);
+                            if (_selectedItems.Count >= _options.Maximum)
+                            {
+                                SetValidationResult(new ValidationResult(string.Format(Prompt.DefaultMessageValues.DefaultMultiSelectMaxSelectionMessage, _options.Maximum)));
+                            }
+                            else
+                            {
+                                _selectedItems.Add(currentItem);
+                            }
                         }
+
                         break;
                     }
                     case ConsoleKey.UpArrow:
@@ -149,6 +157,14 @@ namespace Sharprompt.Forms
                     {
                         screenBuffer.Write($"  {Prompt.Symbols.NotSelect} {value}");
                     }
+                }
+            }
+            if (_options.ShowPagination)
+            {
+                if (_paginator.PageCount > 1)
+                {
+                    screenBuffer.WriteLine();
+                    screenBuffer.Write($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)");
                 }
             }
         }

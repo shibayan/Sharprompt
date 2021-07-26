@@ -5,6 +5,8 @@ namespace Sharprompt
 {
     public class MultiSelectOptions<T>
     {
+        public bool ShowPagination { get; set; } = true;
+
         public string Message { get; set; }
 
         public IEnumerable<T> Items { get; set; }
@@ -13,7 +15,7 @@ namespace Sharprompt
 
         public int? PageSize { get; set; }
 
-        public int Minimum { get; set; } = 0;
+        public int Minimum { get; set; } = 1;
 
         public int Maximum { get; set; } = int.MaxValue;
 

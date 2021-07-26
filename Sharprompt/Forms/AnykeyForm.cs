@@ -9,10 +9,8 @@ namespace Sharprompt.Forms
 {
     internal class AnykeyForm : FormBase<bool>
     {
-        private readonly ManualResetEvent _mreKeyPress;
         public AnykeyForm()
         {
-            _mreKeyPress = new ManualResetEvent(false);
         }
 
         protected override bool TryGetResult(CancellationToken cancellationToken, out bool result)

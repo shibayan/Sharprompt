@@ -18,54 +18,106 @@ namespace Sharprompt.Forms
         }
 
         private readonly ConfirmOptions _options;
+        private int _startIndex;
+        private readonly StringBuilder _inputBuffer = new StringBuilder();
 
         protected override bool TryGetResult(CancellationToken cancellationToken, out bool result)
         {
-            var keyInfo = ConsoleDriver.WaitKeypress(cancellationToken);
-
-            if (cancellationToken.IsCancellationRequested)
+            do
             {
-                if (_options.DefaultValue != null)
+                var keyInfo = ConsoleDriver.WaitKeypress(cancellationToken);
+
+                if (cancellationToken.IsCancellationRequested)
                 {
-                    result = _options.DefaultValue.Value;
+                    if (_options.DefaultValue != null)
+                    {
+                        result = _options.DefaultValue.Value;
+                        return false;
+                    }
+                    result = false;
                     return false;
                 }
-                result = false;
-                return false;
-            }
 
-            if (keyInfo.Key == ConsoleKey.Enter)
-            {
-                if (_options.DefaultValue != null)
+                switch (keyInfo.Key)
                 {
-                    result = _options.DefaultValue.Value;
+                    case ConsoleKey.Enter:
+                    {
+                        {
+                            var input = _inputBuffer.ToString();
 
-                    return true;
+                            if (string.IsNullOrEmpty(input))
+                            {
+                                if (_options.DefaultValue != null)
+                                {
+                                    result = _options.DefaultValue.Value;
+
+                                    return true;
+                                }
+
+                                SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
+                            }
+                            else
+                            {
+                                var lowerInput = input.ToLower();
+
+                                if (lowerInput == Prompt.DefaultMessageValues.DefaultYesKey.ToString().ToLower()
+                                    || lowerInput == Prompt.DefaultMessageValues.DefaultLongYesKey.ToLower())
+                                {
+                                    result = true;
+
+                                    return true;
+                                }
+
+                                if (lowerInput == Prompt.DefaultMessageValues.DefaultNoKey.ToString().ToLower()
+                                    || lowerInput == Prompt.DefaultMessageValues.DefaultLongNoKey.ToLower())
+                                {
+                                    result = false;
+
+                                    return true;
+                                }
+
+                                SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultInvalidValueMessage));
+                            }
+
+                            break;
+                        }
+                    }
+                    case ConsoleKey.LeftArrow when _startIndex > 0:
+                        _startIndex -= 1;
+                        break;
+                    case ConsoleKey.RightArrow when _startIndex < _inputBuffer.Length:
+                        _startIndex += 1;
+                        break;
+                    case ConsoleKey.Backspace when _startIndex > 0:
+                        _startIndex -= 1;
+
+                        _inputBuffer.Remove(_startIndex, 1);
+                        break;
+                    case ConsoleKey.Delete when _startIndex < _inputBuffer.Length:
+                        _inputBuffer.Remove(_startIndex, 1);
+                        break;
+                    case ConsoleKey.LeftArrow:
+                    case ConsoleKey.RightArrow:
+                    case ConsoleKey.Backspace:
+                    case ConsoleKey.Delete:
+                        ConsoleDriver.Beep();
+                        break;
+                    default:
+                    {
+                        if (!cancellationToken.IsCancellationRequested)
+                        {
+                            if (!char.IsControl(keyInfo.KeyChar))
+                            {
+                                _inputBuffer.Insert(_startIndex, keyInfo.KeyChar);
+
+                                _startIndex += 1;
+                            }
+                        }
+                        break;
+                    }
                 }
-            }
-            else
-            {
-                var lowerInput = char.ToLower(keyInfo.KeyChar);
 
-                if (lowerInput == char.ToLower(Prompt.DefaultMessageValues.DefaultYesKey))
-                {
-                    result = true;
-
-                    return true;
-                }
-
-                if (lowerInput == char.ToLower(Prompt.DefaultMessageValues.DefaultNoKey))
-                {
-                    result = false;
-
-                    return true;
-                }
-            }
-
-            if (!char.IsControl(keyInfo.KeyChar))
-            {
-                Renderer.SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultInvalidValueMessage));
-            }
+            } while (ConsoleDriver.KeyAvailable && !cancellationToken.IsCancellationRequested);
 
             result = default;
 
@@ -107,17 +159,14 @@ namespace Sharprompt.Forms
                 screenBuffer.Write($"({char.ToLower(Prompt.DefaultMessageValues.DefaultYesKey)}/{char.ToUpper(Prompt.DefaultMessageValues.DefaultNoKey)}) ");
             }
 
+
             var (left, top) = screenBuffer.GetCursorPosition();
+
+            input = _inputBuffer.ToString();
 
             screenBuffer.Write(input);
 
-            var startIndex = 0;
-            if (_initform)
-            {
-                startIndex = input.Length;
-            }
-
-            var width = EastAsianWidth.GetWidth(input.Take(startIndex)) + left;
+            var width = left + input.Take(_startIndex).GetWidth();
 
             screenBuffer.SetCursorPosition(width % screenBuffer.BufferWidth, top + (width / screenBuffer.BufferWidth));
 

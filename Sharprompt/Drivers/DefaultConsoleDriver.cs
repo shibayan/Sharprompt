@@ -46,7 +46,7 @@ namespace Sharprompt.Drivers
         {
             while (!KeyAvailable && !cancellationToken.IsCancellationRequested)
             {
-                Thread.Sleep(Prompt.DefaultMessageValues.IdleReadKey);
+                cancellationToken.WaitHandle.WaitOne(Prompt.DefaultMessageValues.IdleReadKey);
             }
             if (KeyAvailable && !cancellationToken.IsCancellationRequested)
             {
@@ -76,135 +76,6 @@ namespace Sharprompt.Drivers
         }
 
         public ConsoleKeyInfo ReadKey() => Console.ReadKey(true);
-
-        public string ReadLine()
-        {
-            var startIndex = 0;
-            var inputBuffer = new StringBuilder();
-
-            while (true)
-            {
-                var keyInfo = ReadKey();
-
-                if (keyInfo.Key == ConsoleKey.Enter)
-                {
-                    break;
-                }
-
-                if (keyInfo.Key == ConsoleKey.LeftArrow)
-                {
-                    if (startIndex > 0)
-                    {
-                        startIndex -= 1;
-
-                        var width = EastAsianWidth.GetWidth(inputBuffer[startIndex]);
-
-                        HandleLeftAllow(width);
-                    }
-                    else
-                    {
-                        Beep();
-                    }
-                }
-                else if (keyInfo.Key == ConsoleKey.RightArrow)
-                {
-                    if (startIndex < inputBuffer.Length)
-                    {
-                        var width = EastAsianWidth.GetWidth(inputBuffer[startIndex]);
-
-                        HandleRightAllow(width);
-
-                        startIndex += 1;
-                    }
-                    else
-                    {
-                        Beep();
-                    }
-                }
-                else if (keyInfo.Key == ConsoleKey.Backspace)
-                {
-                    if (startIndex > 0)
-                    {
-                        startIndex -= 1;
-
-                        var width = EastAsianWidth.GetWidth(inputBuffer[startIndex]);
-
-                        HandleLeftAllow(width);
-
-                        inputBuffer.Remove(startIndex, 1);
-
-                        var (left, top) = GetCursorPosition();
-
-                        for (var i = startIndex; i < inputBuffer.Length; i++)
-                        {
-                            Console.Write(inputBuffer[i]);
-                        }
-
-                        Console.Write(width == 1 ? " " : "  ");
-
-                        SetCursorPosition(left, top);
-                    }
-                    else
-                    {
-                        Beep();
-                    }
-                }
-                else if (keyInfo.Key == ConsoleKey.Delete)
-                {
-                    if (startIndex < inputBuffer.Length)
-                    {
-                        var width = EastAsianWidth.GetWidth(inputBuffer[startIndex]);
-
-                        inputBuffer.Remove(startIndex, 1);
-
-                        var (left, top) = GetCursorPosition();
-
-                        for (var i = startIndex; i < inputBuffer.Length; i++)
-                        {
-                            Console.Write(inputBuffer[i]);
-                        }
-
-                        Console.Write(width == 1 ? " " : "  ");
-
-                        SetCursorPosition(left, top);
-                    }
-                    else
-                    {
-                        Beep();
-                    }
-                }
-                else if (!char.IsControl(keyInfo.KeyChar))
-                {
-                    inputBuffer.Insert(startIndex, keyInfo.KeyChar);
-
-                    var (left, top) = GetCursorPosition();
-
-                    for (var i = startIndex; i < inputBuffer.Length; i++)
-                    {
-                        Console.Write(inputBuffer[i]);
-                    }
-
-                    left += EastAsianWidth.GetWidth(keyInfo.KeyChar);
-
-                    if (left >= Console.BufferWidth)
-                    {
-                        left = 0;
-                        top += 1;
-
-                        if (top >= Console.BufferHeight)
-                        {
-                            Console.BufferHeight += 1;
-                        }
-                    }
-
-                    SetCursorPosition(left, top);
-
-                    startIndex += 1;
-                }
-            }
-
-            return inputBuffer.ToString();
-        }
 
         public void Write(string value, ConsoleColor color)
         {
@@ -252,32 +123,6 @@ namespace Sharprompt.Drivers
         private void RequestCancellation(object sender, ConsoleCancelEventArgs e)
         {
             Reset();
-        }
-
-        private void HandleLeftAllow(int width)
-        {
-            if (Console.CursorLeft - width < 0)
-            {
-                Console.CursorTop -= 1;
-                Console.CursorLeft = Console.BufferWidth - width;
-            }
-            else
-            {
-                Console.CursorLeft -= width;
-            }
-        }
-
-        private void HandleRightAllow(int width)
-        {
-            if (Console.CursorLeft + width >= Console.BufferWidth)
-            {
-                Console.CursorTop += 1;
-                Console.CursorLeft = 0;
-            }
-            else
-            {
-                Console.CursorLeft += width;
-            }
         }
     }
 }

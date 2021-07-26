@@ -44,7 +44,7 @@ namespace Sharprompt.Forms
                             {
                                 if (_targetType.IsValueType && _underlyingType == null && !_defaultValue.HasValue)
                                 {
-                                    Renderer.SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
+                                    SetValidationResult(new ValidationResult(Prompt.DefaultMessageValues.DefaultRequiredMessage));
 
                                     result = default;
 
@@ -69,7 +69,7 @@ namespace Sharprompt.Forms
                         }
                         catch (Exception ex)
                         {
-                            Renderer.SetException(ex);
+                            SetException(ex);
                         }
 
                         break;
@@ -77,26 +77,20 @@ namespace Sharprompt.Forms
                     case ConsoleKey.LeftArrow when _startIndex > 0:
                         _startIndex -= 1;
                         break;
-                    case ConsoleKey.LeftArrow:
-                        ConsoleDriver.Beep();
-                        break;
                     case ConsoleKey.RightArrow when _startIndex < _inputBuffer.Length:
                         _startIndex += 1;
-                        break;
-                    case ConsoleKey.RightArrow:
-                        ConsoleDriver.Beep();
                         break;
                     case ConsoleKey.Backspace when _startIndex > 0:
                         _startIndex -= 1;
 
                         _inputBuffer.Remove(_startIndex, 1);
                         break;
-                    case ConsoleKey.Backspace:
-                        ConsoleDriver.Beep();
-                        break;
                     case ConsoleKey.Delete when _startIndex < _inputBuffer.Length:
                         _inputBuffer.Remove(_startIndex, 1);
                         break;
+                    case ConsoleKey.LeftArrow:
+                    case ConsoleKey.RightArrow:
+                    case ConsoleKey.Backspace:
                     case ConsoleKey.Delete:
                         ConsoleDriver.Beep();
                         break;

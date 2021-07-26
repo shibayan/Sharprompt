@@ -10,7 +10,7 @@ namespace Sharprompt
 
         public IEnumerable<T> DefaultValues { get; set; }
 
-        public int Minimum { get; set; } = 0;
+        public int Minimum { get; set; } = 1;
 
         public int Maximum { get; set; } = int.MaxValue;
 

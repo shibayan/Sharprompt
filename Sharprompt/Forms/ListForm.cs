@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-
+using System.ComponentModel.DataAnnotations;
 using Sharprompt.Internal;
 
 namespace Sharprompt.Forms
@@ -12,6 +12,16 @@ namespace Sharprompt.Forms
     {
         public ListForm(ListOptions<T> options)
         {
+            if (options.Minimum < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(options.Minimum), $"The minimum ({options.Minimum}) is not valid");
+            }
+
+            if (options.Maximum < options.Minimum)
+            {
+                throw new ArgumentException($"The maximum ({options.Maximum}) is not valid when minimum is set to ({options.Minimum})", nameof(options.Maximum));
+            }
+
             _options = options;
 
             _inputItems.AddRange(options.DefaultValues ?? Enumerable.Empty<T>());
@@ -40,12 +50,27 @@ namespace Sharprompt.Forms
 
                         try
                         {
+                            result = _inputItems;
+
                             if (string.IsNullOrEmpty(input))
                             {
-                                result = _inputItems;
+                                if (_inputItems.Count >= _options.Minimum)
+                                {
+                                    return true;
+                                }
 
-                                return true;
+                                SetValidationResult(new ValidationResult(string.Format(Prompt.DefaultMessageValues.DefaultListMinSelectionMessage, _options.Minimum)));
+
+                                return false;
                             }
+
+                            if (_inputItems.Count >= _options.Maximum)
+                            {
+                                SetValidationResult(new ValidationResult(string.Format(Prompt.DefaultMessageValues.DefaultListMaxSelectionMessage, _options.Maximum)));
+
+                                return false;
+                            }
+
 
                             var inputValue = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
 
@@ -67,7 +92,7 @@ namespace Sharprompt.Forms
                         }
                         catch (Exception ex)
                         {
-                            Renderer.SetException(ex);
+                            SetException(ex);
                         }
 
                         break;
@@ -75,22 +100,13 @@ namespace Sharprompt.Forms
                     case ConsoleKey.LeftArrow when _startIndex > 0:
                         _startIndex -= 1;
                         break;
-                    case ConsoleKey.LeftArrow:
-                        ConsoleDriver.Beep();
-                        break;
                     case ConsoleKey.RightArrow when _startIndex < _inputBuffer.Length:
                         _startIndex += 1;
-                        break;
-                    case ConsoleKey.RightArrow:
-                        ConsoleDriver.Beep();
                         break;
                     case ConsoleKey.Backspace when _startIndex > 0:
                         _startIndex -= 1;
 
                         _inputBuffer.Remove(_startIndex, 1);
-                        break;
-                    case ConsoleKey.Backspace:
-                        ConsoleDriver.Beep();
                         break;
                     case ConsoleKey.Delete when _startIndex < _inputBuffer.Length:
                         _inputBuffer.Remove(_startIndex, 1);
@@ -134,10 +150,13 @@ namespace Sharprompt.Forms
                         }
                         catch (Exception ex)
                         {
-                            Renderer.SetException(ex);
+                            SetException(ex);
                         }
                         break;
                     }
+                    case ConsoleKey.LeftArrow:
+                    case ConsoleKey.RightArrow:
+                    case ConsoleKey.Backspace:
                     case ConsoleKey.Delete:
                         ConsoleDriver.Beep();
                         break;
@@ -174,8 +193,7 @@ namespace Sharprompt.Forms
 
             screenBuffer.Write(input);
 
-            var width = EastAsianWidth.GetWidth(input.Take(_startIndex)) + left;
-
+            var width = left + input.Take(_startIndex).GetWidth();
 
             screenBuffer.SetCursorPosition(width % screenBuffer.BufferWidth, top + (width / screenBuffer.BufferWidth));
         }
