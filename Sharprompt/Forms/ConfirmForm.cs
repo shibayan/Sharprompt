@@ -17,7 +17,7 @@ namespace Sharprompt.Forms
         private readonly ConfirmOptions _options;
 
         private int _startIndex;
-        private readonly StringBuilder _inputBuffer = new StringBuilder();
+        private readonly StringBuilder _inputBuffer = new();
 
         protected override bool TryGetResult(out bool result)
         {
@@ -72,9 +72,7 @@ namespace Sharprompt.Forms
                         _startIndex += 1;
                         break;
                     case ConsoleKey.Backspace when _startIndex > 0:
-                        _startIndex -= 1;
-
-                        _inputBuffer.Remove(_startIndex, 1);
+                        _inputBuffer.Remove(--_startIndex, 1);
                         break;
                     case ConsoleKey.Delete when _startIndex < _inputBuffer.Length:
                         _inputBuffer.Remove(_startIndex, 1);
@@ -89,9 +87,7 @@ namespace Sharprompt.Forms
                     {
                         if (!char.IsControl(keyInfo.KeyChar))
                         {
-                            _inputBuffer.Insert(_startIndex, keyInfo.KeyChar);
-
-                            _startIndex += 1;
+                            _inputBuffer.Insert(_startIndex++, keyInfo.KeyChar);
                         }
 
                         break;
@@ -113,13 +109,9 @@ namespace Sharprompt.Forms
             {
                 screenBuffer.Write("(y/n) ");
             }
-            else if (_options.DefaultValue.Value)
-            {
-                screenBuffer.Write("(Y/n) ");
-            }
             else
             {
-                screenBuffer.Write("(y/N) ");
+                screenBuffer.Write(_options.DefaultValue.Value ? "(Y/n) " : "(y/N) ");
             }
 
             var (left, top) = screenBuffer.GetCursorPosition();

@@ -20,7 +20,7 @@ namespace Sharprompt.Forms
         private readonly SelectOptions<T> _options;
         private readonly Paginator<T> _paginator;
 
-        private readonly StringBuilder _filterBuffer = new StringBuilder();
+        private readonly StringBuilder _filterBuffer = new();
 
         protected override bool TryGetResult(out T result)
         {

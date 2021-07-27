@@ -14,7 +14,7 @@ namespace Sharprompt.Forms
 
         private readonly PasswordOptions _options;
 
-        private readonly StringBuilder _inputBuffer = new StringBuilder();
+        private readonly StringBuilder _inputBuffer = new();
 
         protected override bool TryGetResult(out string result)
         {

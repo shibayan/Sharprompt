@@ -33,8 +33,8 @@ namespace Sharprompt.Forms
         private readonly Type _underlyingType = Nullable.GetUnderlyingType(typeof(T));
 
         private int _startIndex;
-        private readonly StringBuilder _inputBuffer = new StringBuilder();
-        private readonly List<T> _inputItems = new List<T>();
+        private readonly StringBuilder _inputBuffer = new();
+        private readonly List<T> _inputItems = new();
 
         protected override bool TryGetResult(out IEnumerable<T> result)
         {
@@ -99,9 +99,7 @@ namespace Sharprompt.Forms
                         _startIndex += 1;
                         break;
                     case ConsoleKey.Backspace when _startIndex > 0:
-                        _startIndex -= 1;
-
-                        _inputBuffer.Remove(_startIndex, 1);
+                        _inputBuffer.Remove(--_startIndex, 1);
                         break;
                     case ConsoleKey.Delete when _startIndex < _inputBuffer.Length:
                         _inputBuffer.Remove(_startIndex, 1);
@@ -116,9 +114,7 @@ namespace Sharprompt.Forms
                     {
                         if (!char.IsControl(keyInfo.KeyChar))
                         {
-                            _inputBuffer.Insert(_startIndex, keyInfo.KeyChar);
-
-                            _startIndex += 1;
+                            _inputBuffer.Insert(_startIndex++, keyInfo.KeyChar);
                         }
 
                         break;

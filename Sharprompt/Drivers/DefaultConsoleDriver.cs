@@ -102,9 +102,6 @@ namespace Sharprompt.Drivers
 
         #endregion
 
-        private void CancelKeyPressHandler(object sender, ConsoleCancelEventArgs e)
-        {
-            RequestCancellation?.Invoke();
-        }
+        private void CancelKeyPressHandler(object sender, ConsoleCancelEventArgs e) => RequestCancellation?.Invoke();
     }
 }
