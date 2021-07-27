@@ -5,6 +5,7 @@ namespace Sharprompt.Drivers
 {
     internal interface IConsoleDriver : IDisposable
     {
+        int IdleReadKey { get; set; }
         ConsoleKeyInfo WaitKeypress(CancellationToken cancellationToken);
         void Beep();
         void Reset();

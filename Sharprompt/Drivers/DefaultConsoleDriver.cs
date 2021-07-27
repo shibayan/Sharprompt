@@ -9,6 +9,34 @@ namespace Sharprompt.Drivers
 {
     internal sealed class DefaultConsoleDriver : IConsoleDriver
     {
+        private int _idleReadKey = 30;
+        public int IdleReadKey
+        {
+            get
+            {
+                if (_idleReadKey == 0)
+                {
+                    return 30;
+                }
+                return _idleReadKey;
+            }
+            set
+            {
+                if (value < 10)
+                {
+                    _idleReadKey = 10;
+                }
+                else if (value > 100)
+                {
+                    _idleReadKey = 100;
+                }
+                else
+                {
+                    _idleReadKey = value;
+                }
+            }
+        }
+
         static DefaultConsoleDriver()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -46,7 +74,7 @@ namespace Sharprompt.Drivers
         {
             while (!KeyAvailable && !cancellationToken.IsCancellationRequested)
             {
-                cancellationToken.WaitHandle.WaitOne(Prompt.Messages.IdleReadKey);
+                cancellationToken.WaitHandle.WaitOne(IdleReadKey);
             }
             if (KeyAvailable && !cancellationToken.IsCancellationRequested)
             {

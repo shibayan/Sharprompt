@@ -8,9 +8,15 @@ namespace Sharprompt
     {
         public string Message { get; set; }
 
+        public bool AllowDuplicate { get; set; } = true;
+
         public bool ShowKeyNavigation { get; set; } = true;
 
         public IEnumerable<T> DefaultValues { get; set; }
+
+        public bool ShowPagination { get; set; } = true;
+
+        public int? PageSize { get; set; }
 
         public int Minimum { get; set; } = 1;
 
@@ -19,5 +25,8 @@ namespace Sharprompt
         public bool RemoveAllMatch { get; set; } = false;
 
         public IList<Func<object, ValidationResult>> Validators { get; } = new List<Func<object, ValidationResult>>();
+
+        public Func<T, string> TextSelector { get; set; } = x => x.ToString();
+
     }
 }

@@ -81,10 +81,10 @@ namespace Sharprompt.Forms
                     case ConsoleKey.DownArrow when keyInfo.Modifiers == 0:
                         _paginator.NextItem();
                         break;
-                    case ConsoleKey.LeftArrow when keyInfo.Modifiers == 0:
+                    case ConsoleKey.PageUp when keyInfo.Modifiers == 0:
                         _paginator.PreviousPage();
                         break;
-                    case ConsoleKey.RightArrow when keyInfo.Modifiers == 0:
+                    case ConsoleKey.PageDown when keyInfo.Modifiers == 0:
                         _paginator.NextPage();
                         break;
                     case ConsoleKey.Backspace when keyInfo.Modifiers == 0 && _filterBuffer.Length == 0:

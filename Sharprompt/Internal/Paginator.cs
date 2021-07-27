@@ -57,9 +57,13 @@ namespace Sharprompt.Internal
             _selectedIndex = _selectedIndex <= 0 ? Count - 1 : _selectedIndex - 1;
         }
 
-        public string PaginationMessage()
+        public string PaginationMessage(int? selected = null)
         {
-            return string.Format(Prompt.Messages.PaginationTemplate, TotalCount, (SelectedPage+1) / PageCount + 1, PageCount);
+            if (selected.HasValue)
+            {
+                return string.Format(Prompt.Messages.PaginationWithSelectedTemplate, selected, TotalCount, SelectedPage + 1, PageCount);
+            }
+            return string.Format(Prompt.Messages.PaginationTemplate, TotalCount, SelectedPage+1, PageCount);
         }
 
 
@@ -93,6 +97,11 @@ namespace Sharprompt.Internal
             _selectedPage = 0;
 
             InitializeCollection();
+        }
+
+        public int SelectedCount(string filter)
+        {
+            return _items.Count(x => _textSelector(x).IndexOf(filter, StringComparison.OrdinalIgnoreCase) != -1);
         }
 
         public ArraySegment<T> ToSubset()

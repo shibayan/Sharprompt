@@ -144,7 +144,7 @@ namespace Sharprompt.Forms
                 if (_paginator.PageCount > 1)
                 {
                     screenBuffer.WriteLine();
-                    screenBuffer.Write(_paginator.PaginationMessage(),Prompt.ColorSchema.PaginationInfo);
+                    screenBuffer.Write(_paginator.PaginationMessage(), Prompt.ColorSchema.PaginationInfo);
                 }
             }
         }
@@ -275,7 +275,7 @@ namespace Sharprompt.Forms
                         }
                         break;
                     }
-                    case ConsoleKey.RightArrow when keyInfo.Modifiers == 0:
+                    case ConsoleKey.PageDown when keyInfo.Modifiers == 0:
                         _paginator.NextPage();
                         break;
                     case ConsoleKey.Backspace when keyInfo.Modifiers == 0 && _filterBuffer.Length == 0:
@@ -285,7 +285,9 @@ namespace Sharprompt.Forms
                         _filterBuffer.Length -= 1;
                         _paginator.UpdateFilter(_filterBuffer.ToString());
                         break;
-                    case ConsoleKey.LeftArrow:
+                    case ConsoleKey.PageUp:
+                        _paginator.PreviousPage();
+                        break;
                     case ConsoleKey.Delete:
                         ConsoleDriver.Beep();
                         break;

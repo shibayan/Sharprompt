@@ -25,6 +25,9 @@ namespace Sharprompt.Forms
             _options = options;
 
             _inputItems.AddRange(options.DefaultValues ?? Enumerable.Empty<T>());
+
+            _paginator = new Paginator<T>(_inputItems, options.PageSize, Optional<T>.Empty, options.TextSelector);
+
         }
 
         private readonly ListOptions<T> _options;
@@ -35,6 +38,8 @@ namespace Sharprompt.Forms
         private int _startIndex;
         private readonly StringBuilder _inputBuffer = new StringBuilder();
         private readonly List<T> _inputItems = new List<T>();
+        private Paginator<T> _paginator;
+
 
         protected override bool TryGetResult(CancellationToken cancellationToken,out IEnumerable<T> result)
         {
@@ -80,11 +85,21 @@ namespace Sharprompt.Forms
 
                                 return false;
                             }
+                            if (!_options.AllowDuplicate)
+                            {
+                                if (_inputItems.Contains(inputValue))
+                                {
+                                    SetValidationResult(new ValidationResult(Prompt.Messages.ListItemAlreadyexists));
+                                    return false;
+                                }
+                            }
 
                             _startIndex = 0;
                             _inputBuffer.Clear();
 
                             _inputItems.Add(inputValue);
+
+                            _paginator = new Paginator<T>(_inputItems, _options.PageSize, Optional<T>.Empty, _options.TextSelector);
 
                             result = _inputItems;
 
@@ -145,6 +160,7 @@ namespace Sharprompt.Forms
                                     _inputItems.Remove(inputValue);
                                 }
                             }
+                            _paginator = new Paginator<T>(_inputItems, _options.PageSize, Optional<T>.Empty, _options.TextSelector);
                             result = _inputItems;
                             return false;
                         }
@@ -154,11 +170,11 @@ namespace Sharprompt.Forms
                         }
                         break;
                     }
-                    case ConsoleKey.LeftArrow:
-                    case ConsoleKey.RightArrow:
-                    case ConsoleKey.Backspace:
-                    case ConsoleKey.Delete:
-                        ConsoleDriver.Beep();
+                    case ConsoleKey.PageDown when keyInfo.Modifiers == 0:
+                        _paginator.PreviousPage();
+                        break;
+                    case ConsoleKey.PageUp when keyInfo.Modifiers == 0:
+                        _paginator.NextPage();
                         break;
                     default:
                     {
@@ -185,7 +201,6 @@ namespace Sharprompt.Forms
         protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
             screenBuffer.WritePrompt(_options.Message);
-            screenBuffer.Write($"({string.Join(", ", _inputItems)}) ", Prompt.ColorSchema.Answer);
 
             var (left, top) = screenBuffer.GetCursorPosition();
 
@@ -193,17 +208,45 @@ namespace Sharprompt.Forms
 
             screenBuffer.Write(input);
 
-            var width = left + input.Take(_startIndex).GetWidth();
-
-            screenBuffer.SetCursorPosition(width % screenBuffer.BufferWidth, top + (width / screenBuffer.BufferWidth));
-
             if (_options.ShowKeyNavigation)
             {
                 screenBuffer.WriteLine();
+                if (_paginator.PageCount > 1)
+                {
+                    screenBuffer.Write(Prompt.Messages.KeyNavPaging, Prompt.ColorSchema.KeyNavigation);
+                }
                 screenBuffer.Write(Prompt.Messages.ListKeyNavigation, Prompt.ColorSchema.KeyNavigation);
             }
 
+            var subset = _paginator.ToSubset();
 
+            foreach (var item in subset)
+            {
+                var value = _options.TextSelector(item);
+
+                screenBuffer.WriteLine();
+
+                if (EqualityComparer<string>.Default.Equals(_inputBuffer.ToString(), value))
+                {
+                    screenBuffer.Write($"{Prompt.Symbols.Selected} {value}", Prompt.ColorSchema.Select);
+                }
+                else
+                {
+                    screenBuffer.Write($"{Prompt.Symbols.NotSelect} {value}");
+                }
+            }
+
+            var width = left + input.Take(_startIndex).GetWidth();
+
+            if (_options.ShowPagination)
+            {
+                if (_paginator.PageCount > 1)
+                {
+                    screenBuffer.WriteLine();
+                    screenBuffer.Write(_paginator.PaginationMessage(_paginator.SelectedCount(_inputBuffer.ToString())), Prompt.ColorSchema.PaginationInfo);
+                }
+            }
+            screenBuffer.SetCursorPosition(width % screenBuffer.BufferWidth, top + (width / screenBuffer.BufferWidth));
         }
 
         protected override void FinishTemplate(OffscreenBuffer screenBuffer, IEnumerable<T> result)

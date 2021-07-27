@@ -4,37 +4,8 @@ namespace Sharprompt
 {
     public static partial class Prompt
     {
-        public const int DefaultIdleReadKey = 30;
-
         public static class Messages
         {
-            private static int _IdleReadKey = DefaultIdleReadKey;
-            public static int IdleReadKey
-            {
-                get
-                {
-                    if (_IdleReadKey == 0)
-                    {
-                        return DefaultIdleReadKey;
-                    }
-                    return _IdleReadKey;
-                }
-                set
-                {
-                    if (value < 10)
-                    {
-                        _IdleReadKey = 10;
-                    }
-                    else if (value > 100)
-                    {
-                        _IdleReadKey = 100;
-                    }
-                    else
-                    {
-                        _IdleReadKey = value;
-                    }
-                }
-            }
             public static char YesKey { get; set; } = 'Y';
             public static string LongYesKey { get; set; } = "Yes";
             public static char NoKey { get; set; } = 'N';
@@ -51,12 +22,14 @@ namespace Sharprompt
             public static string MultiSelectMaxSelection { get; set; } = "A maximum selection of {0} items is required";
             public static string ListMinSelection { get; set; } = "A minimum input of {0} items is required";
             public static string ListMaxSelection { get; set; } = "A maximum input of {0} items is required";
-            public static string ListKeyNavigation { get; set; } = "Ctrl + Delete to remove, hit enter to finish";
+            public static string ListKeyNavigation { get; set; } = "Ctrl+Del to remove, hit enter to finish";
+            public static string ListItemAlreadyexists { get; set; } = "Item already exists";
             public static string SelectKeyNavigation { get; set; } = "Hit enter to select";
-            public static string KeyNavPaging { get; set; } = "LeftArrow/RightArrow to paging, ";
+            public static string KeyNavPaging { get; set; } = "PageUp/PageDown to paging,";
             public static string MultiSelectKeyNavigation { get; set; } = "Hit space to select, hit enter to finish";
             public static string PaginationTemplate { get; set; } = "  {0} items, {1}/{2} pages";
-            public static string FolderKeyNavigation { get; set; } = "Ctrl + LeftArrow/RightArrow to sub-folder, Hit enter to select";
+            public static string PaginationWithSelectedTemplate { get; set; } = "  {0}/{1} items, {2}/{3} pages";
+            public static string FolderKeyNavigation { get; set; } = "Ctrl + LeftArrow/RightArrow to dry folder, Hit enter to select";
             public static string FolderCurrentPath { get; set; } = "Current Folder :";
             public static string FileNotSelected { get; set; } = "Selected not a file!";
         }
@@ -72,14 +45,15 @@ namespace Sharprompt
 
         public static class Symbols
         {
+            public static Symbol ItemList { get; set; } = new Symbol("○", "-");
             public static Symbol File { get; set; } = new Symbol("■", "-");
             public static Symbol Folder { get; set; } = new Symbol("►", ">");
             public static Symbol Prompt { get; set; } = new Symbol("?", "?");
             public static Symbol Done { get; set; } = new Symbol("✔", "V");
             public static Symbol Error { get; set; } = new Symbol("»", ">>");
             public static Symbol Selector { get; set; } = new Symbol("›", ">");
-            public static Symbol Selected { get; set; } = new Symbol("◉", "(*)");
-            public static Symbol NotSelect { get; set; } = new Symbol("◯", "( )");
+            public static Symbol Selected { get; set; } = new Symbol("♦", "(*)");
+            public static Symbol NotSelect { get; set; } = new Symbol("○", "( )");
         }
     }
 }

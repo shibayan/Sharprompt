@@ -167,7 +167,8 @@ namespace Sharprompt.Example
             var opt = new ListOptions<string>
             {
                 Message = "Please add item(s)",
-                RemoveAllMatch = true
+                RemoveAllMatch = true,
+                PageSize = 3
             };
             var value = Prompt.List(opt, _stopApp);
             if (!_stopApp.IsCancellationRequested)
