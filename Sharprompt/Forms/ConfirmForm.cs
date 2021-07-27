@@ -109,13 +109,9 @@ namespace Sharprompt.Forms
             {
                 screenBuffer.Write("(y/n) ");
             }
-            else if (_options.DefaultValue.Value)
-            {
-                screenBuffer.Write("(Y/n) ");
-            }
             else
             {
-                screenBuffer.Write("(y/N) ");
+                screenBuffer.Write(_options.DefaultValue.Value ? "(Y/n) " : "(y/N) ");
             }
 
             var (left, top) = screenBuffer.GetCursorPosition();

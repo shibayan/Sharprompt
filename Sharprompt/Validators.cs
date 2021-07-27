@@ -28,7 +28,7 @@ namespace Sharprompt
         {
             return input =>
             {
-                if (!(input is string strValue))
+                if (input is not string strValue)
                 {
                     return ValidationResult.Success;
                 }
@@ -46,7 +46,7 @@ namespace Sharprompt
         {
             return input =>
             {
-                if (!(input is string strValue))
+                if (input is not string strValue)
                 {
                     return ValidationResult.Success;
                 }
@@ -64,7 +64,7 @@ namespace Sharprompt
         {
             return input =>
             {
-                if (!(input is string strValue))
+                if (input is not string strValue)
                 {
                     return ValidationResult.Success;
                 }
