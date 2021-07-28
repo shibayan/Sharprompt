@@ -35,17 +35,17 @@ namespace Sharprompt.Forms
 
                         break;
                     }
-                    case ConsoleKey.Backspace when keyInfo.Modifiers == 0 && _inputBuffer.Length == 0:
-                        ConsoleDriver.Beep();
-                        break;
                     case ConsoleKey.Backspace when keyInfo.Modifiers == 0:
-                        _inputBuffer.Length -= 1;
+                        if (_inputBuffer.Length > 0)
+                        {
+                            _inputBuffer.Length -= 1;
+                        }
                         break;
                     default:
                     {
                         if (!cancellationToken.IsCancellationRequested)
                         {
-                            if (!char.IsControl(keyInfo.KeyChar))
+                            if (!char.IsControl(keyInfo.KeyChar) && keyInfo.Modifiers == 0)
                             {
                                 _inputBuffer.Append(keyInfo.KeyChar);
                             }

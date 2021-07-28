@@ -169,7 +169,11 @@ namespace Sharprompt
             {
                 return default;
             }
-            return aux.Value;
+            if (aux != null)
+            {
+                return aux.Value;
+            }
+            return default;
         }
 
         public static T Select<T>(string message, IEnumerable<T> items, int? pageSize = null, object defaultValue = null, Func<T, string> textSelector = null)
@@ -223,6 +227,8 @@ namespace Sharprompt
                 Items = items,
                 DefaultValues = defaultValues?.Select(x => (EnumValue<T>)x),
                 PageSize = pageSize,
+                Minimum = minimum < 1 ? 1 : minimum,
+                Maximum = maximum < 0 ? int.MaxValue : maximum,
                 TextSelector = x => x.DisplayName
             };
 
@@ -247,7 +253,9 @@ namespace Sharprompt
                 Items = items,
                 DefaultValues = defaultValues,
                 PageSize = pageSize,
-                TextSelector = x => x.ToString()
+                Minimum = minimum<0?0:minimum,
+                Maximum = maximum<0?int.MaxValue:maximum,
+                TextSelector = textSelector?? (x => x?.ToString())
             };
 
             return MultiSelect(options, cancellationToken);
@@ -278,8 +286,8 @@ namespace Sharprompt
             var options = new ListOptions<T>
             {
                 Message = message,
-                Minimum = minimum,
-                Maximum = maximum
+                Minimum = minimum<0?0:minimum,
+                Maximum = maximum<0?int.MaxValue:maximum
             };
 
             if (validators != null)

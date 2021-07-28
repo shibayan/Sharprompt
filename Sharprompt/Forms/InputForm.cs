@@ -82,23 +82,16 @@ namespace Sharprompt.Forms
                         break;
                     case ConsoleKey.Backspace when keyInfo.Modifiers == 0 && _startIndex > 0:
                         _startIndex -= 1;
-
                         _inputBuffer.Remove(_startIndex, 1);
                         break;
                     case ConsoleKey.Delete when keyInfo.Modifiers == 0 &&  _startIndex < _inputBuffer.Length:
                         _inputBuffer.Remove(_startIndex, 1);
                         break;
-                    case ConsoleKey.LeftArrow:
-                    case ConsoleKey.RightArrow:
-                    case ConsoleKey.Backspace:
-                    case ConsoleKey.Delete:
-                        ConsoleDriver.Beep();
-                        break;
                     default:
                     {
                         if (!cancellationToken.IsCancellationRequested)
                         {
-                            if (!char.IsControl(keyInfo.KeyChar))
+                            if (!char.IsControl(keyInfo.KeyChar) && keyInfo.Modifiers == 0)
                             {
                                 _inputBuffer.Insert(_startIndex, keyInfo.KeyChar);
 

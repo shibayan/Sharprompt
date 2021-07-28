@@ -59,7 +59,11 @@ namespace Sharprompt.Forms
                 _defaultopt = new PathSelected(di.FullName ?? "", "", true, true, _options.ShowMarkup, !_options.ShowNavigationCurrentPath);
                 _currentPath = di.FullName;
             }
-            _paginator = new Paginator<PathSelected>(ItensFolders(_defaultopt.PathValue), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.TextSelector);
+            _paginator = new Paginator<PathSelected>(ItensFolders(_defaultopt.PathValue), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.AliasSelector);
+            if (_paginator.IsUnSelected)
+            {
+                _paginator.FirstItem();
+            }
         }
 
         private void InitFolderbrowser()
@@ -80,13 +84,17 @@ namespace Sharprompt.Forms
             var di = new DirectoryInfo(defvalue);
             _defaultopt = new PathSelected(di.Parent?.FullName ?? "", di.Name, false, false, _options.ShowMarkup, !_options.ShowNavigationCurrentPath);
             _currentPath = defvalue;
-            _paginator = new Paginator<PathSelected>(ItensFolders(defvalue), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.TextSelector);
+            _paginator = new Paginator<PathSelected>(ItensFolders(defvalue), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.AliasSelector);
+            if (_paginator.IsUnSelected)
+            {
+                _paginator.FirstItem();
+            }
         }
 
         protected override void FinishTemplate(OffscreenBuffer screenBuffer, PathSelected result)
         {
             screenBuffer.WriteFinish(_options.Message);
-            screenBuffer.Write(_options.ResultSelector(result), Prompt.ColorSchema.Answer);
+            screenBuffer.Write(_options.FullPathSelector(result), Prompt.ColorSchema.Answer);
         }
 
         protected override void InputTemplate(OffscreenBuffer screenBuffer)
@@ -98,12 +106,9 @@ namespace Sharprompt.Forms
             }
             screenBuffer.WritePrompt(prompt);
             screenBuffer.Write(_paginator.FilterTerm);
-            if (_options.DefaultValue != null && _options.StartWithDefaultValue)
+            if (_paginator.TryGetSelectedItem(out var result))
             {
-                if (_paginator.TryGetSelectedItem(out var result))
-                {
-                    screenBuffer.Write(_options.TextSelector(result), Prompt.ColorSchema.Answer);
-                }
+                screenBuffer.Write(_options.TextSelector(result), Prompt.ColorSchema.Answer);
             }
 
             if (_options.ShowKeyNavigation)
@@ -113,8 +118,12 @@ namespace Sharprompt.Forms
                 {
                     screenBuffer.Write(Prompt.Messages.KeyNavPaging, Prompt.ColorSchema.KeyNavigation);
                 }
-
                 screenBuffer.Write(Prompt.Messages.FolderKeyNavigation, Prompt.ColorSchema.KeyNavigation);
+                if (_filterBuffer.Length > 0)
+                {
+                    screenBuffer.WriteLine();
+                    screenBuffer.Write(Prompt.Messages.ItemsFiltered, Prompt.ColorSchema.Warnning);
+                }
             }
             if (_options.ShowNavigationCurrentPath)
             {
@@ -126,7 +135,7 @@ namespace Sharprompt.Forms
 
             foreach (var item in subset)
             {
-                var value = _options.TextSelector(item);
+                var value = _options.AliasSelector(item);
 
                 screenBuffer.WriteLine();
 
@@ -211,11 +220,30 @@ namespace Sharprompt.Forms
                         result = new PathSelected(_currentPath, newfolder,true,false,false, !_options.ShowNavigationCurrentPath);
                         return true;
                     }
+                    case ConsoleKey.Enter when keyInfo.Modifiers == ConsoleModifiers.Control:
+                        _paginator.UnSelected();
+                        break;
                     case ConsoleKey.UpArrow when keyInfo.Modifiers == 0:
-                        _paginator.PreviousItem();
+                        if (_paginator.IsFistPageItem)
+                        {
+                            _paginator.PreviousPage();
+                            _paginator.LastItem();
+                        }
+                        else
+                        {
+                            _paginator.PreviousItem();
+                        }
                         break;
                     case ConsoleKey.DownArrow when keyInfo.Modifiers == 0:
-                        _paginator.NextItem();
+                        if (_paginator.IsLastPageItem)
+                        {
+                            _paginator.NextPage();
+                            _paginator.FirstItem();
+                        }
+                        else
+                        {
+                            _paginator.NextItem();
+                        }
                         break;
                     case ConsoleKey.LeftArrow when keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control) && _options.BrowserChoose == FileBrowserChoose.File:
                     {
@@ -229,7 +257,8 @@ namespace Sharprompt.Forms
                             break;
                         }
                         _currentPath = di.Parent.FullName;
-                        _paginator = new Paginator<PathSelected>(ItensFolders(di.Parent.FullName), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.TextSelector);
+                        _paginator = new Paginator<PathSelected>(ItensFolders(di.Parent.FullName), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.AliasSelector);
+                        _paginator.FirstItem();
                         break;
                     }
 
@@ -245,7 +274,8 @@ namespace Sharprompt.Forms
                             break;
                         }
                         _currentPath = di.Parent.FullName;
-                        _paginator = new Paginator<PathSelected>(ItensFolders(di.Parent.FullName), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.TextSelector);
+                        _paginator = new Paginator<PathSelected>(ItensFolders(di.Parent.FullName), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.AliasSelector);
+                        _paginator.FirstItem();
                         break;
                     }
                     case ConsoleKey.RightArrow when keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control) && _options.BrowserChoose == FileBrowserChoose.File:
@@ -257,7 +287,8 @@ namespace Sharprompt.Forms
                                 if (IsDirectoryHasChilds(Path.Combine(_currentPath, resultpreview.SelectedValue)))
                                 {
                                     _currentPath = Path.Combine(_currentPath, resultpreview.SelectedValue);
-                                    _paginator = new Paginator<PathSelected>(ItensFolders(_currentPath), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.TextSelector);
+                                    _paginator = new Paginator<PathSelected>(ItensFolders(_currentPath), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.AliasSelector);
+                                    _paginator.FirstItem();
                                 }
                             }
                         }
@@ -270,32 +301,33 @@ namespace Sharprompt.Forms
                             if (IsDirectoryHasChilds(Path.Combine(_currentPath,resultpreview.SelectedValue)))
                             {
                                 _currentPath = Path.Combine(_currentPath, resultpreview.SelectedValue);
-                                _paginator = new Paginator<PathSelected>(ItensFolders(_currentPath), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.TextSelector);
+                                _paginator = new Paginator<PathSelected>(ItensFolders(_currentPath), _options.PageSize, Optional<PathSelected>.Create(_defaultopt), _options.AliasSelector);
+                                _paginator.FirstItem();
                             }
                         }
                         break;
                     }
                     case ConsoleKey.PageDown when keyInfo.Modifiers == 0:
                         _paginator.NextPage();
-                        break;
-                    case ConsoleKey.Backspace when keyInfo.Modifiers == 0 && _filterBuffer.Length == 0:
-                        ConsoleDriver.Beep();
-                        break;
-                    case ConsoleKey.Backspace when keyInfo.Modifiers == 0:
-                        _filterBuffer.Length -= 1;
-                        _paginator.UpdateFilter(_filterBuffer.ToString());
+                        _paginator.FirstItem();
+
                         break;
                     case ConsoleKey.PageUp:
                         _paginator.PreviousPage();
+                        _paginator.LastItem();
                         break;
-                    case ConsoleKey.Delete:
-                        ConsoleDriver.Beep();
+                    case ConsoleKey.Backspace when keyInfo.Modifiers == 0:
+                        if (_filterBuffer.Length > 0)
+                        {
+                            _filterBuffer.Length -= 1;
+                            _paginator.UpdateFilter(_filterBuffer.ToString());
+                        }
                         break;
                     default:
                     {
                         if (!cancellationToken.IsCancellationRequested)
                         {
-                            if (!char.IsControl(keyInfo.KeyChar))
+                            if (!char.IsControl(keyInfo.KeyChar) && keyInfo.Modifiers == 0)
                             {
                                 _filterBuffer.Append(keyInfo.KeyChar);
 

@@ -27,6 +27,7 @@ namespace Sharprompt.Forms
             _inputItems.AddRange(options.DefaultValues ?? Enumerable.Empty<T>());
 
             _paginator = new Paginator<T>(_inputItems, options.PageSize, Optional<T>.Empty, options.TextSelector);
+            _paginator.FirstItem();
 
         }
 
@@ -120,7 +121,6 @@ namespace Sharprompt.Forms
                         break;
                     case ConsoleKey.Backspace when keyInfo.Modifiers == 0 &&  _startIndex > 0:
                         _startIndex -= 1;
-
                         _inputBuffer.Remove(_startIndex, 1);
                         break;
                     case ConsoleKey.Delete when keyInfo.Modifiers == 0 &&  _startIndex < _inputBuffer.Length:
@@ -180,7 +180,7 @@ namespace Sharprompt.Forms
                     {
                         if (!cancellationToken.IsCancellationRequested)
                         {
-                            if (!char.IsControl(keyInfo.KeyChar))
+                            if (!char.IsControl(keyInfo.KeyChar) && keyInfo.Modifiers == 0)
                             {
                                 _inputBuffer.Insert(_startIndex, keyInfo.KeyChar);
 

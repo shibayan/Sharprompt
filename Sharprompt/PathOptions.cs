@@ -6,8 +6,6 @@ namespace Sharprompt
 {
     public class PathOptions
     {
-        public bool StartWithDefaultValue { get; set; } = true;
-
         public bool ShowPagination { get; set; } = true;
 
         public FileBrowserChoose BrowserChoose { get; set; }
@@ -44,8 +42,10 @@ namespace Sharprompt
 
         public bool ShowMarkup { get; set; } = true;
 
-        internal Func<PathSelected, string> TextSelector = x => x.AliasSelected;
+        internal Func<PathSelected, string> AliasSelector = x => x.AliasSelected;
 
-        internal Func<PathSelected, string> ResultSelector = x => Path.Combine(x.PathValue,x.SelectedValue);
+        internal Func<PathSelected, string> TextSelector = x => x.SelectedValue;
+
+        internal Func<PathSelected, string> FullPathSelector = x => Path.Combine(x.PathValue,x.SelectedValue);
     }
 }

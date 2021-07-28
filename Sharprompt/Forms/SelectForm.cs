@@ -10,17 +10,15 @@ namespace Sharprompt.Forms
 {
     internal class SelectForm<T> : FormBase<T>
     {
-        public SelectForm(SelectOptions<T> options)
-            : base(false)
+        public SelectForm(SelectOptions<T> options): base(true)
         {
             _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector);
-
+            _paginator.FirstItem();
             _options = options;
         }
 
         private readonly SelectOptions<T> _options;
         private readonly Paginator<T> _paginator;
-
         private readonly StringBuilder _filterBuffer = new StringBuilder();
 
         protected override bool TryGetResult(CancellationToken cancellationToken,out T result)
@@ -33,16 +31,40 @@ namespace Sharprompt.Forms
                 {
                     case ConsoleKey.Enter when keyInfo.Modifiers == 0 && _paginator.TryGetSelectedItem(out result) :
                         return true;
+                    case ConsoleKey.Enter when keyInfo.Modifiers ==  ConsoleModifiers.Control:
+                        _paginator.UnSelected();
+                        break;
                     case ConsoleKey.Enter when keyInfo.Modifiers == 0:
                     {
+                        if (!typeof(T).Name.StartsWith("EnumValue`"))
+                        {
+                            result = default;
+                            return true;
+                        }
                         SetValidationResult(new ValidationResult(Prompt.Messages.Required));
                         break;
                     }
                     case ConsoleKey.UpArrow when keyInfo.Modifiers == 0:
-                        _paginator.PreviousItem();
+                        if (_paginator.IsFistPageItem)
+                        {
+                            _paginator.PreviousPage();
+                            _paginator.LastItem();
+                        }
+                        else
+                        {
+                            _paginator.PreviousItem();
+                        }
                         break;
                     case ConsoleKey.DownArrow when keyInfo.Modifiers == 0:
-                        _paginator.NextItem();
+                        if (_paginator.IsLastPageItem)
+                        {
+                            _paginator.NextPage();
+                            _paginator.FirstItem();
+                        }
+                        else
+                        {
+                            _paginator.NextItem();
+                        }
                         break;
                     case ConsoleKey.PageUp when keyInfo.Modifiers == 0:
                         _paginator.PreviousPage();
@@ -51,17 +73,19 @@ namespace Sharprompt.Forms
                         _paginator.NextPage();
                         break;
                     case ConsoleKey.Backspace when keyInfo.Modifiers == 0:
-                        _filterBuffer.Length -= 1;
-                        _paginator.UpdateFilter(_filterBuffer.ToString());
+                        if (_filterBuffer.Length > 0)
+                        {
+                            _filterBuffer.Length -= 1;
+                            _paginator.UpdateFilter(_filterBuffer.ToString());
+                        }
                         break;
                     default:
                     {
                         if (!cancellationToken.IsCancellationRequested)
                         {
-                            if (!char.IsControl(keyInfo.KeyChar))
+                            if (!char.IsControl(keyInfo.KeyChar) && keyInfo.Modifiers == 0)
                             {
                                 _filterBuffer.Append(keyInfo.KeyChar);
-
                                 _paginator.UpdateFilter(_filterBuffer.ToString());
                             }
                         }
@@ -79,10 +103,14 @@ namespace Sharprompt.Forms
         protected override void InputTemplate(OffscreenBuffer screenBuffer)
         {
             screenBuffer.WritePrompt(_options.Message);
-            screenBuffer.Write(_paginator.FilterTerm);
-            if (_options.DefaultValue != null && _options.StartWithDefaultValue)
+            if (_paginator.IsUnSelected)
             {
-                _paginator.TryGetSelectedItem(out var result);
+                screenBuffer.Write(_filterBuffer.ToString());
+            }
+            var (left, top) = screenBuffer.GetCursorPosition();
+
+            if (_paginator.TryGetSelectedItem(out var result))
+            {
                 screenBuffer.Write(_options.TextSelector(result), Prompt.ColorSchema.Answer);
             }
 
@@ -94,6 +122,11 @@ namespace Sharprompt.Forms
                     screenBuffer.Write(Prompt.Messages.KeyNavPaging, Prompt.ColorSchema.KeyNavigation);
                 }
                 screenBuffer.Write(Prompt.Messages.SelectKeyNavigation, Prompt.ColorSchema.KeyNavigation);
+                if (_filterBuffer.Length > 0)
+                {
+                    screenBuffer.WriteLine();
+                    screenBuffer.Write(Prompt.Messages.ItemsFiltered, Prompt.ColorSchema.Warnning);
+                }
             }
 
             var subset = _paginator.ToSubset();
@@ -122,6 +155,7 @@ namespace Sharprompt.Forms
                     screenBuffer.Write(_paginator.PaginationMessage(),Prompt.ColorSchema.PaginationInfo);
                 }
             }
+            screenBuffer.SetCursorPosition(left, top);
         }
 
         protected override void FinishTemplate(OffscreenBuffer screenBuffer, T result)

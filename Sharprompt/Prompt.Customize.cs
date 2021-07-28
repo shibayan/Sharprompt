@@ -17,19 +17,20 @@ namespace Sharprompt
             public static string MaxLength { get; set; } = "Value is too long";
             public static string NoMatchRegex { get; set; } = "Value is not match pattern";
             public static char PasswordChar { get; set; } = '*';
-            public static string ConfirmKeyNavigation { get; set; } = "Hit enter to finish";
+            public static string ConfirmKeyNavigation { get; set; } = "Hit Enter to finish";
             public static string MultiSelectMinSelection { get; set; } = "A minimum selection of {0} items is required";
             public static string MultiSelectMaxSelection { get; set; } = "A maximum selection of {0} items is required";
             public static string ListMinSelection { get; set; } = "A minimum input of {0} items is required";
             public static string ListMaxSelection { get; set; } = "A maximum input of {0} items is required";
-            public static string ListKeyNavigation { get; set; } = "Ctrl+Del to remove, hit enter to finish";
+            public static string ListKeyNavigation { get; set; } = "Ctrl+Del to remove, hit Enter to finish";
             public static string ListItemAlreadyexists { get; set; } = "Item already exists";
-            public static string SelectKeyNavigation { get; set; } = "Hit enter to select";
+            public static string SelectKeyNavigation { get; set; } = "Hit Enter to select, Ctrl+Enter to unselected";
             public static string KeyNavPaging { get; set; } = "PageUp/PageDown to paging,";
-            public static string MultiSelectKeyNavigation { get; set; } = "Hit space to select, hit enter to finish";
+            public static string MultiSelectKeyNavigation { get; set; } = "Hit space to select, hit enter to finish,  Ctrl+Enter to filter";
+            public static string ItemsFiltered { get; set; } = "items Filtered!";
             public static string PaginationTemplate { get; set; } = "  {0} items, {1}/{2} pages";
             public static string PaginationWithSelectedTemplate { get; set; } = "  {0}/{1} items, {2}/{3} pages";
-            public static string FolderKeyNavigation { get; set; } = "Ctrl + LeftArrow/RightArrow to dry folder, Hit enter to select";
+            public static string FolderKeyNavigation { get; set; } = "Ctrl+Left/Right to dry folder, Hit Enter to select, Ctrl+Enter to unselected";
             public static string FolderCurrentPath { get; set; } = "Current Folder :";
             public static string FileNotSelected { get; set; } = "Selected not a file!";
         }
@@ -40,7 +41,8 @@ namespace Sharprompt
             public static ConsoleColor KeyNavigation { get; set; } = ConsoleColor.DarkGray;
             public static ConsoleColor Answer { get; set; } = ConsoleColor.Cyan;
             public static ConsoleColor Select { get; set; } = ConsoleColor.Green;
-            public static ConsoleColor DisabledOption { get; set; } = ConsoleColor.DarkCyan;
+            public static ConsoleColor DisabledOption { get; set; } = ConsoleColor.DarkGray;
+            public static ConsoleColor Warnning { get; set; } = ConsoleColor.Yellow;
         }
 
         public static class Symbols

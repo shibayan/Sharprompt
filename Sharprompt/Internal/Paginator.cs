@@ -35,7 +35,7 @@ namespace Sharprompt.Internal
 
         public bool TryGetSelectedItem(out T selectedItem)
         {
-            if (_selectedIndex == -1)
+            if (_selectedIndex == -1 || _filteredItems.Length == 0)
             {
                 selectedItem = default;
 
@@ -43,8 +43,30 @@ namespace Sharprompt.Internal
             }
 
             selectedItem = _filteredItems[(_pageSize * _selectedPage) + _selectedIndex];
-
             return true;
+        }
+
+        public bool IsFistPageItem => _selectedIndex == 0 && Count > 0;
+        public bool IsLastPageItem => _selectedIndex == Count - 1 && Count > 0;
+        public bool IsUnSelected => _selectedIndex == -1;
+
+        public void UnSelected()
+        {
+            _selectedIndex = -1;
+        }
+        public void FirstItem()
+        {
+            if (Count >= 0)
+            {
+                _selectedIndex = 0;
+            }
+        }
+        public void LastItem()
+        {
+            if (Count >= 0)
+            {
+                _selectedIndex = Count - 1;
+            }
         }
 
         public void NextItem()

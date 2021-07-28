@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -178,19 +179,33 @@ namespace Sharprompt.Example
         }
         private void RunSelectSample()
         {
-            var city = Prompt.Select("Select your city", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, _stopApp, defaultValue: "Singapore", pageSize: 3);
+            var city = Prompt.Select("Select your city", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, _stopApp, pageSize: 3);
             if (!_stopApp.IsCancellationRequested)
             {
-                Console.WriteLine($"Hello, {city}!");
+                if (!string.IsNullOrEmpty(city))
+                {
+                    Console.WriteLine($"Hello, {city}!");
+                }
+                else
+                {
+                    Console.WriteLine($"Hello, no city seleted!");
+                }
             }
         }
 
         private void RunMultiSelectSample()
         {
-            var options = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, _stopApp, pageSize: 3, defaultValues: new[] { "Tokyo" });
+            var options = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, _stopApp, pageSize: 3, defaultValues: new[] { "Tokyo" }, minimum:0);
             if (!_stopApp.IsCancellationRequested)
             {
-                Console.WriteLine($"You picked {string.Join(", ", options)}");
+                if (options.Any())
+                {
+                    Console.WriteLine($"You picked {string.Join(", ", options)}");
+                }
+                else
+                {
+                    Console.WriteLine("You chose nothing!");
+                }
             }
         }
 
@@ -233,7 +248,7 @@ namespace Sharprompt.Example
 
         private void RunFileSample()
         {
-            var file = Prompt.FileBrowser(FileBrowserChoose.File, "Select/New file", _stopApp, pageSize: 10, allowNotSelected:true);
+            var file = Prompt.FileBrowser(FileBrowserChoose.File, "Select/New file", _stopApp, pageSize: 10, allowNotSelected:true,prefixExtension:".cs", supressHidden:false);
             if (!_stopApp.IsCancellationRequested)
             {
                 if (string.IsNullOrEmpty(file.SelectedValue))
