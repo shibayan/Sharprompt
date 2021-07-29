@@ -59,18 +59,18 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(OffscreenBuffer screenBuffer)
+        protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
         {
-            screenBuffer.WritePrompt(_options.Message);
-            screenBuffer.Write(new string('*', _inputBuffer.Length));
+            offscreenBuffer.WritePrompt(_options.Message);
+            offscreenBuffer.Write(new string('*', _inputBuffer.Length));
 
-            screenBuffer.SetCursorPosition();
+            offscreenBuffer.SetCursorPosition();
         }
 
-        protected override void FinishTemplate(OffscreenBuffer screenBuffer, string result)
+        protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, string result)
         {
-            screenBuffer.WriteFinish(_options.Message);
-            screenBuffer.Write(new string('*', _inputBuffer.Length), Prompt.ColorSchema.Answer);
+            offscreenBuffer.WriteFinish(_options.Message);
+            offscreenBuffer.Write(new string('*', _inputBuffer.Length), Prompt.ColorSchema.Answer);
         }
     }
 }

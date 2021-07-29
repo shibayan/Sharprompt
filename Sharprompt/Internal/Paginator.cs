@@ -20,16 +20,15 @@ namespace Sharprompt.Internal
         private readonly Func<T, string> _textSelector;
 
         private T[] _filteredItems;
-        private int _pageCount;
-
         private int _selectedIndex = -1;
-        private int _selectedPage;
 
-        public int PageCount => _pageCount;
-        public int SelectedPage => _selectedPage;
+        public int PageCount { get; private set; }
+
+        public int SelectedPage { get; private set; }
+
+        public int Count => Math.Min(_filteredItems.Length - (_pageSize * SelectedPage), _pageSize);
+
         public int TotalCount => _filteredItems.Length;
-
-        public int Count => Math.Min(_filteredItems.Length - (_pageSize * _selectedPage), _pageSize);
 
         public string FilterTerm { get; private set; } = "";
 
@@ -42,7 +41,7 @@ namespace Sharprompt.Internal
                 return false;
             }
 
-            selectedItem = _filteredItems[(_pageSize * _selectedPage) + _selectedIndex];
+            selectedItem = _filteredItems[(_pageSize * SelectedPage) + _selectedIndex];
 
             return true;
         }
@@ -59,23 +58,23 @@ namespace Sharprompt.Internal
 
         public void NextPage()
         {
-            if (_pageCount == 1)
+            if (PageCount == 1)
             {
                 return;
             }
 
-            _selectedPage = _selectedPage >= _pageCount - 1 ? 0 : _selectedPage + 1;
+            SelectedPage = SelectedPage >= PageCount - 1 ? 0 : SelectedPage + 1;
             _selectedIndex = -1;
         }
 
         public void PreviousPage()
         {
-            if (_pageCount == 1)
+            if (PageCount == 1)
             {
                 return;
             }
 
-            _selectedPage = _selectedPage <= 0 ? _pageCount - 1 : _selectedPage - 1;
+            SelectedPage = SelectedPage <= 0 ? PageCount - 1 : SelectedPage - 1;
             _selectedIndex = -1;
         }
 
@@ -84,24 +83,24 @@ namespace Sharprompt.Internal
             FilterTerm = term;
 
             _selectedIndex = -1;
-            _selectedPage = 0;
+            SelectedPage = 0;
 
-            InitializeCollection();
+            UpdateItems();
         }
 
-        public ArraySegment<T> ToSubset() => new(_filteredItems, _pageSize * _selectedPage, Count);
+        public ArraySegment<T> ToSubset() => new(_filteredItems, _pageSize * SelectedPage, Count);
 
-        private void InitializeCollection()
+        private void UpdateItems()
         {
             _filteredItems = _items.Where(x => _textSelector(x).IndexOf(FilterTerm, StringComparison.OrdinalIgnoreCase) != -1)
-                                    .ToArray();
+                                   .ToArray();
 
-            _pageCount = (_filteredItems.Length - 1) / _pageSize + 1;
+            PageCount = (_filteredItems.Length - 1) / _pageSize + 1;
         }
 
         private void InitializeDefaults(Optional<T> defaultValue)
         {
-            InitializeCollection();
+            UpdateItems();
 
             if (!defaultValue.HasValue)
             {
@@ -113,7 +112,7 @@ namespace Sharprompt.Internal
                 if (EqualityComparer<T>.Default.Equals(_filteredItems[i], defaultValue))
                 {
                     _selectedIndex = i % _pageSize;
-                    _selectedPage = i / _pageSize;
+                    SelectedPage = i / _pageSize;
 
                     break;
                 }

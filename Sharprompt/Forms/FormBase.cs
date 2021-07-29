@@ -41,13 +41,15 @@ namespace Sharprompt.Forms
 
         protected abstract bool TryGetResult(out T result);
 
-        protected abstract void InputTemplate(OffscreenBuffer screenBuffer);
+        protected abstract void InputTemplate(OffscreenBuffer offscreenBuffer);
 
-        protected abstract void FinishTemplate(OffscreenBuffer screenBuffer, T result);
+        protected abstract void FinishTemplate(OffscreenBuffer offscreenBuffer, T result);
 
-        protected void SetValidationResult(ValidationResult validationResult) => _formRenderer.ErrorMessage = validationResult.ErrorMessage;
+        protected void SetError(string errorMessage) => _formRenderer.ErrorMessage = errorMessage;
 
-        protected void SetException(Exception exception) => _formRenderer.ErrorMessage = exception.Message;
+        protected void SetError(ValidationResult validationResult) => _formRenderer.ErrorMessage = validationResult.ErrorMessage;
+
+        protected void SetError(Exception exception) => _formRenderer.ErrorMessage = exception.Message;
 
         protected bool TryValidate(object input, IList<Func<object, ValidationResult>> validators)
         {
@@ -57,7 +59,7 @@ namespace Sharprompt.Forms
 
                 if (result != ValidationResult.Success)
                 {
-                    SetValidationResult(result);
+                    SetError(result);
 
                     return false;
                 }
