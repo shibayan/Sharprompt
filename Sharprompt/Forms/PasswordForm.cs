@@ -25,16 +25,13 @@ namespace Sharprompt.Forms
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.Enter:
-                    {
                         result = _inputBuffer.ToString();
 
                         if (TryValidate(result, _options.Validators))
                         {
                             return true;
                         }
-
                         break;
-                    }
                     case ConsoleKey.Backspace when _inputBuffer.Length == 0:
                         ConsoleDriver.Beep();
                         break;
@@ -42,14 +39,11 @@ namespace Sharprompt.Forms
                         _inputBuffer.Length -= 1;
                         break;
                     default:
-                    {
                         if (!char.IsControl(keyInfo.KeyChar))
                         {
                             _inputBuffer.Append(keyInfo.KeyChar);
                         }
-
                         break;
-                    }
                 }
 
             } while (ConsoleDriver.KeyAvailable);

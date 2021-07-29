@@ -91,14 +91,11 @@ namespace Sharprompt.Forms
                         ConsoleDriver.Beep();
                         break;
                     default:
-                    {
                         if (!char.IsControl(keyInfo.KeyChar))
                         {
                             _inputBuffer.Insert(_startIndex++, keyInfo.KeyChar);
                         }
-
                         break;
-                    }
                 }
 
             } while (ConsoleDriver.KeyAvailable);

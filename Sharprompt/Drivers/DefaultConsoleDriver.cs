@@ -66,8 +66,6 @@ namespace Sharprompt.Drivers
 
         public void WriteLine() => Console.WriteLine();
 
-        public (int left, int top) GetCursorPosition() => (Console.CursorLeft, Console.CursorTop);
-
         public void SetCursorPosition(int left, int top)
         {
             if (top < 0)

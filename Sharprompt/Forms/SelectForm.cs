@@ -55,16 +55,13 @@ namespace Sharprompt.Forms
                         _paginator.UpdateFilter(_filterBuffer.ToString());
                         break;
                     default:
-                    {
                         if (!char.IsControl(keyInfo.KeyChar))
                         {
                             _filterBuffer.Append(keyInfo.KeyChar);
 
                             _paginator.UpdateFilter(_filterBuffer.ToString());
                         }
-
                         break;
-                    }
                 }
 
             } while (ConsoleDriver.KeyAvailable);

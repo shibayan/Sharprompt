@@ -53,7 +53,6 @@ namespace Sharprompt.Forms
                         SetError($"A minimum selection of {_options.Minimum} items is required");
                         break;
                     case ConsoleKey.Spacebar when _paginator.TryGetSelectedItem(out var currentItem):
-                    {
                         if (_selectedItems.Contains(currentItem))
                         {
                             _selectedItems.Remove(currentItem);
@@ -71,7 +70,6 @@ namespace Sharprompt.Forms
                         }
 
                         break;
-                    }
                     case ConsoleKey.UpArrow:
                         _paginator.PreviousItem();
                         break;
@@ -93,16 +91,13 @@ namespace Sharprompt.Forms
                         _paginator.UpdateFilter(_filterBuffer.ToString());
                         break;
                     default:
-                    {
                         if (!char.IsControl(keyInfo.KeyChar))
                         {
                             _filterBuffer.Append(keyInfo.KeyChar);
 
                             _paginator.UpdateFilter(_filterBuffer.ToString());
                         }
-
                         break;
-                    }
                 }
 
             } while (ConsoleDriver.KeyAvailable);
