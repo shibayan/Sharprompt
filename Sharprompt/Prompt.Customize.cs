@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Sharprompt
 {
@@ -6,6 +6,8 @@ namespace Sharprompt
     {
         public static class ColorSchema
         {
+            public static ConsoleColor DoneSymbolColor { get; set; } = ConsoleColor.Green;
+            public static ConsoleColor PromptSymbolColor { get; set; } = ConsoleColor.Green;
             public static ConsoleColor Answer { get; set; } = ConsoleColor.Cyan;
             public static ConsoleColor Select { get; set; } = ConsoleColor.Green;
             public static ConsoleColor DisabledOption { get; set; } = ConsoleColor.DarkCyan;
