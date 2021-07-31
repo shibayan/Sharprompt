@@ -19,14 +19,14 @@ namespace Sharprompt.Internal
         private readonly List<List<TextInfo>> _outputBuffer = new();
 
         private int _bufferBottom;
-        private Cursor _savedCursor;
+        private Cursor _pushedCursor;
 
-        public void Clear()
+        public void ClearBuffer()
         {
             _outputBuffer.Clear();
             _outputBuffer.Add(new List<TextInfo>());
 
-            _savedCursor = null;
+            _pushedCursor = null;
         }
 
         public void Write(string text)
@@ -64,12 +64,12 @@ namespace Sharprompt.Internal
 
         public void PushCursor()
         {
-            if (_savedCursor != null)
+            if (_pushedCursor != null)
             {
                 return;
             }
 
-            _savedCursor = new Cursor
+            _pushedCursor = new Cursor
             {
                 Left = _outputBuffer.Last().Sum(x => x.Width),
                 Top = _outputBuffer.Count - 1
@@ -97,10 +97,10 @@ namespace Sharprompt.Internal
 
             _bufferBottom = _consoleDriver.CursorTop;
 
-            if (_savedCursor != null)
+            if (_pushedCursor != null)
             {
-                var physicalLeft = _savedCursor.Left % _consoleDriver.BufferWidth;
-                var physicalTop = _savedCursor.Top + (_savedCursor.Left / _consoleDriver.BufferWidth);
+                var physicalLeft = _pushedCursor.Left % _consoleDriver.BufferWidth;
+                var physicalTop = _pushedCursor.Top + (_pushedCursor.Left / _consoleDriver.BufferWidth);
 
                 _consoleDriver.SetCursorPosition(physicalLeft, bufferTop + physicalTop);
             }
@@ -108,14 +108,14 @@ namespace Sharprompt.Internal
 
         public void ClearConsole()
         {
-            var lineCount = _outputBuffer.Count + _outputBuffer.Sum(x => (x.Sum(xs => xs.Width) - 1) / _consoleDriver.BufferWidth);
+            var lineCount = _outputBuffer.Sum(x => (x.Sum(xs => xs.Width) - 1) / _consoleDriver.BufferWidth + 1);
 
             for (var i = 0; i < lineCount; i++)
             {
                 _consoleDriver.ClearLine(_bufferBottom - i);
             }
 
-            Clear();
+            ClearBuffer();
         }
 
         private void RequestCancellation()
