@@ -7,15 +7,13 @@ namespace Sharprompt.Forms
 {
     internal class FormRenderer : IDisposable
     {
-        public FormRenderer(IConsoleDriver consoleDriver, bool cursorVisible = true)
+        public FormRenderer(IConsoleDriver consoleDriver)
         {
             _consoleDriver = consoleDriver;
-            _cursorVisible = cursorVisible;
 
             _offscreenBuffer = new OffscreenBuffer(_consoleDriver);
         }
 
-        private readonly bool _cursorVisible;
         private readonly IConsoleDriver _consoleDriver;
         private readonly OffscreenBuffer _offscreenBuffer;
 
@@ -42,7 +40,7 @@ namespace Sharprompt.Forms
 
             _offscreenBuffer.RenderToConsole();
 
-            _consoleDriver.CursorVisible = _cursorVisible;
+            _consoleDriver.CursorVisible = true;
         }
 
         public void Render<TModel>(Action<OffscreenBuffer, TModel> template, TModel result)
@@ -57,7 +55,7 @@ namespace Sharprompt.Forms
 
             _consoleDriver.WriteLine();
 
-            _consoleDriver.CursorVisible = _cursorVisible;
+            _consoleDriver.CursorVisible = true;
         }
     }
 }

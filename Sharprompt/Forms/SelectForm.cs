@@ -9,7 +9,6 @@ namespace Sharprompt.Forms
     internal class SelectForm<T> : FormBase<T>
     {
         public SelectForm(SelectOptions<T> options)
-            : base(false)
         {
             _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector);
 
@@ -75,6 +74,8 @@ namespace Sharprompt.Forms
         {
             offscreenBuffer.WritePrompt(_options.Message);
             offscreenBuffer.Write(_paginator.FilterTerm);
+
+            offscreenBuffer.PushCursor();
 
             var subset = _paginator.ToSubset();
 

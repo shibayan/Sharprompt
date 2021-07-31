@@ -10,7 +10,6 @@ namespace Sharprompt.Forms
     internal class MultiSelectForm<T> : FormBase<IEnumerable<T>>
     {
         public MultiSelectForm(MultiSelectOptions<T> options)
-            : base(false)
         {
             if (options.Minimum < 0)
             {
@@ -116,6 +115,8 @@ namespace Sharprompt.Forms
             {
                 offscreenBuffer.Write(" Hit space to select", Prompt.ColorSchema.Answer);
             }
+
+            offscreenBuffer.PushCursor();
 
             var subset = _paginator.ToSubset();
 

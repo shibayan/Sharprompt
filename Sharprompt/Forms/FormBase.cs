@@ -9,11 +9,11 @@ namespace Sharprompt.Forms
 {
     internal abstract class FormBase<T> : IDisposable
     {
-        protected FormBase(bool cursorVisible = true)
+        protected FormBase()
         {
             ConsoleDriver = new DefaultConsoleDriver();
 
-            _formRenderer = new FormRenderer(ConsoleDriver, cursorVisible);
+            _formRenderer = new FormRenderer(ConsoleDriver);
         }
 
         private readonly FormRenderer _formRenderer;

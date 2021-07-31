@@ -18,7 +18,7 @@ namespace Sharprompt.Internal
         private readonly IConsoleDriver _consoleDriver;
         private readonly List<List<TextInfo>> _outputBuffer = new();
 
-        private int _cursorBottom;
+        private int _bufferBottom;
         private Cursor _savedCursor;
 
         public void Clear()
@@ -72,13 +72,13 @@ namespace Sharprompt.Internal
             _savedCursor = new Cursor
             {
                 Left = _outputBuffer.Last().Sum(x => x.Width),
-                Top = _outputBuffer.Count
+                Top = _outputBuffer.Count - 1
             };
         }
 
         public void RenderToConsole()
         {
-            var cursorTop = _consoleDriver.CursorTop;
+            var bufferTop = _consoleDriver.CursorTop;
 
             for (var i = 0; i < _outputBuffer.Count; i++)
             {
@@ -95,11 +95,14 @@ namespace Sharprompt.Internal
                 }
             }
 
-            _cursorBottom = _consoleDriver.CursorTop;
+            _bufferBottom = _consoleDriver.CursorTop;
 
             if (_savedCursor != null)
             {
-                _consoleDriver.SetCursorPosition(_savedCursor.Left, cursorTop + _savedCursor.Top - 1);
+                var physicalLeft = _savedCursor.Left % _consoleDriver.BufferWidth;
+                var physicalTop = _savedCursor.Top + (_savedCursor.Left / _consoleDriver.BufferWidth);
+
+                _consoleDriver.SetCursorPosition(physicalLeft, bufferTop + physicalTop);
             }
         }
 
@@ -109,7 +112,7 @@ namespace Sharprompt.Internal
 
             for (var i = 0; i < lineCount; i++)
             {
-                _consoleDriver.ClearLine(_cursorBottom - i);
+                _consoleDriver.ClearLine(_bufferBottom - i);
             }
 
             Clear();
@@ -117,7 +120,7 @@ namespace Sharprompt.Internal
 
         private void RequestCancellation()
         {
-            _consoleDriver.SetCursorPosition(0, _cursorBottom);
+            _consoleDriver.SetCursorPosition(0, _bufferBottom);
             _consoleDriver.Reset();
 
             Environment.Exit(1);
