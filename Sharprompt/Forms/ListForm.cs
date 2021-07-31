@@ -128,21 +128,15 @@ namespace Sharprompt.Forms
         {
             offscreenBuffer.WritePrompt(_options.Message);
 
-            var (left, top) = offscreenBuffer.GetCursorPosition();
+            offscreenBuffer.Write(_inputBuffer.ToString());
 
-            var input = _inputBuffer.ToString();
-
-            offscreenBuffer.Write(input);
+            offscreenBuffer.PushCursor();
 
             foreach (var inputItem in _inputItems)
             {
                 offscreenBuffer.WriteLine();
                 offscreenBuffer.Write($"  {inputItem}");
             }
-
-            var width = left + input.Take(_startIndex).GetWidth();
-
-            offscreenBuffer.SetCursorPosition(width % offscreenBuffer.BufferWidth, top + (width / offscreenBuffer.BufferWidth));
         }
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, IEnumerable<T> result)

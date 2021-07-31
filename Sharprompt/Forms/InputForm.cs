@@ -114,15 +114,7 @@ namespace Sharprompt.Forms
                 offscreenBuffer.Write($"({_defaultValue.Value}) ");
             }
 
-            var (left, top) = offscreenBuffer.GetCursorPosition();
-
-            var input = _inputBuffer.ToString();
-
-            offscreenBuffer.Write(input);
-
-            var width = left + input.Take(_startIndex).GetWidth();
-
-            offscreenBuffer.SetCursorPosition(width % offscreenBuffer.BufferWidth, top + (width / offscreenBuffer.BufferWidth));
+            offscreenBuffer.Write(_inputBuffer.ToString());
         }
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, T result)

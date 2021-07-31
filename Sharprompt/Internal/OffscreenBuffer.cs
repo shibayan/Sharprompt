@@ -18,22 +18,15 @@ namespace Sharprompt.Internal
         private readonly IConsoleDriver _consoleDriver;
         private readonly List<List<TextInfo>> _outputBuffer = new();
 
-        private int _cursorLeft;
-        private int _cursorTop;
-
-        public int CursorBottom { get; set; }
-
-        public int BufferWidth => _consoleDriver.BufferWidth;
-
-        public int LineCount => _outputBuffer.Count + _outputBuffer.Sum(x => (x.Sum(xs => xs.Text.GetWidth()) - 1) / BufferWidth);
+        private int _cursorBottom;
+        private Cursor _savedCursor;
 
         public void Clear()
         {
             _outputBuffer.Clear();
             _outputBuffer.Add(new List<TextInfo>());
 
-            _cursorLeft = 0;
-            _cursorTop = 0;
+            _savedCursor = null;
         }
 
         public void Write(string text)
@@ -69,29 +62,24 @@ namespace Sharprompt.Internal
             Write($"{Prompt.Symbols.Error} {errorMessage}", ConsoleColor.Red);
         }
 
-        public (int left, int top) GetCursorPosition()
+        public void PushCursor()
         {
-            var left = _outputBuffer.Last().Sum(x => x.Text.GetWidth()) % BufferWidth;
-            var top = LineCount - 1;
+            if (_savedCursor != null)
+            {
+                return;
+            }
 
-            return (left, top);
-        }
-
-        public void SetCursorPosition()
-        {
-            var (left, top) = GetCursorPosition();
-
-            SetCursorPosition(left, top);
-        }
-
-        public void SetCursorPosition(int left, int top)
-        {
-            _cursorLeft = left;
-            _cursorTop = top;
+            _savedCursor = new Cursor
+            {
+                Left = _outputBuffer.Last().Sum(x => x.Width),
+                Top = _outputBuffer.Count
+            };
         }
 
         public void RenderToConsole()
         {
+            var cursorTop = _consoleDriver.CursorTop;
+
             for (var i = 0; i < _outputBuffer.Count; i++)
             {
                 var lineBuffer = _outputBuffer[i];
@@ -107,18 +95,21 @@ namespace Sharprompt.Internal
                 }
             }
 
-            CursorBottom = _consoleDriver.CursorTop;
+            _cursorBottom = _consoleDriver.CursorTop;
 
-            _consoleDriver.SetCursorPosition(_cursorLeft, _consoleDriver.CursorTop - (LineCount - _cursorTop - 1));
+            if (_savedCursor != null)
+            {
+                _consoleDriver.SetCursorPosition(_savedCursor.Left, cursorTop + _savedCursor.Top - 1);
+            }
         }
 
         public void ClearConsole()
         {
-            var bottom = CursorBottom;
+            var lineCount = _outputBuffer.Count + _outputBuffer.Sum(x => (x.Sum(xs => xs.Width) - 1) / _consoleDriver.BufferWidth);
 
-            for (var i = 0; i < LineCount; i++)
+            for (var i = 0; i < lineCount; i++)
             {
-                _consoleDriver.ClearLine(bottom - i);
+                _consoleDriver.ClearLine(_cursorBottom - i);
             }
 
             Clear();
@@ -126,7 +117,7 @@ namespace Sharprompt.Internal
 
         private void RequestCancellation()
         {
-            _consoleDriver.SetCursorPosition(0, CursorBottom);
+            _consoleDriver.SetCursorPosition(0, _cursorBottom);
             _consoleDriver.Reset();
 
             Environment.Exit(1);
@@ -138,10 +129,12 @@ namespace Sharprompt.Internal
             {
                 Text = text;
                 Color = color;
+                Width = text.GetWidth();
             }
 
             public string Text { get; }
             public ConsoleColor Color { get; }
+            public int Width { get; }
         }
     }
 }
