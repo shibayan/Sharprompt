@@ -58,7 +58,7 @@ namespace Sharprompt
                 {
                     var method = _multiSelectMethod.MakeGenericMethod(propertyMetadata.PropertyType.GetGenericArguments()[0]);
 
-                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, null, 1, -1, defaultValue));
+                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, null, 1, int.MaxValue, defaultValue));
                 }
                 else
                 {
