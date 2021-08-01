@@ -53,13 +53,13 @@ namespace Sharprompt.Internal
 
         public void WritePrompt(string message)
         {
-            Write(Prompt.Symbols.Prompt, ConsoleColor.Green);
+            Write(Prompt.Symbols.Prompt, Prompt.ColorSchema.PromptSymbol);
             Write($" {message}: ");
         }
 
         public void WriteFinish(string message)
         {
-            Write(Prompt.Symbols.Done, ConsoleColor.Green);
+            Write(Prompt.Symbols.Done, Prompt.ColorSchema.DoneSymbol);
             Write($" {message}: ");
         }
 
