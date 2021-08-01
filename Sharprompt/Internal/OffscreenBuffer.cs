@@ -16,7 +16,7 @@ namespace Sharprompt.Internal
         }
 
         private readonly IConsoleDriver _consoleDriver;
-        private readonly List<List<TextInfo>> _outputBuffer = new List<List<TextInfo>>();
+        private readonly List<List<TextInfo>> _outputBuffer = new();
 
         private int _cursorLeft;
         private int _cursorTop;
@@ -53,13 +53,13 @@ namespace Sharprompt.Internal
 
         public void WritePrompt(string message)
         {
-            Write(Prompt.Symbols.Prompt, Prompt.ColorSchema.PromptSymbolColor);
+            Write(Prompt.Symbols.Prompt, Prompt.ColorSchema.PromptSymbol);
             Write($" {message}: ");
         }
 
         public void WriteFinish(string message)
         {
-            Write(Prompt.Symbols.Done, Prompt.ColorSchema.DoneSymbolColor);
+            Write(Prompt.Symbols.Done, Prompt.ColorSchema.DoneSymbol);
             Write($" {message}: ");
         }
 
