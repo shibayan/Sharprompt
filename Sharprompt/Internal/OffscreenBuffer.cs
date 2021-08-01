@@ -22,6 +22,8 @@ namespace Sharprompt.Internal
         private int _cursorBottom;
         private Cursor _pushedCursor;
 
+        public int WrittenLineCount => _outputBuffer.Sum(x => (x.Sum(xs => xs.Width) - 1) / _consoleDriver.BufferWidth + 1) - 1;
+
         public void Dispose() => _consoleDriver.Dispose();
 
         public void Write(string text)
@@ -73,15 +75,11 @@ namespace Sharprompt.Internal
 
         public IDisposable BeginRender()
         {
-            var writtenLineCount = _outputBuffer.Sum(x => (x.Sum(xs => xs.Width) - 1) / _consoleDriver.BufferWidth + 1);
-
-            return new RenderScope(this, _consoleDriver, _cursorBottom, writtenLineCount);
+            return new RenderScope(this, _consoleDriver, _cursorBottom, WrittenLineCount);
         }
 
         public void RenderToConsole()
         {
-            var cursorTop = _consoleDriver.CursorTop;
-
             for (var i = 0; i < _outputBuffer.Count; i++)
             {
                 var lineBuffer = _outputBuffer[i];
@@ -104,13 +102,13 @@ namespace Sharprompt.Internal
                 var physicalLeft = _pushedCursor.Left % _consoleDriver.BufferWidth;
                 var physicalTop = _pushedCursor.Top + (_pushedCursor.Left / _consoleDriver.BufferWidth);
 
-                _consoleDriver.SetCursorPosition(physicalLeft, cursorTop + physicalTop);
+                _consoleDriver.SetCursorPosition(physicalLeft, _cursorBottom - WrittenLineCount + physicalTop);
             }
         }
 
         public void ClearConsole(int cursorBottom, int writtenLineCount)
         {
-            for (var i = 0; i < writtenLineCount; i++)
+            for (var i = 0; i <= writtenLineCount; i++)
             {
                 _consoleDriver.ClearLine(cursorBottom - i);
             }
