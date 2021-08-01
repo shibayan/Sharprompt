@@ -23,39 +23,29 @@ namespace Sharprompt.Forms
 
         public void Render(Action<OffscreenBuffer> template)
         {
-            _consoleDriver.CursorVisible = false;
-
-            _offscreenBuffer.ClearConsole();
-
-            template(_offscreenBuffer);
-
-            _offscreenBuffer.PushCursor();
-
-            if (ErrorMessage != null)
+            using (_offscreenBuffer.BeginRender())
             {
-                _offscreenBuffer.WriteErrorMessage(ErrorMessage);
+                template(_offscreenBuffer);
 
-                ErrorMessage = null;
+                _offscreenBuffer.PushCursor();
+
+                if (ErrorMessage != null)
+                {
+                    _offscreenBuffer.WriteErrorMessage(ErrorMessage);
+
+                    ErrorMessage = null;
+                }
             }
-
-            _offscreenBuffer.RenderToConsole();
-
-            _consoleDriver.CursorVisible = true;
         }
 
         public void Render<TModel>(Action<OffscreenBuffer, TModel> template, TModel result)
         {
-            _consoleDriver.CursorVisible = false;
+            using (_offscreenBuffer.BeginRender())
+            {
+                template(_offscreenBuffer, result);
 
-            _offscreenBuffer.ClearConsole();
-
-            template(_offscreenBuffer, result);
-
-            _offscreenBuffer.RenderToConsole();
-
-            _consoleDriver.WriteLine();
-
-            _consoleDriver.CursorVisible = true;
+                _offscreenBuffer.WriteLine();
+            }
         }
     }
 }
