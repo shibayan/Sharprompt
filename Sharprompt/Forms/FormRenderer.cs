@@ -9,17 +9,14 @@ namespace Sharprompt.Forms
     {
         public FormRenderer(IConsoleDriver consoleDriver)
         {
-            _consoleDriver = consoleDriver;
-
-            _offscreenBuffer = new OffscreenBuffer(_consoleDriver);
+            _offscreenBuffer = new OffscreenBuffer(consoleDriver);
         }
 
-        private readonly IConsoleDriver _consoleDriver;
         private readonly OffscreenBuffer _offscreenBuffer;
 
         public string ErrorMessage { get; set; }
 
-        public void Dispose() => _consoleDriver.Dispose();
+        public void Dispose() => _offscreenBuffer.Dispose();
 
         public void Render(Action<OffscreenBuffer> template)
         {
