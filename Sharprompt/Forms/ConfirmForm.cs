@@ -42,23 +42,20 @@ namespace Sharprompt.Forms
                         }
                         else
                         {
-                            var lowerInput = input.ToLower();
-
-                            if (lowerInput == "y" || lowerInput == "yes")
+                            switch (input.ToLowerInvariant())
                             {
-                                result = true;
+                                case "y" or "yes":
+                                    result = true;
 
-                                return true;
+                                    return true;
+                                case "n" or "no":
+                                    result = false;
+
+                                    return true;
+                                default:
+                                    SetError("Value is invalid");
+                                    break;
                             }
-
-                            if (lowerInput == "n" || lowerInput == "no")
-                            {
-                                result = false;
-
-                                return true;
-                            }
-
-                            SetError("Value is invalid");
                         }
 
                         break;
