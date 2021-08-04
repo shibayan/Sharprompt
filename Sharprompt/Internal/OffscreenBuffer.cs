@@ -66,7 +66,7 @@ namespace Sharprompt.Internal
         public void WriteErrorMessage(string errorMessage)
         {
             WriteLine();
-            Write($"{Prompt.Symbols.Error} {errorMessage}", ConsoleColor.Red);
+            Write($"{Prompt.Symbols.Error} {errorMessage}", Prompt.ColorSchema.Error);
         }
 
         public void PushCursor()
