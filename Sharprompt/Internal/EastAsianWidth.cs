@@ -6,9 +6,9 @@ namespace Sharprompt.Internal
 {
     internal static class EastAsianWidth
     {
-        public static int GetWidth(this char codePoint) => IsFullWidth(codePoint) ? 2 : 1;
-
         public static int GetWidth(this IEnumerable<char> value) => value.Sum(GetWidth);
+
+        private static int GetWidth(this char codePoint) => IsFullWidth(codePoint) ? 2 : 1;
 
         private static bool IsFullWidth(int codePoint)
         {

@@ -25,16 +25,13 @@ namespace Sharprompt.Forms
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.Enter:
-                    {
                         result = _inputBuffer.ToString();
 
                         if (TryValidate(result, _options.Validators))
                         {
                             return true;
                         }
-
                         break;
-                    }
                     case ConsoleKey.Backspace when _inputBuffer.Length == 0:
                         ConsoleDriver.Beep();
                         break;
@@ -42,14 +39,11 @@ namespace Sharprompt.Forms
                         _inputBuffer.Length -= 1;
                         break;
                     default:
-                    {
                         if (!char.IsControl(keyInfo.KeyChar))
                         {
                             _inputBuffer.Append(keyInfo.KeyChar);
                         }
-
                         break;
-                    }
                 }
 
             } while (ConsoleDriver.KeyAvailable);
@@ -59,18 +53,16 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(OffscreenBuffer screenBuffer)
+        protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
         {
-            screenBuffer.WritePrompt(_options.Message);
-            screenBuffer.Write(new string('*', _inputBuffer.Length));
-
-            screenBuffer.SetCursorPosition();
+            offscreenBuffer.WritePrompt(_options.Message);
+            offscreenBuffer.Write(new string('*', _inputBuffer.Length));
         }
 
-        protected override void FinishTemplate(OffscreenBuffer screenBuffer, string result)
+        protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, string result)
         {
-            screenBuffer.WriteFinish(_options.Message);
-            screenBuffer.Write(new string('*', _inputBuffer.Length), Prompt.ColorSchema.Answer);
+            offscreenBuffer.WriteFinish(_options.Message);
+            offscreenBuffer.Write(new string('*', _inputBuffer.Length), Prompt.ColorSchema.Answer);
         }
     }
 }

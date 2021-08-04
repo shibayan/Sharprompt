@@ -7,55 +7,42 @@ namespace Sharprompt.Forms
 {
     internal class FormRenderer : IDisposable
     {
-        public FormRenderer(IConsoleDriver consoleDriver, bool cursorVisible = true)
+        public FormRenderer(IConsoleDriver consoleDriver)
         {
-            _consoleDriver = consoleDriver;
-            _cursorVisible = cursorVisible;
-
-            _offscreenBuffer = new OffscreenBuffer(_consoleDriver);
+            _offscreenBuffer = new OffscreenBuffer(consoleDriver);
         }
 
-        private readonly bool _cursorVisible;
-        private readonly IConsoleDriver _consoleDriver;
         private readonly OffscreenBuffer _offscreenBuffer;
 
         public string ErrorMessage { get; set; }
 
-        public void Dispose() => _consoleDriver.Dispose();
+        public void Dispose() => _offscreenBuffer.Dispose();
 
         public void Render(Action<OffscreenBuffer> template)
         {
-            _consoleDriver.CursorVisible = false;
-
-            _offscreenBuffer.ClearConsole();
-
-            template(_offscreenBuffer);
-
-            if (ErrorMessage != null)
+            using (_offscreenBuffer.BeginRender())
             {
-                _offscreenBuffer.WriteErrorMessage(ErrorMessage);
+                template(_offscreenBuffer);
 
-                ErrorMessage = null;
+                _offscreenBuffer.PushCursor();
+
+                if (ErrorMessage != null)
+                {
+                    _offscreenBuffer.WriteErrorMessage(ErrorMessage);
+
+                    ErrorMessage = null;
+                }
             }
-
-            _offscreenBuffer.RenderToConsole();
-
-            _consoleDriver.CursorVisible = _cursorVisible;
         }
 
         public void Render<TModel>(Action<OffscreenBuffer, TModel> template, TModel result)
         {
-            _consoleDriver.CursorVisible = false;
+            using (_offscreenBuffer.BeginRender())
+            {
+                template(_offscreenBuffer, result);
 
-            _offscreenBuffer.ClearConsole();
-
-            template(_offscreenBuffer, result);
-
-            _offscreenBuffer.RenderToConsole();
-
-            _consoleDriver.WriteLine();
-
-            _consoleDriver.CursorVisible = _cursorVisible;
+                _offscreenBuffer.WriteLine();
+            }
         }
     }
 }

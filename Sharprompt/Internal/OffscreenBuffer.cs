@@ -6,43 +6,43 @@ using Sharprompt.Drivers;
 
 namespace Sharprompt.Internal
 {
-    internal class OffscreenBuffer
+    internal class OffscreenBuffer : IDisposable
     {
         public OffscreenBuffer(IConsoleDriver consoleDriver)
         {
             _consoleDriver = consoleDriver;
 
+            _cursorBottom = _consoleDriver.CursorTop;
             _consoleDriver.RequestCancellation = RequestCancellation;
         }
 
         private readonly IConsoleDriver _consoleDriver;
-        private readonly List<List<TextInfo>> _outputBuffer = new();
+        private readonly List<List<TextInfo>> _outputBuffer = new() { new List<TextInfo>() };
 
-        private int _cursorLeft;
-        private int _cursorTop;
+        private int _cursorBottom;
+        private Cursor _pushedCursor;
 
-        public int CursorBottom { get; set; }
+        public int WrittenLineCount => _outputBuffer.Sum(x => (x.Sum(xs => xs.Width) - 1) / _consoleDriver.BufferWidth + 1) - 1;
 
-        public int BufferWidth => _consoleDriver.BufferWidth;
-
-        public int LineCount => _outputBuffer.Count + _outputBuffer.Sum(x => (x.Sum(xs => xs.Text.GetWidth()) - 1) / BufferWidth);
-
-        public void Clear()
-        {
-            _outputBuffer.Clear();
-            _outputBuffer.Add(new List<TextInfo>());
-
-            _cursorLeft = 0;
-            _cursorTop = 0;
-        }
+        public void Dispose() => _consoleDriver.Dispose();
 
         public void Write(string text)
         {
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
             _outputBuffer.Last().Add(new TextInfo(text, Console.ForegroundColor));
         }
 
         public void Write(string text, ConsoleColor color)
         {
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
             _outputBuffer.Last().Add(new TextInfo(text, color));
         }
 
@@ -69,25 +69,23 @@ namespace Sharprompt.Internal
             Write($"{Prompt.Symbols.Error} {errorMessage}", ConsoleColor.Red);
         }
 
-        public (int left, int top) GetCursorPosition()
+        public void PushCursor()
         {
-            var left = _outputBuffer.Last().Sum(x => x.Text.GetWidth()) % BufferWidth;
-            var top = LineCount - 1;
+            if (_pushedCursor != null)
+            {
+                return;
+            }
 
-            return (left, top);
+            _pushedCursor = new Cursor
+            {
+                Left = _outputBuffer.Last().Sum(x => x.Width),
+                Top = _outputBuffer.Count - 1
+            };
         }
 
-        public void SetCursorPosition()
+        public IDisposable BeginRender()
         {
-            var (left, top) = GetCursorPosition();
-
-            SetCursorPosition(left, top);
-        }
-
-        public void SetCursorPosition(int left, int top)
-        {
-            _cursorLeft = left;
-            _cursorTop = top;
+            return new RenderScope(this, _consoleDriver, _cursorBottom, WrittenLineCount);
         }
 
         public void RenderToConsole()
@@ -107,26 +105,36 @@ namespace Sharprompt.Internal
                 }
             }
 
-            CursorBottom = _consoleDriver.CursorTop;
+            _cursorBottom = _consoleDriver.CursorTop;
 
-            _consoleDriver.SetCursorPosition(_cursorLeft, _consoleDriver.CursorTop - (LineCount - _cursorTop - 1));
+            if (_pushedCursor != null)
+            {
+                var physicalLeft = _pushedCursor.Left % _consoleDriver.BufferWidth;
+                var physicalTop = _pushedCursor.Top + (_pushedCursor.Left / _consoleDriver.BufferWidth);
+
+                _consoleDriver.SetCursorPosition(physicalLeft, _cursorBottom - WrittenLineCount + physicalTop);
+            }
         }
 
-        public void ClearConsole()
+        public void ClearConsole(int cursorBottom, int writtenLineCount)
         {
-            var bottom = CursorBottom;
-
-            for (var i = 0; i < LineCount; i++)
+            for (var i = 0; i <= writtenLineCount; i++)
             {
-                _consoleDriver.ClearLine(bottom - i);
+                _consoleDriver.ClearLine(cursorBottom - i);
             }
+        }
 
-            Clear();
+        public void ClearBuffer()
+        {
+            _outputBuffer.Clear();
+            _outputBuffer.Add(new List<TextInfo>());
+
+            _pushedCursor = null;
         }
 
         private void RequestCancellation()
         {
-            _consoleDriver.SetCursorPosition(0, CursorBottom);
+            _consoleDriver.SetCursorPosition(0, _cursorBottom);
             _consoleDriver.Reset();
 
             Environment.Exit(1);
@@ -138,10 +146,12 @@ namespace Sharprompt.Internal
             {
                 Text = text;
                 Color = color;
+                Width = text.GetWidth();
             }
 
             public string Text { get; }
             public ConsoleColor Color { get; }
+            public int Width { get; }
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 
@@ -59,14 +58,14 @@ namespace Sharprompt.Forms
                                     return true;
                                 }
 
-                                SetValidationResult(new ValidationResult($"A minimum input of {_options.Minimum} items is required"));
+                                SetError($"A minimum input of {_options.Minimum} items is required");
 
                                 return false;
                             }
 
                             if (_inputItems.Count >= _options.Maximum)
                             {
-                                SetValidationResult(new ValidationResult($"A maximum input of {_options.Maximum} items is required"));
+                                SetError($"A maximum input of {_options.Maximum} items is required");
 
                                 return false;
                             }
@@ -87,7 +86,7 @@ namespace Sharprompt.Forms
                         }
                         catch (Exception ex)
                         {
-                            SetException(ex);
+                            SetError(ex);
                         }
 
                         break;
@@ -111,14 +110,11 @@ namespace Sharprompt.Forms
                         ConsoleDriver.Beep();
                         break;
                     default:
-                    {
                         if (!char.IsControl(keyInfo.KeyChar))
                         {
                             _inputBuffer.Insert(_startIndex++, keyInfo.KeyChar);
                         }
-
                         break;
-                    }
                 }
 
             } while (ConsoleDriver.KeyAvailable);
@@ -128,31 +124,25 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(OffscreenBuffer screenBuffer)
+        protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
         {
-            screenBuffer.WritePrompt(_options.Message);
+            offscreenBuffer.WritePrompt(_options.Message);
 
-            var (left, top) = screenBuffer.GetCursorPosition();
+            offscreenBuffer.Write(_inputBuffer.ToString());
 
-            var input = _inputBuffer.ToString();
-
-            screenBuffer.Write(input);
+            offscreenBuffer.PushCursor();
 
             foreach (var inputItem in _inputItems)
             {
-                screenBuffer.WriteLine();
-                screenBuffer.Write($"  {inputItem}");
+                offscreenBuffer.WriteLine();
+                offscreenBuffer.Write($"  {inputItem}");
             }
-
-            var width = left + input.Take(_startIndex).GetWidth();
-
-            screenBuffer.SetCursorPosition(width % screenBuffer.BufferWidth, top + (width / screenBuffer.BufferWidth));
         }
 
-        protected override void FinishTemplate(OffscreenBuffer screenBuffer, IEnumerable<T> result)
+        protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, IEnumerable<T> result)
         {
-            screenBuffer.WriteFinish(_options.Message);
-            screenBuffer.Write(string.Join(", ", result), Prompt.ColorSchema.Answer);
+            offscreenBuffer.WriteFinish(_options.Message);
+            offscreenBuffer.Write(string.Join(", ", result), Prompt.ColorSchema.Answer);
         }
     }
 }

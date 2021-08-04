@@ -1,6 +1,4 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Text;
 
 using Sharprompt.Internal;
@@ -40,27 +38,24 @@ namespace Sharprompt.Forms
                                 return true;
                             }
 
-                            SetValidationResult(new ValidationResult("Value is required"));
+                            SetError("Value is required");
                         }
                         else
                         {
-                            var lowerInput = input.ToLower();
-
-                            if (lowerInput == "y" || lowerInput == "yes")
+                            switch (input.ToLowerInvariant())
                             {
-                                result = true;
+                                case "y" or "yes":
+                                    result = true;
 
-                                return true;
+                                    return true;
+                                case "n" or "no":
+                                    result = false;
+
+                                    return true;
+                                default:
+                                    SetError("Value is invalid");
+                                    break;
                             }
-
-                            if (lowerInput == "n" || lowerInput == "no")
-                            {
-                                result = false;
-
-                                return true;
-                            }
-
-                            SetValidationResult(new ValidationResult("Value is invalid"));
                         }
 
                         break;
@@ -84,14 +79,11 @@ namespace Sharprompt.Forms
                         ConsoleDriver.Beep();
                         break;
                     default:
-                    {
                         if (!char.IsControl(keyInfo.KeyChar))
                         {
                             _inputBuffer.Insert(_startIndex++, keyInfo.KeyChar);
                         }
-
                         break;
-                    }
                 }
 
             } while (ConsoleDriver.KeyAvailable);
@@ -101,34 +93,26 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(OffscreenBuffer screenBuffer)
+        protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
         {
-            screenBuffer.WritePrompt(_options.Message);
+            offscreenBuffer.WritePrompt(_options.Message);
 
             if (_options.DefaultValue == null)
             {
-                screenBuffer.Write("(y/n) ");
+                offscreenBuffer.Write("(y/n) ");
             }
             else
             {
-                screenBuffer.Write(_options.DefaultValue.Value ? "(Y/n) " : "(y/N) ");
+                offscreenBuffer.Write(_options.DefaultValue.Value ? "(Y/n) " : "(y/N) ");
             }
 
-            var (left, top) = screenBuffer.GetCursorPosition();
-
-            var input = _inputBuffer.ToString();
-
-            screenBuffer.Write(input);
-
-            var width = left + input.Take(_startIndex).GetWidth();
-
-            screenBuffer.SetCursorPosition(width % screenBuffer.BufferWidth, top + (width / screenBuffer.BufferWidth));
+            offscreenBuffer.Write(_inputBuffer.ToString());
         }
 
-        protected override void FinishTemplate(OffscreenBuffer screenBuffer, bool result)
+        protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, bool result)
         {
-            screenBuffer.WriteFinish(_options.Message);
-            screenBuffer.Write(result ? "Yes" : "No", Prompt.ColorSchema.Answer);
+            offscreenBuffer.WriteFinish(_options.Message);
+            offscreenBuffer.Write(result ? "Yes" : "No", Prompt.ColorSchema.Answer);
         }
     }
 }

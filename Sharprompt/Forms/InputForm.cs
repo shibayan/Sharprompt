@@ -1,6 +1,4 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Text;
 
 using Sharprompt.Internal;
@@ -43,7 +41,7 @@ namespace Sharprompt.Forms
                             {
                                 if (_targetType.IsValueType && _underlyingType == null && !_defaultValue.HasValue)
                                 {
-                                    SetValidationResult(new ValidationResult("Value is required"));
+                                    SetError("Value is required");
 
                                     result = default;
 
@@ -68,7 +66,7 @@ namespace Sharprompt.Forms
                         }
                         catch (Exception ex)
                         {
-                            SetException(ex);
+                            SetError(ex);
                         }
 
                         break;
@@ -92,14 +90,11 @@ namespace Sharprompt.Forms
                         ConsoleDriver.Beep();
                         break;
                     default:
-                    {
                         if (!char.IsControl(keyInfo.KeyChar))
                         {
                             _inputBuffer.Insert(_startIndex++, keyInfo.KeyChar);
                         }
-
                         break;
-                    }
                 }
 
             } while (ConsoleDriver.KeyAvailable);
@@ -109,33 +104,25 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(OffscreenBuffer screenBuffer)
+        protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
         {
-            screenBuffer.WritePrompt(_options.Message);
+            offscreenBuffer.WritePrompt(_options.Message);
 
             if (_defaultValue.HasValue)
             {
-                screenBuffer.Write($"({_defaultValue.Value}) ");
+                offscreenBuffer.Write($"({_defaultValue.Value}) ");
             }
 
-            var (left, top) = screenBuffer.GetCursorPosition();
-
-            var input = _inputBuffer.ToString();
-
-            screenBuffer.Write(input);
-
-            var width = left + input.Take(_startIndex).GetWidth();
-
-            screenBuffer.SetCursorPosition(width % screenBuffer.BufferWidth, top + (width / screenBuffer.BufferWidth));
+            offscreenBuffer.Write(_inputBuffer.ToString());
         }
 
-        protected override void FinishTemplate(OffscreenBuffer screenBuffer, T result)
+        protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, T result)
         {
-            screenBuffer.WriteFinish(_options.Message);
+            offscreenBuffer.WriteFinish(_options.Message);
 
             if (result != null)
             {
-                screenBuffer.Write(result.ToString(), Prompt.ColorSchema.Answer);
+                offscreenBuffer.Write(result.ToString(), Prompt.ColorSchema.Answer);
             }
         }
     }

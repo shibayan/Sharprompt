@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 
@@ -11,7 +10,6 @@ namespace Sharprompt.Forms
     internal class MultiSelectForm<T> : FormBase<IEnumerable<T>>
     {
         public MultiSelectForm(MultiSelectOptions<T> options)
-            : base(false)
         {
             if (options.Minimum < 0)
             {
@@ -51,10 +49,9 @@ namespace Sharprompt.Forms
                         result = _selectedItems;
                         return true;
                     case ConsoleKey.Enter:
-                        SetValidationResult(new ValidationResult($"A minimum selection of {_options.Minimum} items is required"));
+                        SetError($"A minimum selection of {_options.Minimum} items is required");
                         break;
                     case ConsoleKey.Spacebar when _paginator.TryGetSelectedItem(out var currentItem):
-                    {
                         if (_selectedItems.Contains(currentItem))
                         {
                             _selectedItems.Remove(currentItem);
@@ -63,7 +60,7 @@ namespace Sharprompt.Forms
                         {
                             if (_selectedItems.Count >= _options.Maximum)
                             {
-                                SetValidationResult(new ValidationResult($"A maximum selection of {_options.Maximum} items is required"));
+                                SetError($"A maximum selection of {_options.Maximum} items is required");
                             }
                             else
                             {
@@ -72,7 +69,6 @@ namespace Sharprompt.Forms
                         }
 
                         break;
-                    }
                     case ConsoleKey.UpArrow:
                         _paginator.PreviousItem();
                         break;
@@ -94,16 +90,13 @@ namespace Sharprompt.Forms
                         _paginator.UpdateFilter(_filterBuffer.ToString());
                         break;
                     default:
-                    {
                         if (!char.IsControl(keyInfo.KeyChar))
                         {
                             _filterBuffer.Append(keyInfo.KeyChar);
 
                             _paginator.UpdateFilter(_filterBuffer.ToString());
                         }
-
                         break;
-                    }
                 }
 
             } while (ConsoleDriver.KeyAvailable);
@@ -113,14 +106,16 @@ namespace Sharprompt.Forms
             return false;
         }
 
-        protected override void InputTemplate(OffscreenBuffer screenBuffer)
+        protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
         {
-            screenBuffer.WritePrompt(_options.Message);
-            screenBuffer.Write(_paginator.FilterTerm);
+            offscreenBuffer.WritePrompt(_options.Message);
+            offscreenBuffer.Write(_paginator.FilterTerm);
+
+            offscreenBuffer.PushCursor();
 
             if (string.IsNullOrEmpty(_paginator.FilterTerm))
             {
-                screenBuffer.Write(" Hit space to select", Prompt.ColorSchema.Answer);
+                offscreenBuffer.Write("Hit space to select", Prompt.ColorSchema.Hint);
             }
 
             var subset = _paginator.ToSubset();
@@ -129,43 +124,43 @@ namespace Sharprompt.Forms
             {
                 var value = _options.TextSelector(item);
 
-                screenBuffer.WriteLine();
+                offscreenBuffer.WriteLine();
 
                 if (_paginator.TryGetSelectedItem(out var selectedItem) && EqualityComparer<T>.Default.Equals(item, selectedItem))
                 {
                     if (_selectedItems.Contains(item))
                     {
-                        screenBuffer.Write($"{Prompt.Symbols.Selector} {Prompt.Symbols.Selected} {value}", Prompt.ColorSchema.Select);
+                        offscreenBuffer.Write($"{Prompt.Symbols.Selector} {Prompt.Symbols.Selected} {value}", Prompt.ColorSchema.Select);
                     }
                     else
                     {
-                        screenBuffer.Write($"{Prompt.Symbols.Selector} {Prompt.Symbols.NotSelect} {value}", Prompt.ColorSchema.Select);
+                        offscreenBuffer.Write($"{Prompt.Symbols.Selector} {Prompt.Symbols.NotSelect} {value}", Prompt.ColorSchema.Select);
                     }
                 }
                 else
                 {
                     if (_selectedItems.Contains(item))
                     {
-                        screenBuffer.Write($"  {Prompt.Symbols.Selected} {value}", Prompt.ColorSchema.Select);
+                        offscreenBuffer.Write($"  {Prompt.Symbols.Selected} {value}", Prompt.ColorSchema.Select);
                     }
                     else
                     {
-                        screenBuffer.Write($"  {Prompt.Symbols.NotSelect} {value}");
+                        offscreenBuffer.Write($"  {Prompt.Symbols.NotSelect} {value}");
                     }
                 }
             }
 
             if (_paginator.PageCount > 1)
             {
-                screenBuffer.WriteLine();
-                screenBuffer.Write($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)");
+                offscreenBuffer.WriteLine();
+                offscreenBuffer.Write($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)", Prompt.ColorSchema.Hint);
             }
         }
 
-        protected override void FinishTemplate(OffscreenBuffer screenBuffer, IEnumerable<T> result)
+        protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, IEnumerable<T> result)
         {
-            screenBuffer.WriteFinish(_options.Message);
-            screenBuffer.Write(string.Join(", ", result.Select(_options.TextSelector)), Prompt.ColorSchema.Answer);
+            offscreenBuffer.WriteFinish(_options.Message);
+            offscreenBuffer.Write(string.Join(", ", result.Select(_options.TextSelector)), Prompt.ColorSchema.Answer);
         }
     }
 }
