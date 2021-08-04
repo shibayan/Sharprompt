@@ -28,11 +28,21 @@ namespace Sharprompt.Internal
 
         public void Write(string text)
         {
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
             _outputBuffer.Last().Add(new TextInfo(text, Console.ForegroundColor));
         }
 
         public void Write(string text, ConsoleColor color)
         {
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
             _outputBuffer.Last().Add(new TextInfo(text, color));
         }
 

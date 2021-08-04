@@ -111,12 +111,12 @@ namespace Sharprompt.Forms
             offscreenBuffer.WritePrompt(_options.Message);
             offscreenBuffer.Write(_paginator.FilterTerm);
 
+            offscreenBuffer.PushCursor();
+
             if (string.IsNullOrEmpty(_paginator.FilterTerm))
             {
-                offscreenBuffer.Write(" Hit space to select", Prompt.ColorSchema.Answer);
+                offscreenBuffer.Write("Hit space to select", Prompt.ColorSchema.Hint);
             }
-
-            offscreenBuffer.PushCursor();
 
             var subset = _paginator.ToSubset();
 
@@ -153,7 +153,7 @@ namespace Sharprompt.Forms
             if (_paginator.PageCount > 1)
             {
                 offscreenBuffer.WriteLine();
-                offscreenBuffer.Write($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)");
+                offscreenBuffer.Write($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)", Prompt.ColorSchema.Hint);
             }
         }
 
