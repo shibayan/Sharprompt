@@ -128,9 +128,11 @@ namespace Sharprompt.Forms
         {
             offscreenBuffer.WritePrompt(_options.Message);
 
-            offscreenBuffer.Write(_inputBuffer.ToString());
+            offscreenBuffer.Write(_inputBuffer.ToString(0, _startIndex));
 
             offscreenBuffer.PushCursor();
+
+            offscreenBuffer.Write(_inputBuffer.ToString(_startIndex, _inputBuffer.Length - _startIndex));
 
             foreach (var inputItem in _inputItems)
             {

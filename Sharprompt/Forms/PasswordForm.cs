@@ -57,6 +57,8 @@ namespace Sharprompt.Forms
         {
             offscreenBuffer.WritePrompt(_options.Message);
             offscreenBuffer.Write(new string('*', _inputBuffer.Length));
+
+            offscreenBuffer.PushCursor();
         }
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, string result)
