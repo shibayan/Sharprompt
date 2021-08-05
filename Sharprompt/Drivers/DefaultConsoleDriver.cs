@@ -66,19 +66,7 @@ namespace Sharprompt.Drivers
 
         public void WriteLine() => Console.WriteLine();
 
-        public void SetCursorPosition(int left, int top)
-        {
-            if (top < 0)
-            {
-                top = 0;
-            }
-            else if (top >= Console.BufferHeight)
-            {
-                top = Console.BufferHeight - 1;
-            }
-
-            Console.SetCursorPosition(left, top);
-        }
+        public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);
 
         public bool KeyAvailable => Console.KeyAvailable;
 

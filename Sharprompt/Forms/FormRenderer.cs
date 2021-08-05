@@ -24,8 +24,6 @@ namespace Sharprompt.Forms
             {
                 template(_offscreenBuffer);
 
-                _offscreenBuffer.PushCursor();
-
                 if (ErrorMessage != null)
                 {
                     _offscreenBuffer.WriteErrorMessage(ErrorMessage);

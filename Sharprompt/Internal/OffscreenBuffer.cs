@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 using Sharprompt.Drivers;
 
@@ -71,11 +72,6 @@ namespace Sharprompt.Internal
 
         public void PushCursor()
         {
-            if (_pushedCursor != null)
-            {
-                return;
-            }
-
             _pushedCursor = new Cursor
             {
                 Left = _outputBuffer.Last().Sum(x => x.Width),
@@ -134,8 +130,13 @@ namespace Sharprompt.Internal
 
         private void RequestCancellation()
         {
-            _consoleDriver.SetCursorPosition(0, _cursorBottom);
             _consoleDriver.Reset();
+            _consoleDriver.SetCursorPosition(0, _cursorBottom);
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _consoleDriver.WriteLine();
+            }
 
             Environment.Exit(1);
         }

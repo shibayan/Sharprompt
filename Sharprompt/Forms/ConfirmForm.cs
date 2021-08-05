@@ -106,7 +106,11 @@ namespace Sharprompt.Forms
                 offscreenBuffer.Write(_options.DefaultValue.Value ? "(Y/n) " : "(y/N) ");
             }
 
-            offscreenBuffer.Write(_inputBuffer.ToString());
+            offscreenBuffer.Write(_inputBuffer.ToString(0, _startIndex));
+
+            offscreenBuffer.PushCursor();
+
+            offscreenBuffer.Write(_inputBuffer.ToString(_startIndex, _inputBuffer.Length - _startIndex));
         }
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, bool result)
