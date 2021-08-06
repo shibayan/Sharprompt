@@ -7,7 +7,6 @@
 
   <PropertyGroup>
     <Authors>shibayan</Authors>
-    <Company>shibayan</Company>
     <Description>Interactive command line interface toolkit for C#</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>https://github.com/shibayan/Sharprompt/releases</PackageReleaseNotes>

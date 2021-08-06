@@ -1,18 +1,13 @@
 # Sharprompt
 
-![Build](https://github.com/shibayan/Sharprompt/workflows/Build/badge.svg)
-[![License](https://img.shields.io/github/license/shibayan/Sharprompt)](https://github.com/shibayan/Sharprompt/blob/master/LICENSE)
+[![Build](https://github.com/shibayan/Sharprompt/workflows/Build/badge.svg)](https://github.com/shibayan/Sharprompt/actions/workflows/build.yml)
 [![Downloads](https://img.shields.io/nuget/dt/Sharprompt)](https://www.nuget.org/packages/Sharprompt/)
+[![NuGet](https://img.shields.io/nuget/v/Sharprompt)](https://www.nuget.org/packages/Sharprompt/)
+[![License](https://img.shields.io/github/license/shibayan/Sharprompt)](https://github.com/shibayan/Sharprompt/blob/master/LICENSE)
 
 Interactive command line interface toolkit for C#
 
 ![sharprompt](https://user-images.githubusercontent.com/1356444/62227794-87506e00-b3f7-11e9-84ae-06c9a900448b.gif)
-
-## NuGet Package
-
-Package Name | Target Framework | NuGet
----|---|---
-Sharprompt | .NET Standard 2.0 | [![NuGet](https://img.shields.io/nuget/v/Sharprompt)](https://www.nuget.org/packages/Sharprompt/)
 
 ## Install
 
