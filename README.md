@@ -5,7 +5,7 @@
 [![NuGet](https://img.shields.io/nuget/v/Sharprompt)](https://www.nuget.org/packages/Sharprompt/)
 [![License](https://img.shields.io/github/license/shibayan/Sharprompt)](https://github.com/shibayan/Sharprompt/blob/master/LICENSE)
 
-Interactive command line interface toolkit for C#
+Interactive command-line based application framework for C#
 
 ![sharprompt](https://user-images.githubusercontent.com/1356444/62227794-87506e00-b3f7-11e9-84ae-06c9a900448b.gif)
 
@@ -22,16 +22,17 @@ dotnet add package Sharprompt
 ## Features
 
 - Multi-platform support
-- Supports the popular Prompts (Input / Password / Select / etc)
+- Supports the popular prompts (`Input` / `Password` / `Select` / etc)
+- Supports model-based prompts (In preview)
 - Validation of input value
 - Automatic generation of data source using Enum value
-- Customize the color scheme
-- Unicode support (East asian width and Emoji)
+- Customizable symbols and color schema
+- Unicode support (Multi-byte characters and Emoji😀🎉)
 
 ## Usage
 
 ```csharp
-// Simple Input prompt
+// Simple input prompt
 var name = Prompt.Input<string>("What's your name?");
 Console.WriteLine($"Hello, {name}!");
 
@@ -82,7 +83,7 @@ Console.WriteLine($"Hello, {city}!");
 
 ![select](https://user-images.githubusercontent.com/1356444/62228719-2de93e80-b3f9-11e9-8be5-f19e6ef58aeb.gif)
 
-**Enum value support**
+**Enum support**
 
 ```csharp
 var value = Prompt.Select<MyEnum>("Select enum value");
@@ -107,9 +108,43 @@ Console.WriteLine($"You picked {string.Join(", ", value)}");
 
 ![list](https://user-images.githubusercontent.com/1356444/127033968-cf70bd1b-bcd1-4c4f-bdbe-74aae52cdb86.gif)
 
+### AutoForms (Preview)
+
+```csharp
+// Model definition
+public class MyFormModel
+{
+    [Display(Prompt = "What's your name?")]
+    [Required]
+    public string Name { get; set; }
+
+    [Display(Prompt = "Type new password")]
+    [DataType(DataType.Password)]
+    [Required]
+    [MinLength(8)]
+    public string Password { get; set; }
+
+    [Display(Prompt = "Are you ready?")]
+    public bool Ready { get; set; }
+}
+
+var result = Prompt.AutoForms<MyFormModel>();
+```
+
 ## Configuration
 
-### Custom Prompter
+### Symbols
+
+```csharp
+Prompt.Symbols.Prompt = new Symbol("🤔", "?");
+Prompt.Symbols.Done = new Symbol("😎", "V");
+Prompt.Symbols.Error = new Symbol("😱", ">>");
+
+var name = Prompt.Input<string>("What's your name?");
+Console.WriteLine($"Hello, {name}!");
+```
+
+### Color schema
 
 ```csharp
 Prompt.ColorSchema.Answer = ConsoleColor.DarkRed;
@@ -131,7 +166,7 @@ var name = Prompt.Input<string>("What's your name?");
 Console.WriteLine($"Hello, {name}!");
 ```
 
-## Platforms
+## Supported platforms
 
 - Windows
   - Command Prompt / PowerShell / Windows Terminal
