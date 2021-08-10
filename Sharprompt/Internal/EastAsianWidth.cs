@@ -329,9 +329,7 @@ namespace Sharprompt.Internal
             }
 
             public int Start { get; }
-
             public ushort Count { get; }
-
             public bool Ambiguous { get; }
         }
     }
