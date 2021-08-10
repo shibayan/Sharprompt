@@ -103,7 +103,7 @@ namespace Sharprompt.Forms
                     case ConsoleKey.Delete when _startIndex < _inputBuffer.Length:
                         _inputBuffer.Remove(_startIndex, 1);
                         break;
-                    case ConsoleKey.Delete when (keyInfo.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control:
+                    case ConsoleKey.Delete when keyInfo.Modifiers == ConsoleModifiers.Control:
                         if (_inputItems.Any())
                         {
                             _inputItems.RemoveAt(_inputItems.Count - 1);
