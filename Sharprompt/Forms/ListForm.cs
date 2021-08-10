@@ -106,8 +106,13 @@ namespace Sharprompt.Forms
                     case ConsoleKey.LeftArrow:
                     case ConsoleKey.RightArrow:
                     case ConsoleKey.Backspace:
-                    case ConsoleKey.Delete:
                         ConsoleDriver.Beep();
+                        break;
+                    case ConsoleKey.Delete:
+                        if (_inputItems.Any())
+                        {
+                            _inputItems.RemoveAt(_inputItems.Count - 1);
+                        }
                         break;
                     default:
                         if (!char.IsControl(keyInfo.KeyChar))
