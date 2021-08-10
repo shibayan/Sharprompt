@@ -22,7 +22,7 @@ namespace Sharprompt.Internal
         private int _cursorBottom;
         private Cursor _pushedCursor;
 
-        public int WrittenLineCount => _outputBuffer.Sum(x => (x.Sum(xs => xs.Width) - 1) / _consoleDriver.BufferWidth + 1) - 1;
+        private int WrittenLineCount => _outputBuffer.Sum(x => (x.Sum(xs => xs.Width) - 1) / _consoleDriver.BufferWidth + 1) - 1;
 
         public void Dispose() => _consoleDriver.Dispose();
 
