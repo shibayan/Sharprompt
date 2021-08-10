@@ -110,7 +110,7 @@ namespace Sharprompt.Forms
 
             if (_defaultValue.HasValue)
             {
-                offscreenBuffer.Write($"({_defaultValue.Value}) ");
+                offscreenBuffer.WriteHint($"({_defaultValue.Value}) ");
             }
 
             offscreenBuffer.Write(_inputBuffer.ToString(0, _startIndex));

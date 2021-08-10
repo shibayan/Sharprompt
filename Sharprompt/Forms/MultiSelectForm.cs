@@ -115,7 +115,7 @@ namespace Sharprompt.Forms
 
             if (string.IsNullOrEmpty(_paginator.FilterTerm))
             {
-                offscreenBuffer.WriteHint("Hit space to select");
+                offscreenBuffer.WriteHint("Hit <space> key to select");
             }
 
             var subset = _paginator.ToSubset();

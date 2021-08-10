@@ -99,11 +99,11 @@ namespace Sharprompt.Forms
 
             if (_options.DefaultValue == null)
             {
-                offscreenBuffer.Write("(y/n) ");
+                offscreenBuffer.WriteHint("(y/n) ");
             }
             else
             {
-                offscreenBuffer.Write(_options.DefaultValue.Value ? "(Y/n) " : "(y/N) ");
+                offscreenBuffer.WriteHint(_options.DefaultValue.Value ? "(Y/n) " : "(y/N) ");
             }
 
             offscreenBuffer.Write(_inputBuffer.ToString(0, _startIndex));
