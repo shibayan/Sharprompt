@@ -115,7 +115,7 @@ namespace Sharprompt.Forms
 
             if (string.IsNullOrEmpty(_paginator.FilterTerm))
             {
-                offscreenBuffer.Write("Hit space to select", Prompt.ColorSchema.Hint);
+                offscreenBuffer.WriteHint("Hit space to select");
             }
 
             var subset = _paginator.ToSubset();
@@ -130,18 +130,18 @@ namespace Sharprompt.Forms
                 {
                     if (_selectedItems.Contains(item))
                     {
-                        offscreenBuffer.Write($"{Prompt.Symbols.Selector} {Prompt.Symbols.Selected} {value}", Prompt.ColorSchema.Select);
+                        offscreenBuffer.WriteSelect($"{Prompt.Symbols.Selector} {Prompt.Symbols.Selected} {value}");
                     }
                     else
                     {
-                        offscreenBuffer.Write($"{Prompt.Symbols.Selector} {Prompt.Symbols.NotSelect} {value}", Prompt.ColorSchema.Select);
+                        offscreenBuffer.WriteSelect($"{Prompt.Symbols.Selector} {Prompt.Symbols.NotSelect} {value}");
                     }
                 }
                 else
                 {
                     if (_selectedItems.Contains(item))
                     {
-                        offscreenBuffer.Write($"  {Prompt.Symbols.Selected} {value}", Prompt.ColorSchema.Select);
+                        offscreenBuffer.WriteSelect($"  {Prompt.Symbols.Selected} {value}");
                     }
                     else
                     {
@@ -153,14 +153,14 @@ namespace Sharprompt.Forms
             if (_paginator.PageCount > 1)
             {
                 offscreenBuffer.WriteLine();
-                offscreenBuffer.Write($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)", Prompt.ColorSchema.Hint);
+                offscreenBuffer.WriteHint($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)");
             }
         }
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, IEnumerable<T> result)
         {
-            offscreenBuffer.WriteFinish(_options.Message);
-            offscreenBuffer.Write(string.Join(", ", result.Select(_options.TextSelector)), Prompt.ColorSchema.Answer);
+            offscreenBuffer.WriteDone(_options.Message);
+            offscreenBuffer.WriteAnswer(string.Join(", ", result.Select(_options.TextSelector)));
         }
     }
 }

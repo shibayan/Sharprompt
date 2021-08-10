@@ -115,8 +115,8 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, bool result)
         {
-            offscreenBuffer.WriteFinish(_options.Message);
-            offscreenBuffer.Write(result ? "Yes" : "No", Prompt.ColorSchema.Answer);
+            offscreenBuffer.WriteDone(_options.Message);
+            offscreenBuffer.WriteAnswer(result ? "Yes" : "No");
         }
     }
 }

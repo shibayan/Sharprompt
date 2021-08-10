@@ -149,8 +149,8 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, IEnumerable<T> result)
         {
-            offscreenBuffer.WriteFinish(_options.Message);
-            offscreenBuffer.Write(string.Join(", ", result), Prompt.ColorSchema.Answer);
+            offscreenBuffer.WriteDone(_options.Message);
+            offscreenBuffer.WriteAnswer(string.Join(", ", result));
         }
     }
 }

@@ -122,11 +122,11 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, T result)
         {
-            offscreenBuffer.WriteFinish(_options.Message);
+            offscreenBuffer.WriteDone(_options.Message);
 
             if (result != null)
             {
-                offscreenBuffer.Write(result.ToString(), Prompt.ColorSchema.Answer);
+                offscreenBuffer.WriteAnswer(result.ToString());
             }
         }
     }

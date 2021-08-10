@@ -63,8 +63,8 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, string result)
         {
-            offscreenBuffer.WriteFinish(_options.Message);
-            offscreenBuffer.Write(new string('*', _inputBuffer.Length), Prompt.ColorSchema.Answer);
+            offscreenBuffer.WriteDone(_options.Message);
+            offscreenBuffer.WriteAnswer(new string('*', _inputBuffer.Length));
         }
     }
 }

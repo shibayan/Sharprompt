@@ -26,15 +26,7 @@ namespace Sharprompt.Internal
 
         public void Dispose() => _consoleDriver.Dispose();
 
-        public void Write(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return;
-            }
-
-            _outputBuffer.Last().Add(new TextInfo(text, Console.ForegroundColor));
-        }
+        public void Write(string text) => Write(text, Console.ForegroundColor);
 
         public void Write(string text, ConsoleColor color)
         {
@@ -46,28 +38,7 @@ namespace Sharprompt.Internal
             _outputBuffer.Last().Add(new TextInfo(text, color));
         }
 
-        public void WriteLine()
-        {
-            _outputBuffer.Add(new List<TextInfo>());
-        }
-
-        public void WritePrompt(string message)
-        {
-            Write(Prompt.Symbols.Prompt, Prompt.ColorSchema.PromptSymbol);
-            Write($" {message}: ");
-        }
-
-        public void WriteFinish(string message)
-        {
-            Write(Prompt.Symbols.Done, Prompt.ColorSchema.DoneSymbol);
-            Write($" {message}: ");
-        }
-
-        public void WriteErrorMessage(string errorMessage)
-        {
-            WriteLine();
-            Write($"{Prompt.Symbols.Error} {errorMessage}", Prompt.ColorSchema.Error);
-        }
+        public void WriteLine() => _outputBuffer.Add(new List<TextInfo>());
 
         public void PushCursor()
         {
@@ -78,10 +49,7 @@ namespace Sharprompt.Internal
             };
         }
 
-        public IDisposable BeginRender()
-        {
-            return new RenderScope(this, _consoleDriver, _cursorBottom, WrittenLineCount);
-        }
+        public IDisposable BeginRender() => new RenderScope(this, _consoleDriver, _cursorBottom, WrittenLineCount);
 
         public void RenderToConsole()
         {
@@ -135,11 +103,17 @@ namespace Sharprompt.Internal
             _consoleDriver.WriteLine();
         }
 
-        private class TextInfo
+        private class Cursor
+        {
+            public int Left { get; set; }
+            public int Top { get; set; }
+        }
+
+        private class TextInfo : IEquatable<TextInfo>
         {
             public TextInfo(string text, ConsoleColor color)
             {
-                Text = text;
+                Text = text ?? throw new ArgumentNullException(nameof(text));
                 Color = color;
                 Width = text.GetWidth();
             }
@@ -147,6 +121,31 @@ namespace Sharprompt.Internal
             public string Text { get; }
             public ConsoleColor Color { get; }
             public int Width { get; }
+
+            public bool Equals(TextInfo other)
+            {
+                if (other is null)
+                {
+                    return false;
+                }
+
+                if (ReferenceEquals(this, other))
+                {
+                    return true;
+                }
+
+                return Text == other.Text && Color == other.Color;
+            }
+
+            public override bool Equals(object obj) => Equals(obj as TextInfo);
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    return (Text.GetHashCode() * 397) ^ (int)Color;
+                }
+            }
         }
     }
 }

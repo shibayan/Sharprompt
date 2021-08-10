@@ -87,7 +87,7 @@ namespace Sharprompt.Forms
 
                 if (_paginator.TryGetSelectedItem(out var selectedItem) && EqualityComparer<T>.Default.Equals(item, selectedItem))
                 {
-                    offscreenBuffer.Write($"{Prompt.Symbols.Selector} {value}", Prompt.ColorSchema.Select);
+                    offscreenBuffer.WriteSelect($"{Prompt.Symbols.Selector} {value}");
                 }
                 else
                 {
@@ -98,14 +98,14 @@ namespace Sharprompt.Forms
             if (_paginator.PageCount > 1)
             {
                 offscreenBuffer.WriteLine();
-                offscreenBuffer.Write($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)", Prompt.ColorSchema.Hint);
+                offscreenBuffer.WriteHint($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)");
             }
         }
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, T result)
         {
-            offscreenBuffer.WriteFinish(_options.Message);
-            offscreenBuffer.Write(_options.TextSelector(result), Prompt.ColorSchema.Answer);
+            offscreenBuffer.WriteDone(_options.Message);
+            offscreenBuffer.WriteAnswer(_options.TextSelector(result));
         }
     }
 }
