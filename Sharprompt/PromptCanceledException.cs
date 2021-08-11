@@ -24,5 +24,7 @@ namespace Sharprompt
             : base(info, context)
         {
         }
+
+        public string PromptType { get; }
     }
 }

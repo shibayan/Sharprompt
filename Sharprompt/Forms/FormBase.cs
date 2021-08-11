@@ -11,7 +11,10 @@ namespace Sharprompt.Forms
     {
         protected FormBase()
         {
-            ConsoleDriver = new DefaultConsoleDriver();
+            ConsoleDriver = new DefaultConsoleDriver
+            {
+                RequestCancellation = RequestCancellation
+            };
 
             _formRenderer = new FormRenderer(ConsoleDriver);
         }
@@ -66,6 +69,18 @@ namespace Sharprompt.Forms
             }
 
             return true;
+        }
+
+        private void RequestCancellation()
+        {
+            _formRenderer.Cancel();
+
+            if (Prompt.ThrowExceptionOnCancel)
+            {
+                throw new PromptCanceledException();
+            }
+
+            Environment.Exit(1);
         }
     }
 }
