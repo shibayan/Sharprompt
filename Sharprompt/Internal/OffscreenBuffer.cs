@@ -132,10 +132,7 @@ namespace Sharprompt.Internal
             _consoleDriver.Reset();
             _consoleDriver.SetCursorPosition(0, _cursorBottom);
 
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                _consoleDriver.WriteLine();
-            }
+            _consoleDriver.WriteLine();
         }
 
         private class TextInfo
