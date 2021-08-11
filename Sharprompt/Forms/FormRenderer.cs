@@ -9,6 +9,8 @@ namespace Sharprompt.Forms
     {
         public FormRenderer(IConsoleDriver consoleDriver)
         {
+            consoleDriver.RequestCancellation = RequestCancellation;
+
             _offscreenBuffer = new OffscreenBuffer(consoleDriver);
         }
 
@@ -41,6 +43,18 @@ namespace Sharprompt.Forms
 
                 _offscreenBuffer.WriteLine();
             }
+        }
+
+        private void RequestCancellation()
+        {
+            _offscreenBuffer.Cancel();
+
+            if (Prompt.ThrowExceptionOnCancel)
+            {
+                throw new PromptCanceledException();
+            }
+
+            Environment.Exit(1);
         }
     }
 }

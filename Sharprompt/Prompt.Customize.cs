@@ -4,6 +4,8 @@ namespace Sharprompt
 {
     public static partial class Prompt
     {
+        public static bool ThrowExceptionOnCancel { get; set; } = false;
+
         public static class ColorSchema
         {
             public static ConsoleColor DoneSymbol { get; set; } = ConsoleColor.Green;
