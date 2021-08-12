@@ -20,6 +20,12 @@ namespace Sharprompt
         {
         }
 
+        public PromptCanceledException(string message, string promptType)
+            : base(message)
+        {
+            PromptType = promptType;
+        }
+
         protected PromptCanceledException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {

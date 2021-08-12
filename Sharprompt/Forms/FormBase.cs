@@ -77,7 +77,7 @@ namespace Sharprompt.Forms
 
             if (Prompt.ThrowExceptionOnCancel)
             {
-                throw new PromptCanceledException();
+                throw new PromptCanceledException("The prompt was canceled.", GetType().Name);
             }
 
             Environment.Exit(1);
