@@ -26,10 +26,7 @@ namespace Sharprompt.Drivers
 
         #region IDisposable
 
-        public void Dispose()
-        {
-            Reset();
-        }
+        public void Dispose() => Reset();
 
         #endregion
 
