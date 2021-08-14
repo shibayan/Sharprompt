@@ -154,9 +154,7 @@ var name = Prompt.Input<string>("What's your name?");
 Console.WriteLine($"Hello, {name}!");
 ```
 
-### Unicode Support
-
-![unicode](https://user-images.githubusercontent.com/1356444/89803983-86a3f900-db6e-11ea-8fc8-5b6f9ef5644f.gif)
+### Unicode support
 
 ```csharp
 // Prefer UTF-8 as the output encoding
@@ -164,6 +162,25 @@ Console.OutputEncoding = Encoding.UTF8;
 
 var name = Prompt.Input<string>("What's your name?");
 Console.WriteLine($"Hello, {name}!");
+```
+
+![unicode](https://user-images.githubusercontent.com/1356444/89803983-86a3f900-db6e-11ea-8fc8-5b6f9ef5644f.gif)
+
+### Cancellation support
+
+```csharp
+// Throw an exception when canceling with Ctrl-C
+Prompt.ThrowExceptionOnCancel = true;
+
+try
+{
+    var name = Prompt.Input<string>("What's your name?");
+    Console.WriteLine($"Hello, {name}!");
+}
+catch (PromptCanceledException ex)
+{
+    Console.WriteLine("Prompt canceled");
+}
 ```
 
 ## Supported platforms
