@@ -11,7 +11,10 @@ namespace Sharprompt.Forms
     {
         protected FormBase()
         {
-            ConsoleDriver = new DefaultConsoleDriver();
+            ConsoleDriver = new DefaultConsoleDriver
+            {
+                CancellationCallback = CancellationHandler
+            };
 
             _formRenderer = new FormRenderer(ConsoleDriver);
         }
@@ -47,9 +50,9 @@ namespace Sharprompt.Forms
 
         protected void SetError(string errorMessage) => _formRenderer.ErrorMessage = errorMessage;
 
-        protected void SetError(ValidationResult validationResult) => _formRenderer.ErrorMessage = validationResult.ErrorMessage;
+        protected void SetError(Exception exception) => SetError(exception.Message);
 
-        protected void SetError(Exception exception) => _formRenderer.ErrorMessage = exception.Message;
+        protected void SetError(ValidationResult validationResult) => SetError(validationResult.ErrorMessage);
 
         protected bool TryValidate(object input, IList<Func<object, ValidationResult>> validators)
         {
@@ -66,6 +69,18 @@ namespace Sharprompt.Forms
             }
 
             return true;
+        }
+
+        private void CancellationHandler()
+        {
+            _formRenderer.Cancel();
+
+            if (Prompt.ThrowExceptionOnCancel)
+            {
+                throw new PromptCanceledException("The prompt was canceled.", GetType().Name);
+            }
+
+            Environment.Exit(1);
         }
     }
 }

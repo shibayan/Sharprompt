@@ -9,6 +9,8 @@ namespace Sharprompt.Drivers
     {
         static DefaultConsoleDriver()
         {
+            Console.TreatControlCAsInput = true;
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var hConsole = NativeMethods.GetStdHandle(NativeMethods.STD_OUTPUT_HANDLE);
@@ -22,18 +24,11 @@ namespace Sharprompt.Drivers
             }
         }
 
-        public DefaultConsoleDriver()
-        {
-            Console.CancelKeyPress += CancelKeyPressHandler;
-        }
-
         #region IDisposable
 
         public void Dispose()
         {
             Reset();
-
-            Console.CancelKeyPress -= CancelKeyPressHandler;
         }
 
         #endregion
@@ -55,7 +50,17 @@ namespace Sharprompt.Drivers
             Console.Write("\x1b[2K");
         }
 
-        public ConsoleKeyInfo ReadKey() => Console.ReadKey(true);
+        public ConsoleKeyInfo ReadKey()
+        {
+            var keyInfo = Console.ReadKey(true);
+
+            if (keyInfo.Key == ConsoleKey.C && keyInfo.Modifiers == ConsoleModifiers.Control)
+            {
+                CancellationCallback?.Invoke();
+            }
+
+            return keyInfo;
+        }
 
         public void Write(string value, ConsoleColor color)
         {
@@ -84,10 +89,8 @@ namespace Sharprompt.Drivers
 
         public int BufferHeight => Console.BufferHeight;
 
-        public Action RequestCancellation { get; set; }
+        public Action CancellationCallback { get; set; }
 
         #endregion
-
-        private void CancelKeyPressHandler(object sender, ConsoleCancelEventArgs e) => RequestCancellation?.Invoke();
     }
 }

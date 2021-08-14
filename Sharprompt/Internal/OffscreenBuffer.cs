@@ -14,7 +14,6 @@ namespace Sharprompt.Internal
             _consoleDriver = consoleDriver;
 
             _cursorBottom = _consoleDriver.CursorTop;
-            _consoleDriver.RequestCancellation = RequestCancellation;
         }
 
         private readonly IConsoleDriver _consoleDriver;
@@ -128,17 +127,12 @@ namespace Sharprompt.Internal
             _pushedCursor = null;
         }
 
-        private void RequestCancellation()
+        public void Cancel()
         {
             _consoleDriver.Reset();
             _consoleDriver.SetCursorPosition(0, _cursorBottom);
 
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                _consoleDriver.WriteLine();
-            }
-
-            Environment.Exit(1);
+            _consoleDriver.WriteLine();
         }
 
         private class TextInfo

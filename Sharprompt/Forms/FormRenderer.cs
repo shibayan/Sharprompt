@@ -18,6 +18,8 @@ namespace Sharprompt.Forms
 
         public void Dispose() => _offscreenBuffer.Dispose();
 
+        public void Cancel() => _offscreenBuffer.Cancel();
+
         public void Render(Action<OffscreenBuffer> template)
         {
             using (_offscreenBuffer.BeginRender())
