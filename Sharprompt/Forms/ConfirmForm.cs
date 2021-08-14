@@ -99,11 +99,11 @@ namespace Sharprompt.Forms
 
             if (_options.DefaultValue == null)
             {
-                offscreenBuffer.Write("(y/n) ");
+                offscreenBuffer.WriteHint("(y/n) ");
             }
             else
             {
-                offscreenBuffer.Write(_options.DefaultValue.Value ? "(Y/n) " : "(y/N) ");
+                offscreenBuffer.WriteHint(_options.DefaultValue.Value ? "(Y/n) " : "(y/N) ");
             }
 
             offscreenBuffer.Write(_inputBuffer.ToString(0, _startIndex));
@@ -115,8 +115,8 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, bool result)
         {
-            offscreenBuffer.WriteFinish(_options.Message);
-            offscreenBuffer.Write(result ? "Yes" : "No", Prompt.ColorSchema.Answer);
+            offscreenBuffer.WriteDone(_options.Message);
+            offscreenBuffer.WriteAnswer(result ? "Yes" : "No");
         }
     }
 }

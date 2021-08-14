@@ -13,24 +13,24 @@ namespace Sharprompt.Internal
         private static bool IsFullWidth(int codePoint)
         {
             var left = 0;
-            var right = _ranges.Length - 1;
+            var right = _eastAsianWidthRanges.Length - 1;
 
             while (left <= right)
             {
-                var middle = left + (right - left) / 2;
+                var center = left + (right - left) / 2;
 
-                ref var range = ref _ranges[middle];
+                ref var range = ref _eastAsianWidthRanges[center];
 
                 if (codePoint < range.Start)
                 {
-                    right = middle - 1;
+                    right = center - 1;
 
                     continue;
                 }
 
                 if (codePoint > range.Start + range.Count)
                 {
-                    left = middle + 1;
+                    left = center + 1;
 
                     continue;
                 }
@@ -41,27 +41,11 @@ namespace Sharprompt.Internal
             return false;
         }
 
-        private static bool IsEastAsianLanguage => _languages.Contains(CultureInfo.CurrentCulture.TwoLetterISOLanguageName);
+        private static bool IsEastAsianLanguage => _eastAsianLanguages.Contains(CultureInfo.CurrentCulture.TwoLetterISOLanguageName);
 
-        private static readonly string[] _languages = { "ja", "ko", "zh" };
+        private static readonly string[] _eastAsianLanguages = { "ja", "ko", "zh" };
 
-        private readonly struct EastAsianWidthRange
-        {
-            public EastAsianWidthRange(int start, ushort count, bool ambiguous)
-            {
-                Start = start;
-                Count = count;
-                Ambiguous = ambiguous;
-            }
-
-            public int Start { get; }
-
-            public ushort Count { get; }
-
-            public bool Ambiguous { get; }
-        }
-
-        private static readonly EastAsianWidthRange[] _ranges =
+        private static readonly EastAsianWidthRange[] _eastAsianWidthRanges =
         {
             new(161, 0, true),
             new(164, 0, true),
@@ -334,5 +318,19 @@ namespace Sharprompt.Internal
             new(983040, 65533, true),
             new(1048576, 65533, true)
         };
+
+        private readonly struct EastAsianWidthRange
+        {
+            public EastAsianWidthRange(int start, ushort count, bool ambiguous)
+            {
+                Start = start;
+                Count = count;
+                Ambiguous = ambiguous;
+            }
+
+            public int Start { get; }
+            public ushort Count { get; }
+            public bool Ambiguous { get; }
+        }
     }
 }

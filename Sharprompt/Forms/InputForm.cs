@@ -110,7 +110,7 @@ namespace Sharprompt.Forms
 
             if (_defaultValue.HasValue)
             {
-                offscreenBuffer.Write($"({_defaultValue.Value}) ");
+                offscreenBuffer.WriteHint($"({_defaultValue.Value}) ");
             }
 
             offscreenBuffer.Write(_inputBuffer.ToString(0, _startIndex));
@@ -122,11 +122,11 @@ namespace Sharprompt.Forms
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, T result)
         {
-            offscreenBuffer.WriteFinish(_options.Message);
+            offscreenBuffer.WriteDone(_options.Message);
 
             if (result != null)
             {
-                offscreenBuffer.Write(result.ToString(), Prompt.ColorSchema.Answer);
+                offscreenBuffer.WriteAnswer(result.ToString());
             }
         }
     }

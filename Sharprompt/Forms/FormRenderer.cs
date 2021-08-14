@@ -28,7 +28,8 @@ namespace Sharprompt.Forms
 
                 if (ErrorMessage != null)
                 {
-                    _offscreenBuffer.WriteErrorMessage(ErrorMessage);
+                    _offscreenBuffer.WriteLine();
+                    _offscreenBuffer.WriteError(ErrorMessage);
 
                     ErrorMessage = null;
                 }

@@ -52,7 +52,7 @@ namespace Sharprompt.Example
 
         private static void RunInputSample()
         {
-            var name = Prompt.Input<string>("What's your name?", validators: new[] { Validators.Required(), Validators.MinLength(3) });
+            var name = Prompt.Input<string>("What's your name?", "John Smith", new[] { Validators.Required(), Validators.MinLength(3) });
             Console.WriteLine($"Hello, {name}!");
         }
 
