@@ -17,6 +17,6 @@ namespace Sharprompt.Drivers
         int CursorTop { get; }
         int BufferWidth { get; }
         int BufferHeight { get; }
-        Action RequestCancellation { get; set; }
+        Action CancellationCallback { get; set; }
     }
 }

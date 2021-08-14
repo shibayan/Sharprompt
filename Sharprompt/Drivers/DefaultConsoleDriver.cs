@@ -56,7 +56,7 @@ namespace Sharprompt.Drivers
 
             if (keyInfo.Key == ConsoleKey.C && keyInfo.Modifiers == ConsoleModifiers.Control)
             {
-                RequestCancellation?.Invoke();
+                CancellationCallback?.Invoke();
             }
 
             return keyInfo;
@@ -89,7 +89,7 @@ namespace Sharprompt.Drivers
 
         public int BufferHeight => Console.BufferHeight;
 
-        public Action RequestCancellation { get; set; }
+        public Action CancellationCallback { get; set; }
 
         #endregion
     }
