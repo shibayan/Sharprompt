@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using Sharprompt.Internal;
 
@@ -35,7 +34,7 @@ namespace Sharprompt.Forms
         private readonly Paginator<T> _paginator;
 
         private readonly List<T> _selectedItems = new();
-        private readonly StringBuilder _filterBuffer = new();
+        private readonly TextInputBuffer _filterBuffer = new();
 
         protected override bool TryGetResult(out IEnumerable<T> result)
         {
@@ -81,18 +80,18 @@ namespace Sharprompt.Forms
                     case ConsoleKey.RightArrow:
                         _paginator.NextPage();
                         break;
-                    case ConsoleKey.Backspace when _filterBuffer.Length == 0:
-                        ConsoleDriver.Beep();
-                        break;
-                    case ConsoleKey.Backspace:
-                        _filterBuffer.Length -= 1;
+                    case ConsoleKey.Backspace when !_filterBuffer.IsStart:
+                        _filterBuffer.Backspace();
 
                         _paginator.UpdateFilter(_filterBuffer.ToString());
+                        break;
+                    case ConsoleKey.Backspace:
+                        ConsoleDriver.Beep();
                         break;
                     default:
                         if (!char.IsControl(keyInfo.KeyChar))
                         {
-                            _filterBuffer.Append(keyInfo.KeyChar);
+                            _filterBuffer.Insert(keyInfo.KeyChar);
 
                             _paginator.UpdateFilter(_filterBuffer.ToString());
                         }
