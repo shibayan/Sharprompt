@@ -70,10 +70,10 @@ namespace Sharprompt.Forms
                         break;
                     }
                     case ConsoleKey.LeftArrow when !_textInputBuffer.IsStart:
-                        _textInputBuffer.Back();
+                        _textInputBuffer.Backward();
                         break;
                     case ConsoleKey.RightArrow when !_textInputBuffer.IsEnd:
-                        _textInputBuffer.Next();
+                        _textInputBuffer.Forward();
                         break;
                     case ConsoleKey.Backspace when !_textInputBuffer.IsStart:
                         _textInputBuffer.Backspace();
@@ -111,11 +111,11 @@ namespace Sharprompt.Forms
                 offscreenBuffer.WriteHint($"({_defaultValue.Value}) ");
             }
 
-            offscreenBuffer.Write(_textInputBuffer.ToFrontString());
+            offscreenBuffer.Write(_textInputBuffer.ToBackwardString());
 
             offscreenBuffer.PushCursor();
 
-            offscreenBuffer.Write(_textInputBuffer.ToBackString());
+            offscreenBuffer.Write(_textInputBuffer.ToForwardString());
         }
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, T result)

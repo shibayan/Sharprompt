@@ -16,9 +16,9 @@ namespace Sharprompt.Internal
 
         public void Insert(char value) => _inputBuffer.Insert(_position++, value);
 
-        public void Back() => _position--;
+        public void Backward() => _position--;
 
-        public void Next() => _position++;
+        public void Forward() => _position++;
 
         public void Backspace() => _inputBuffer.Remove(--_position, 1);
 
@@ -30,9 +30,9 @@ namespace Sharprompt.Internal
             _inputBuffer.Clear();
         }
 
-        public string ToFrontString() => _inputBuffer.ToString(0, _position);
+        public string ToBackwardString() => _inputBuffer.ToString(0, _position);
 
-        public string ToBackString() => _inputBuffer.ToString(_position, _inputBuffer.Length - _position);
+        public string ToForwardString() => _inputBuffer.ToString(_position, _inputBuffer.Length - _position);
 
         public override string ToString() => _inputBuffer.ToString();
     }
