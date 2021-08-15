@@ -58,16 +58,16 @@ namespace Sharprompt.Forms
 
                         break;
                     }
-                    case ConsoleKey.LeftArrow when !_textInputBuffer.Head:
+                    case ConsoleKey.LeftArrow when !_textInputBuffer.IsStart:
                         _textInputBuffer.Back();
                         break;
-                    case ConsoleKey.RightArrow when !_textInputBuffer.Eol:
+                    case ConsoleKey.RightArrow when !_textInputBuffer.IsEnd:
                         _textInputBuffer.Next();
                         break;
-                    case ConsoleKey.Backspace when !_textInputBuffer.Head:
+                    case ConsoleKey.Backspace when !_textInputBuffer.IsStart:
                         _textInputBuffer.Backspace();
                         break;
-                    case ConsoleKey.Delete when !_textInputBuffer.Eol:
+                    case ConsoleKey.Delete when !_textInputBuffer.IsEnd:
                         _textInputBuffer.Delete();
                         break;
                     case ConsoleKey.LeftArrow:

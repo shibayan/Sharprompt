@@ -9,8 +9,10 @@ namespace Sharprompt.Internal
         private int _position;
 
         public int Length => _inputBuffer.Length;
-        public bool Eol => _position == _inputBuffer.Length;
-        public bool Head => _position == 0;
+
+        public bool IsStart => _position == 0;
+
+        public bool IsEnd => _position == _inputBuffer.Length;
 
         public void Insert(char value) => _inputBuffer.Insert(_position++, value);
 

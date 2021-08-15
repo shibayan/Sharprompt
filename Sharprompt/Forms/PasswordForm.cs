@@ -31,7 +31,7 @@ namespace Sharprompt.Forms
                             return true;
                         }
                         break;
-                    case ConsoleKey.Backspace when !_textInputBuffer.Head:
+                    case ConsoleKey.Backspace when !_textInputBuffer.IsStart:
                         _textInputBuffer.Backspace();
                         break;
                     case ConsoleKey.Backspace:

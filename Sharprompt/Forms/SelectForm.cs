@@ -44,7 +44,7 @@ namespace Sharprompt.Forms
                     case ConsoleKey.RightArrow:
                         _paginator.NextPage();
                         break;
-                    case ConsoleKey.Backspace when !_filterBuffer.Head:
+                    case ConsoleKey.Backspace when !_filterBuffer.IsStart:
                         _filterBuffer.Backspace();
 
                         _paginator.UpdateFilter(_filterBuffer.ToString());
