@@ -29,7 +29,7 @@ namespace Sharprompt.Forms
 
                         if (string.IsNullOrEmpty(input))
                         {
-                            if (_options.DefaultValue != null)
+                            if (_options.DefaultValue.HasValue)
                             {
                                 result = _options.DefaultValue.Value;
 

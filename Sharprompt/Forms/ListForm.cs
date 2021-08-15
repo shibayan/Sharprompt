@@ -27,9 +27,6 @@ namespace Sharprompt.Forms
 
         private readonly ListOptions<T> _options;
 
-        private readonly Type _targetType = typeof(T);
-        private readonly Type _underlyingType = Nullable.GetUnderlyingType(typeof(T));
-
         private readonly TextInputBuffer _textInputBuffer = new();
         private readonly List<T> _inputItems = new();
 
@@ -68,7 +65,7 @@ namespace Sharprompt.Forms
                                 return false;
                             }
 
-                            var inputValue = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
+                            var inputValue = TypeHelper<T>.ConvertTo(input);
 
                             if (!TryValidate(inputValue, _options.Validators))
                             {
