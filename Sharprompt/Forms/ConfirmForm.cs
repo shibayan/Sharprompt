@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 
 using Sharprompt.Internal;
 
@@ -14,8 +13,7 @@ namespace Sharprompt.Forms
 
         private readonly ConfirmOptions _options;
 
-        private int _startIndex;
-        private readonly StringBuilder _inputBuffer = new();
+        private readonly TextInputBuffer _textInputBuffer = new();
 
         protected override bool TryGetResult(out bool result)
         {
@@ -27,7 +25,7 @@ namespace Sharprompt.Forms
                 {
                     case ConsoleKey.Enter:
                     {
-                        var input = _inputBuffer.ToString();
+                        var input = _textInputBuffer.ToString();
 
                         if (string.IsNullOrEmpty(input))
                         {
@@ -60,17 +58,17 @@ namespace Sharprompt.Forms
 
                         break;
                     }
-                    case ConsoleKey.LeftArrow when _startIndex > 0:
-                        _startIndex -= 1;
+                    case ConsoleKey.LeftArrow when !_textInputBuffer.Head:
+                        _textInputBuffer.Back();
                         break;
-                    case ConsoleKey.RightArrow when _startIndex < _inputBuffer.Length:
-                        _startIndex += 1;
+                    case ConsoleKey.RightArrow when !_textInputBuffer.Eol:
+                        _textInputBuffer.Next();
                         break;
-                    case ConsoleKey.Backspace when _startIndex > 0:
-                        _inputBuffer.Remove(--_startIndex, 1);
+                    case ConsoleKey.Backspace when !_textInputBuffer.Head:
+                        _textInputBuffer.Backspace();
                         break;
-                    case ConsoleKey.Delete when _startIndex < _inputBuffer.Length:
-                        _inputBuffer.Remove(_startIndex, 1);
+                    case ConsoleKey.Delete when !_textInputBuffer.Eol:
+                        _textInputBuffer.Delete();
                         break;
                     case ConsoleKey.LeftArrow:
                     case ConsoleKey.RightArrow:
@@ -81,7 +79,7 @@ namespace Sharprompt.Forms
                     default:
                         if (!char.IsControl(keyInfo.KeyChar))
                         {
-                            _inputBuffer.Insert(_startIndex++, keyInfo.KeyChar);
+                            _textInputBuffer.Insert(keyInfo.KeyChar);
                         }
                         break;
                 }
@@ -106,11 +104,11 @@ namespace Sharprompt.Forms
                 offscreenBuffer.WriteHint(_options.DefaultValue.Value ? "(Y/n) " : "(y/N) ");
             }
 
-            offscreenBuffer.Write(_inputBuffer.ToString(0, _startIndex));
+            offscreenBuffer.Write(_textInputBuffer.ToFrontString());
 
             offscreenBuffer.PushCursor();
 
-            offscreenBuffer.Write(_inputBuffer.ToString(_startIndex, _inputBuffer.Length - _startIndex));
+            offscreenBuffer.Write(_textInputBuffer.ToBackString());
         }
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, bool result)

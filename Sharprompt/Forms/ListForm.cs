@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using Sharprompt.Internal;
 
@@ -31,8 +30,7 @@ namespace Sharprompt.Forms
         private readonly Type _targetType = typeof(T);
         private readonly Type _underlyingType = Nullable.GetUnderlyingType(typeof(T));
 
-        private int _startIndex;
-        private readonly StringBuilder _inputBuffer = new();
+        private readonly TextInputBuffer _textInputBuffer = new();
         private readonly List<T> _inputItems = new();
 
         protected override bool TryGetResult(out IEnumerable<T> result)
@@ -45,7 +43,7 @@ namespace Sharprompt.Forms
                 {
                     case ConsoleKey.Enter:
                     {
-                        var input = _inputBuffer.ToString();
+                        var input = _textInputBuffer.ToString();
 
                         try
                         {
@@ -77,8 +75,7 @@ namespace Sharprompt.Forms
                                 return false;
                             }
 
-                            _startIndex = 0;
-                            _inputBuffer.Clear();
+                            _textInputBuffer.Clear();
 
                             _inputItems.Add(inputValue);
 
@@ -91,17 +88,17 @@ namespace Sharprompt.Forms
 
                         break;
                     }
-                    case ConsoleKey.LeftArrow when _startIndex > 0:
-                        _startIndex -= 1;
+                    case ConsoleKey.LeftArrow when !_textInputBuffer.Head:
+                        _textInputBuffer.Back();
                         break;
-                    case ConsoleKey.RightArrow when _startIndex < _inputBuffer.Length:
-                        _startIndex += 1;
+                    case ConsoleKey.RightArrow when !_textInputBuffer.Eol:
+                        _textInputBuffer.Next();
                         break;
-                    case ConsoleKey.Backspace when _startIndex > 0:
-                        _inputBuffer.Remove(--_startIndex, 1);
+                    case ConsoleKey.Backspace when !_textInputBuffer.Head:
+                        _textInputBuffer.Backspace();
                         break;
-                    case ConsoleKey.Delete when _startIndex < _inputBuffer.Length:
-                        _inputBuffer.Remove(_startIndex, 1);
+                    case ConsoleKey.Delete when !_textInputBuffer.Eol:
+                        _textInputBuffer.Delete();
                         break;
                     case ConsoleKey.Delete when keyInfo.Modifiers == ConsoleModifiers.Control:
                         if (_inputItems.Any())
@@ -118,7 +115,7 @@ namespace Sharprompt.Forms
                     default:
                         if (!char.IsControl(keyInfo.KeyChar))
                         {
-                            _inputBuffer.Insert(_startIndex++, keyInfo.KeyChar);
+                            _textInputBuffer.Insert(keyInfo.KeyChar);
                         }
                         break;
                 }
@@ -134,11 +131,11 @@ namespace Sharprompt.Forms
         {
             offscreenBuffer.WritePrompt(_options.Message);
 
-            offscreenBuffer.Write(_inputBuffer.ToString(0, _startIndex));
+            offscreenBuffer.Write(_textInputBuffer.ToFrontString());
 
             offscreenBuffer.PushCursor();
 
-            offscreenBuffer.Write(_inputBuffer.ToString(_startIndex, _inputBuffer.Length - _startIndex));
+            offscreenBuffer.Write(_textInputBuffer.ToBackString());
 
             foreach (var inputItem in _inputItems)
             {
