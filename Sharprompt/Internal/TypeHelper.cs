@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 
 namespace Sharprompt.Internal
 {
@@ -9,6 +10,6 @@ namespace Sharprompt.Internal
 
         public static bool IsValueType => _targetType.IsValueType && _underlyingType is null;
 
-        public static T ConvertTo(object value) => (T)Convert.ChangeType(value, _underlyingType ?? _targetType);
+        public static T ConvertTo(string value) => (T)TypeDescriptor.GetConverter(_underlyingType ?? _targetType).ConvertFromInvariantString(value);
     }
 }
