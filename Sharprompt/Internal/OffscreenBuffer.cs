@@ -69,7 +69,7 @@ namespace Sharprompt.Internal
 
             _cursorBottom = _consoleDriver.CursorTop;
 
-            if (_pushedCursor != null)
+            if (_pushedCursor is not null)
             {
                 var physicalLeft = _pushedCursor.Left % _consoleDriver.BufferWidth;
                 var physicalTop = _pushedCursor.Top + (_pushedCursor.Left / _consoleDriver.BufferWidth);

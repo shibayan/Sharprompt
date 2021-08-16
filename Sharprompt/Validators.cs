@@ -6,11 +6,11 @@ namespace Sharprompt
 {
     public static class Validators
     {
-        public static Func<object, ValidationResult> Required(string errorMessage = null)
+        public static Func<object, ValidationResult> Required(string errorMessage = default)
         {
             return input =>
             {
-                if (input == null)
+                if (input is null)
                 {
                     return new ValidationResult(errorMessage ?? "Value is required");
                 }
@@ -24,7 +24,7 @@ namespace Sharprompt
             };
         }
 
-        public static Func<object, ValidationResult> MinLength(int length, string errorMessage = null)
+        public static Func<object, ValidationResult> MinLength(int length, string errorMessage = default)
         {
             return input =>
             {
@@ -42,7 +42,7 @@ namespace Sharprompt
             };
         }
 
-        public static Func<object, ValidationResult> MaxLength(int length, string errorMessage = null)
+        public static Func<object, ValidationResult> MaxLength(int length, string errorMessage = default)
         {
             return input =>
             {
@@ -60,7 +60,7 @@ namespace Sharprompt
             };
         }
 
-        public static Func<object, ValidationResult> RegularExpression(string pattern, string errorMessage = null)
+        public static Func<object, ValidationResult> RegularExpression(string pattern, string errorMessage = default)
         {
             return input =>
             {

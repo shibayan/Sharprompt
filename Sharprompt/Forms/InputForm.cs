@@ -16,9 +16,6 @@ namespace Sharprompt.Forms
         private readonly InputOptions _options;
         private readonly Optional<T> _defaultValue;
 
-        private readonly Type _targetType = typeof(T);
-        private readonly Type _underlyingType = Nullable.GetUnderlyingType(typeof(T));
-
         private readonly TextInputBuffer _textInputBuffer = new();
 
         protected override bool TryGetResult(out T result)
@@ -37,7 +34,7 @@ namespace Sharprompt.Forms
                         {
                             if (string.IsNullOrEmpty(input))
                             {
-                                if (_targetType.IsValueType && _underlyingType == null && !_defaultValue.HasValue)
+                                if (TypeHelper<T>.IsValueType && !_defaultValue.HasValue)
                                 {
                                     SetError("Value is required");
 
@@ -50,7 +47,7 @@ namespace Sharprompt.Forms
                             }
                             else
                             {
-                                result = (T)Convert.ChangeType(input, _underlyingType ?? _targetType);
+                                result = TypeHelper<T>.ConvertTo(input);
                             }
 
                             if (!TryValidate(result, _options.Validators))
@@ -122,7 +119,7 @@ namespace Sharprompt.Forms
         {
             offscreenBuffer.WriteDone(_options.Message);
 
-            if (result != null)
+            if (result is not null)
             {
                 offscreenBuffer.WriteAnswer(result.ToString());
             }

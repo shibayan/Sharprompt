@@ -29,7 +29,7 @@ namespace Sharprompt.Forms
 
                         if (string.IsNullOrEmpty(input))
                         {
-                            if (_options.DefaultValue != null)
+                            if (_options.DefaultValue.HasValue)
                             {
                                 result = _options.DefaultValue.Value;
 
@@ -95,13 +95,13 @@ namespace Sharprompt.Forms
         {
             offscreenBuffer.WritePrompt(_options.Message);
 
-            if (_options.DefaultValue == null)
+            if (_options.DefaultValue.HasValue)
             {
-                offscreenBuffer.WriteHint("(y/n) ");
+                offscreenBuffer.WriteHint(_options.DefaultValue.Value ? "(Y/n) " : "(y/N) ");
             }
             else
             {
-                offscreenBuffer.WriteHint(_options.DefaultValue.Value ? "(Y/n) " : "(y/N) ");
+                offscreenBuffer.WriteHint("(y/n) ");
             }
 
             offscreenBuffer.Write(_textInputBuffer.ToBackwardString());
