@@ -119,7 +119,7 @@ namespace Sharprompt.Forms
         {
             offscreenBuffer.WriteDone(_options.Message);
 
-            if (result != null)
+            if (result is not null)
             {
                 offscreenBuffer.WriteAnswer(result.ToString());
             }

@@ -22,7 +22,7 @@ namespace Sharprompt.Forms
 
             _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Empty, options.TextSelector);
 
-            if (options.DefaultValues != null)
+            if (options.DefaultValues is not null)
             {
                 _selectedItems.AddRange(options.DefaultValues);
             }
@@ -100,7 +100,7 @@ namespace Sharprompt.Forms
 
             } while (ConsoleDriver.KeyAvailable);
 
-            result = null;
+            result = default;
 
             return false;
         }

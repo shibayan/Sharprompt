@@ -22,7 +22,7 @@ namespace Sharprompt.Internal
         public int Order { get; }
         public T Value { get; }
 
-        public bool Equals(EnumValue<T> other) => other != null && EqualityComparer<T>.Default.Equals(Value, other.Value);
+        public bool Equals(EnumValue<T> other) => other is not null && EqualityComparer<T>.Default.Equals(Value, other.Value);
 
         public override bool Equals(object obj) => Equals(obj as EnumValue<T>);
 

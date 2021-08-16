@@ -26,7 +26,7 @@ namespace Sharprompt
             return Input<T>(options);
         }
 
-        public static T Input<T>(string message, object defaultValue = null, IList<Func<object, ValidationResult>> validators = null)
+        public static T Input<T>(string message, object defaultValue = default, IList<Func<object, ValidationResult>> validators = default)
         {
             var options = new InputOptions
             {
@@ -34,13 +34,7 @@ namespace Sharprompt
                 DefaultValue = defaultValue
             };
 
-            if (validators != null)
-            {
-                foreach (var validator in validators)
-                {
-                    options.Validators.Add(validator);
-                }
-            }
+            options.Validators.Merge(validators);
 
             return Input<T>(options);
         }
@@ -61,20 +55,14 @@ namespace Sharprompt
             return Password(options);
         }
 
-        public static string Password(string message, IList<Func<object, ValidationResult>> validators = null)
+        public static string Password(string message, IList<Func<object, ValidationResult>> validators = default)
         {
             var options = new PasswordOptions
             {
                 Message = message
             };
 
-            if (validators != null)
-            {
-                foreach (var validator in validators)
-                {
-                    options.Validators.Add(validator);
-                }
-            }
+            options.Validators.Merge(validators);
 
             return Password(options);
         }
@@ -95,7 +83,7 @@ namespace Sharprompt
             return Confirm(options);
         }
 
-        public static bool Confirm(string message, bool? defaultValue = null)
+        public static bool Confirm(string message, bool? defaultValue = default)
         {
             var options = new ConfirmOptions
             {
@@ -122,7 +110,7 @@ namespace Sharprompt
             return Select(options);
         }
 
-        public static T Select<T>(string message, int? pageSize = null, T? defaultValue = null) where T : struct, Enum
+        public static T Select<T>(string message, int? pageSize = default, T? defaultValue = default) where T : struct, Enum
         {
             var items = EnumValue<T>.GetValues();
 
@@ -138,7 +126,7 @@ namespace Sharprompt
             return Select(options).Value;
         }
 
-        public static T Select<T>(string message, IEnumerable<T> items, int? pageSize = null, object defaultValue = null, Func<T, string> textSelector = null)
+        public static T Select<T>(string message, IEnumerable<T> items, int? pageSize = default, object defaultValue = default, Func<T, string> textSelector = default)
         {
             var options = new SelectOptions<T>
             {
@@ -168,7 +156,7 @@ namespace Sharprompt
             return MultiSelect(options);
         }
 
-        public static IEnumerable<T> MultiSelect<T>(string message, int? pageSize = null, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = null) where T : struct, Enum
+        public static IEnumerable<T> MultiSelect<T>(string message, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = default) where T : struct, Enum
         {
             var items = EnumValue<T>.GetValues();
 
@@ -186,7 +174,7 @@ namespace Sharprompt
             return MultiSelect(options).Select(x => x.Value);
         }
 
-        public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items, int? pageSize = null, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = null, Func<T, string> textSelector = null)
+        public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = default, Func<T, string> textSelector = default)
         {
             var options = new MultiSelectOptions<T>
             {
@@ -218,7 +206,7 @@ namespace Sharprompt
             return List(options);
         }
 
-        public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = int.MaxValue, IList<Func<object, ValidationResult>> validators = null)
+        public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = int.MaxValue, IList<Func<object, ValidationResult>> validators = default)
         {
             var options = new ListOptions<T>
             {
@@ -227,13 +215,7 @@ namespace Sharprompt
                 Maximum = maximum
             };
 
-            if (validators != null)
-            {
-                foreach (var validator in validators)
-                {
-                    options.Validators.Add(validator);
-                }
-            }
+            options.Validators.Merge(validators);
 
             return List(options);
         }

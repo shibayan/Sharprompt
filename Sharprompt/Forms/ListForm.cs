@@ -119,7 +119,7 @@ namespace Sharprompt.Forms
 
             } while (ConsoleDriver.KeyAvailable);
 
-            result = null;
+            result = default;
 
             return false;
         }
