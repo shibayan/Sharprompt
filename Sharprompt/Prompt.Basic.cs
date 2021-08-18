@@ -55,11 +55,25 @@ namespace Sharprompt
             return Password(options);
         }
 
+        [Obsolete("Use instead overload.")]
         public static string Password(string message, IList<Func<object, ValidationResult>> validators = default)
         {
             var options = new PasswordOptions
             {
                 Message = message
+            };
+
+            options.Validators.Merge(validators);
+
+            return Password(options);
+        }
+
+        public static string Password(string message, char? passwordChar = '*', IList<Func<object, ValidationResult>> validators = default)
+        {
+            var options = new PasswordOptions
+            {
+                Message = message,
+                PasswordChar = passwordChar
             };
 
             options.Validators.Merge(validators);

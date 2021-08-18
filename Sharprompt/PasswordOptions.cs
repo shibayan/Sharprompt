@@ -8,6 +8,8 @@ namespace Sharprompt
     {
         public string Message { get; set; }
 
+        public char? PasswordChar { get; set; } = '*';
+
         public IList<Func<object, ValidationResult>> Validators { get; } = new List<Func<object, ValidationResult>>();
     }
 }
