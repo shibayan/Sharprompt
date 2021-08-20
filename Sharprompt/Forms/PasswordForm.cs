@@ -55,7 +55,11 @@ namespace Sharprompt.Forms
         protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
         {
             offscreenBuffer.WritePrompt(_options.Message);
-            offscreenBuffer.Write(new string('*', _textInputBuffer.Length));
+
+            if (_options.PasswordChar.HasValue)
+            {
+                offscreenBuffer.Write(new string(_options.PasswordChar.Value, _textInputBuffer.Length));
+            }
 
             offscreenBuffer.PushCursor();
         }
@@ -63,7 +67,11 @@ namespace Sharprompt.Forms
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, string result)
         {
             offscreenBuffer.WriteDone(_options.Message);
-            offscreenBuffer.WriteAnswer(new string('*', _textInputBuffer.Length));
+
+            if (_options.PasswordChar.HasValue)
+            {
+                offscreenBuffer.WriteAnswer(new string(_options.PasswordChar.Value, _textInputBuffer.Length));
+            }
         }
     }
 }
