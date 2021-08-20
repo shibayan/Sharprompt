@@ -42,7 +42,7 @@ namespace Sharprompt
 
                 if (propertyMetadata.DataType == DataType.Password)
                 {
-                    propertyInfo.SetValue(model, Password(propertyMetadata.Prompt, validators));
+                    propertyInfo.SetValue(model, Password(propertyMetadata.Prompt, validators: validators));
                 }
                 else if (propertyMetadata.PropertyType == typeof(bool))
                 {
