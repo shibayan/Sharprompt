@@ -94,7 +94,7 @@ Console.WriteLine($"You selected {value}");
 
 ```csharp
 var cities = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3);
-Console.WriteLine($"You picked {string.Join(", ", options)}");
+Console.WriteLine($"You picked {string.Join(", ", cities)}");
 ```
 
 ![multiselect](https://user-images.githubusercontent.com/1356444/127033929-3278e39c-e260-4aed-9c3c-3cfd7d3f3549.gif)
