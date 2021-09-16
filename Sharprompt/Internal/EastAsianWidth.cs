@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 
 namespace Sharprompt.Internal
@@ -35,15 +34,11 @@ namespace Sharprompt.Internal
                     continue;
                 }
 
-                return !range.Ambiguous || IsEastAsianLanguage;
+                return !range.Ambiguous;
             }
 
             return false;
         }
-
-        private static bool IsEastAsianLanguage => _eastAsianLanguages.Contains(CultureInfo.CurrentCulture.TwoLetterISOLanguageName);
-
-        private static readonly string[] _eastAsianLanguages = { "ja", "ko", "zh" };
 
         private static readonly EastAsianWidthRange[] _eastAsianWidthRanges =
         {
