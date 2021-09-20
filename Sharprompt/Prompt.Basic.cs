@@ -185,7 +185,7 @@ namespace Sharprompt
                 PageSize = pageSize,
                 Minimum = minimum,
                 Maximum = maximum,
-                TextSelector = x => x.ToString()
+                TextSelector = textSelector ?? (x => x.ToString())
             };
 
             return MultiSelect(options);
