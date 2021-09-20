@@ -55,6 +55,19 @@ namespace Sharprompt
             return Password(options);
         }
 
+        [Obsolete("This is obsolete and will be removed in a future version. Use Password(message, passwordChar, validators) instead.")]
+        public static string Password(string message, IList<Func<object, ValidationResult>> validators = default)
+        {
+            var options = new PasswordOptions
+            {
+                Message = message
+            };
+
+            options.Validators.Merge(validators);
+
+            return Password(options);
+        }
+
         public static string Password(string message, char? passwordChar = '*', IList<Func<object, ValidationResult>> validators = default)
         {
             var options = new PasswordOptions
