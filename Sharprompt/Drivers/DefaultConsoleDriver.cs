@@ -9,6 +9,11 @@ namespace Sharprompt.Drivers
     {
         static DefaultConsoleDriver()
         {
+            if (Console.IsInputRedirected || Console.IsOutputRedirected)
+            {
+                throw new InvalidOperationException("Sharprompt requires an interactive environment.");
+            }
+
             Console.TreatControlCAsInput = true;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
