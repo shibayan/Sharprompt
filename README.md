@@ -9,16 +9,6 @@ Interactive command-line based application framework for C#
 
 ![sharprompt](https://user-images.githubusercontent.com/1356444/62227794-87506e00-b3f7-11e9-84ae-06c9a900448b.gif)
 
-## Install
-
-```
-Install-Package Sharprompt
-```
-
-```
-dotnet add package Sharprompt
-```
-
 ## Features
 
 - Multi-platform support
@@ -29,29 +19,50 @@ dotnet add package Sharprompt
 - Customizable symbols and color schema
 - Unicode support (Multi-byte characters and Emoji😀🎉)
 
-## Usage
+## Installation
+
+```
+Install-Package Sharprompt
+```
+
+```
+dotnet add package Sharprompt
+```
 
 ```csharp
-// Simple input prompt
+// Simple input
 var name = Prompt.Input<string>("What's your name?");
 Console.WriteLine($"Hello, {name}!");
 
-// Password prompt
+// Password
 var secret = Prompt.Password("Type new password", new[] { Validators.Required(), Validators.MinLength(8) });
 Console.WriteLine("Password OK");
 
-// Confirmation prompt
+// Confirmation
 var answer = Prompt.Confirm("Are you ready?", defaultValue: true);
 Console.WriteLine($"Your answer is {answer}");
 ```
 
-## APIs
+## Examples
+
+The project in the folder `Sharprompt.Example` contains all the samples. Please check it.
+
+```
+dotnet run --project Sharprompt.Example
+```
+
+## Prompt types
 
 ### Input
+
+Takes a generic type parameter and performs type conversion as appropriate.
 
 ```csharp
 var name = Prompt.Input<string>("What's your name?");
 Console.WriteLine($"Hello, {name}!");
+
+var number = Prompt.Input<int>("Enter any number");
+Console.WriteLine($"Input = {number}");
 ```
 
 ![input](https://user-images.githubusercontent.com/1356444/62228275-50c72300-b3f8-11e9-8d51-63892e8eeaaa.gif)
@@ -90,7 +101,7 @@ var value = Prompt.Select<MyEnum>("Select enum value");
 Console.WriteLine($"You selected {value}");
 ```
 
-### MultiSelect
+### MultiSelect (Checkbox)
 
 ```csharp
 var cities = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3);
@@ -111,7 +122,7 @@ Console.WriteLine($"You picked {string.Join(", ", value)}");
 ### AutoForms (Preview)
 
 ```csharp
-// Model definition
+// Input model definition
 public class MyFormModel
 {
     [Display(Prompt = "What's your name?")]
@@ -164,7 +175,7 @@ var name = Prompt.Input<string>("What's your name?");
 Console.WriteLine($"Hello, {name}!");
 ```
 
-![unicode](https://user-images.githubusercontent.com/1356444/89803983-86a3f900-db6e-11ea-8fc8-5b6f9ef5644f.gif)
+![unicode support](https://user-images.githubusercontent.com/1356444/89803983-86a3f900-db6e-11ea-8fc8-5b6f9ef5644f.gif)
 
 ### Cancellation support
 
@@ -186,11 +197,13 @@ catch (PromptCanceledException ex)
 ## Supported platforms
 
 - Windows
-  - Command Prompt / PowerShell / Windows Terminal
-- Ubuntu
-  - Bash
+  - Command Prompt
+  - PowerShell
+  - Windows Terminal
+- Linux (Ubuntu, etc)
+  - Windows Terminal (WSL 2)
 - macOS
-  - Bash
+  - Terminal.app
 
 ## License
 
