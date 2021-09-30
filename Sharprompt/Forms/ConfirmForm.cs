@@ -104,7 +104,7 @@ namespace Sharprompt.Forms
                 offscreenBuffer.WriteHint("(y/n) ");
             }
 
-            offscreenBuffer.Write(_textInputBuffer);
+            offscreenBuffer.WriteInput(_textInputBuffer);
         }
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, bool result)

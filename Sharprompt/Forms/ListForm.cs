@@ -128,7 +128,7 @@ namespace Sharprompt.Forms
         {
             offscreenBuffer.WritePrompt(_options.Message);
 
-            offscreenBuffer.Write(_textInputBuffer);
+            offscreenBuffer.WriteInput(_textInputBuffer);
 
             foreach (var inputItem in _inputItems)
             {

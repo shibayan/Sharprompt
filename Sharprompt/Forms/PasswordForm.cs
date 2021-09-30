@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 using Sharprompt.Internal;
 
@@ -56,9 +57,9 @@ namespace Sharprompt.Forms
         {
             offscreenBuffer.WritePrompt(_options.Message);
 
-            if (_options.PasswordChar.HasValue)
+            if (_options.PasswordChar != null)
             {
-                offscreenBuffer.Write(new string(_options.PasswordChar.Value, _textInputBuffer.Length));
+                offscreenBuffer.Write(string.Concat(Enumerable.Repeat(_options.PasswordChar, _textInputBuffer.Length)));
             }
 
             offscreenBuffer.PushCursor();
@@ -68,9 +69,9 @@ namespace Sharprompt.Forms
         {
             offscreenBuffer.WriteDone(_options.Message);
 
-            if (_options.PasswordChar.HasValue)
+            if (_options.PasswordChar != null)
             {
-                offscreenBuffer.WriteAnswer(new string(_options.PasswordChar.Value, _textInputBuffer.Length));
+                offscreenBuffer.WriteAnswer(string.Concat(Enumerable.Repeat(_options.PasswordChar, _textInputBuffer.Length)));
             }
         }
     }
