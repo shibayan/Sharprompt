@@ -33,5 +33,14 @@
         {
             offscreenBuffer.Write(message, Prompt.ColorSchema.Hint);
         }
+
+        public static void Write(this OffscreenBuffer offscreenBuffer, TextInputBuffer textInputBuffer)
+        {
+            offscreenBuffer.Write(textInputBuffer.ToBackwardString());
+
+            offscreenBuffer.PushCursor();
+
+            offscreenBuffer.Write(textInputBuffer.ToForwardString());
+        }
     }
 }

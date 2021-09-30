@@ -108,11 +108,7 @@ namespace Sharprompt.Forms
                 offscreenBuffer.WriteHint($"({_defaultValue.Value}) ");
             }
 
-            offscreenBuffer.Write(_textInputBuffer.ToBackwardString());
-
-            offscreenBuffer.PushCursor();
-
-            offscreenBuffer.Write(_textInputBuffer.ToForwardString());
+            offscreenBuffer.Write(_textInputBuffer);
         }
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, T result)
