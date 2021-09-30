@@ -68,7 +68,7 @@ namespace Sharprompt
             return Password(options);
         }
 
-        public static string Password(string message, char? passwordChar = '*', IList<Func<object, ValidationResult>> validators = default)
+        public static string Password(string message, string passwordChar = "*", IList<Func<object, ValidationResult>> validators = default)
         {
             var options = new PasswordOptions
             {
