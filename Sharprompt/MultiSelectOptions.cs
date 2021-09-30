@@ -18,5 +18,7 @@ namespace Sharprompt
         public int Maximum { get; set; } = int.MaxValue;
 
         public Func<T, string> TextSelector { get; set; } = x => x.ToString();
+
+        public Func<int, int, int, string> Pagination { get; set; } = (count, current, total) => $"({count} items, {current}/{total} pages)";
     }
 }

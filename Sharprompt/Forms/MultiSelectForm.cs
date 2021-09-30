@@ -149,10 +149,10 @@ namespace Sharprompt.Forms
                 }
             }
 
-            if (_paginator.PageCount > 1)
+            if (_paginator.PageCount > 1 && _options.Pagination != null)
             {
                 offscreenBuffer.WriteLine();
-                offscreenBuffer.WriteHint($"({_paginator.TotalCount} items, {_paginator.SelectedPage + 1}/{_paginator.PageCount} pages)");
+                offscreenBuffer.WriteHint(_options.Pagination(_paginator.TotalCount, _paginator.SelectedPage + 1, _paginator.PageCount));
             }
         }
 
