@@ -26,5 +26,8 @@ jobs:
     - name: Build project
       run: dotnet build -c Release
 
+    - name: Run test cases
+      run: dotnet test -c Release
+
     - name: Lint C# code
       run: dotnet format --check --verbosity detailed

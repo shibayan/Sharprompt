@@ -9,7 +9,7 @@ namespace Sharprompt.Internal
 
         private static int GetWidth(this char codePoint) => IsFullWidth(codePoint) ? 2 : 1;
 
-        private static bool IsFullWidth(int codePoint)
+        private static bool IsFullWidth(uint codePoint)
         {
             var left = 0;
             var right = _eastAsianWidthRanges.Length - 1;
@@ -347,14 +347,14 @@ namespace Sharprompt.Internal
 
         private readonly struct EastAsianWidthRange
         {
-            public EastAsianWidthRange(int start, ushort count, bool ambiguous)
+            public EastAsianWidthRange(uint start, ushort count, bool ambiguous)
             {
                 Start = start;
                 Count = count;
                 Ambiguous = ambiguous;
             }
 
-            public int Start { get; }
+            public uint Start { get; }
             public ushort Count { get; }
             public bool Ambiguous { get; }
         }

@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sharprompt", "Sharprompt\Sh
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sharprompt.Example", "Sharprompt.Example\Sharprompt.Example.csproj", "{8E8C45F4-6B12-42F9-B2EA-E0E3EBC4BCB2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sharprompt.Tests", "Sharprompt.Tests\Sharprompt.Tests.csproj", "{2E9644BC-8266-45BC-AFE7-2B2263373F53}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{8E8C45F4-6B12-42F9-B2EA-E0E3EBC4BCB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E8C45F4-6B12-42F9-B2EA-E0E3EBC4BCB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E8C45F4-6B12-42F9-B2EA-E0E3EBC4BCB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E9644BC-8266-45BC-AFE7-2B2263373F53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E9644BC-8266-45BC-AFE7-2B2263373F53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E9644BC-8266-45BC-AFE7-2B2263373F53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E9644BC-8266-45BC-AFE7-2B2263373F53}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
