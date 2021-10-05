@@ -1,13 +1,33 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Sharprompt.Internal
+﻿namespace Sharprompt.Internal
 {
     internal static class EastAsianWidth
     {
-        public static int GetWidth(this IEnumerable<char> value) => value.Sum(GetWidth);
+        public static int GetWidth(this string value)
+        {
+            var width = 0;
 
-        private static int GetWidth(this char codePoint) => IsFullWidth(codePoint) ? 2 : 1;
+            for (var i = 0; i < value.Length; i++)
+            {
+                uint codePoint;
+
+                if (char.IsHighSurrogate(value[i]) && (i + 1 < value.Length && char.IsLowSurrogate(value[i + 1])))
+                {
+                    codePoint = (uint)(0x10000 + ((value[i] - 0xD800) * 0x0400) + (value[i + 1] - 0xDC00));
+
+                    i++;
+                }
+                else
+                {
+                    codePoint = value[i];
+                }
+
+                width += GetWidth(codePoint);
+            }
+
+            return width;
+        }
+
+        private static int GetWidth(uint codePoint) => IsFullWidth(codePoint) ? 2 : 1;
 
         private static bool IsFullWidth(uint codePoint)
         {
