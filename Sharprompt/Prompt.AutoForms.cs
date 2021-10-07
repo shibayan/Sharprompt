@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 
+using Sharprompt.Forms;
 using Sharprompt.Internal;
 
 namespace Sharprompt
@@ -36,6 +37,8 @@ namespace Sharprompt
 
                 var defaultValue = propertyInfo.GetValue(model);
                 var validators = propertyMetadata.GetValidator(model);
+
+                var formType = propertyMetadata.DetermineFormType();
 
                 if (propertyMetadata.DataType == DataType.Password)
                 {
@@ -119,6 +122,36 @@ namespace Sharprompt
             public bool IsCollection { get; }
             public string Message { get; }
             public int? Order { get; }
+
+            public FormType DetermineFormType()
+            {
+                if (DataType == System.ComponentModel.DataAnnotations.DataType.Password)
+                {
+                    return FormType.Password;
+                }
+
+                if (PropertyType == typeof(bool))
+                {
+                    return FormType.Confirm;
+                }
+
+                if (PropertyType.IsEnum)
+                {
+                    return FormType.Select;
+                }
+
+                if (IsCollection && PropertyType.GetGenericArguments()[0].IsEnum)
+                {
+                    return FormType.MultiSelect;
+                }
+
+                if (IsCollection)
+                {
+                    return FormType.List;
+                }
+
+                return FormType.Input;
+            }
 
             private IEnumerable<ValidationAttribute> Validations { get; }
 
