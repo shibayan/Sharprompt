@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Reflection;
+﻿using System.Collections.Generic;
 
 using Sharprompt.Forms;
 using Sharprompt.Internal;
@@ -29,138 +25,110 @@ namespace Sharprompt
 
         private static void StartForms<T>(T model)
         {
-            var propertyMetadatas = PropertyMetadataFactory.Create<T>();
+            var propertyMetadatas = PropertyMetadataFactory.Create(model);
 
             foreach (var propertyMetadata in propertyMetadatas)
             {
-                var propertyInfo = propertyMetadata.PropertyInfo;
-
-                var defaultValue = propertyInfo.GetValue(model);
-                var validators = propertyMetadata.GetValidator(model);
-
                 var formType = propertyMetadata.DetermineFormType();
 
-                if (propertyMetadata.DataType == DataType.Password)
+                var result = formType switch
                 {
-                    var options = new PasswordOptions
-                    {
-                        Message = propertyMetadata.Message
-                    };
+                    FormType.Confirm => MakeConfirm(propertyMetadata),
+                    FormType.Input => MakeInput(propertyMetadata),
+                    FormType.List => MakeList(propertyMetadata),
+                    FormType.MultiSelect => MakeMultiSelect(propertyMetadata),
+                    FormType.Password => MakePassword(propertyMetadata),
+                    FormType.Select => MakeSelect(propertyMetadata),
+                    _ => null
+                };
 
-                    options.Validators.Merge(validators);
-
-                    propertyInfo.SetValue(model, Password(options));
-                }
-                else if (propertyMetadata.PropertyType == typeof(bool))
-                {
-                    var options = new ConfirmOptions
-                    {
-                        Message = propertyMetadata.Message,
-                        DefaultValue = (bool?)defaultValue
-                    };
-
-                    propertyInfo.SetValue(model, Confirm(options));
-                }
-                else if (propertyMetadata.PropertyType.IsEnum)
-                {
-                    var method = _selectMethod.MakeGenericMethod(propertyMetadata.PropertyType);
-
-                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Message, null, defaultValue));
-                }
-                else if (propertyMetadata.IsCollection && propertyMetadata.PropertyType.GetGenericArguments()[0].IsEnum)
-                {
-                    var method = _multiSelectMethod.MakeGenericMethod(propertyMetadata.PropertyType.GetGenericArguments()[0]);
-
-                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Message, null, 1, int.MaxValue, defaultValue));
-                }
-                else
-                {
-                    var method = _inputMethod.MakeGenericMethod(propertyMetadata.PropertyType);
-
-                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Message, defaultValue, validators));
-                }
-
-                propertyInfo.SetValue(model, null);
+                propertyMetadata.PropertyInfo.SetValue(model, result);
             }
         }
 
-        private static object InvokeMethod(MethodInfo methodInfo, params object[] parameters)
+        private static bool MakeConfirm(PropertyMetadata propertyMetadata)
         {
-            return methodInfo.Invoke(null, parameters);
+            return Confirm(options =>
+            {
+                options.Message = propertyMetadata.Message;
+                options.DefaultValue = (bool?)propertyMetadata.DefaultValue;
+            });
         }
 
-        private static class PropertyMetadataFactory
+        private static object MakeInput(PropertyMetadata propertyMetadata)
         {
-            public static IReadOnlyList<PropertyMetadata> Create<T>()
-            {
-                return typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                .Select(x => new PropertyMetadata(x))
-                                .OrderBy(x => x.Order)
-                                .ToArray();
-            }
+            var method = typeof(Prompt).GetMethod(nameof(MakeInputCore)).MakeGenericMethod(propertyMetadata.PropertyType);
+
+            return method.Invoke(null, new object[] { propertyMetadata });
         }
 
-        private class PropertyMetadata
+        private static T MakeInputCore<T>(PropertyMetadata propertyMetadata)
         {
-            public PropertyMetadata(PropertyInfo propertyInfo)
+            return Input<T>(options =>
             {
-                var displayAttribute = propertyInfo.GetCustomAttribute<DisplayAttribute>();
-                var dataTypeAttribute = propertyInfo.GetCustomAttribute<DataTypeAttribute>();
+                options.Message = propertyMetadata.Message;
+                options.DefaultValue = propertyMetadata.DefaultValue;
 
-                PropertyInfo = propertyInfo;
-                PropertyType = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
-                DataType = dataTypeAttribute?.DataType;
-                IsCollection = propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>);
-                Message = displayAttribute?.GetPrompt();
-                Order = displayAttribute?.GetOrder();
-                Validations = propertyInfo.GetCustomAttributes<ValidationAttribute>(true);
-            }
-
-            public PropertyInfo PropertyInfo { get; }
-            public Type PropertyType { get; }
-            public DataType? DataType { get; }
-            public bool IsCollection { get; }
-            public string Message { get; }
-            public int? Order { get; }
-
-            public FormType DetermineFormType()
-            {
-                if (DataType == System.ComponentModel.DataAnnotations.DataType.Password)
-                {
-                    return FormType.Password;
-                }
-
-                if (PropertyType == typeof(bool))
-                {
-                    return FormType.Confirm;
-                }
-
-                if (PropertyType.IsEnum)
-                {
-                    return FormType.Select;
-                }
-
-                if (IsCollection && PropertyType.GetGenericArguments()[0].IsEnum)
-                {
-                    return FormType.MultiSelect;
-                }
-
-                if (IsCollection)
-                {
-                    return FormType.List;
-                }
-
-                return FormType.Input;
-            }
-
-            private IEnumerable<ValidationAttribute> Validations { get; }
-
-            public IReadOnlyList<Func<object, ValidationResult>> GetValidator(object model) =>
-                Validations.Select(x => new ValidationAttributeAdapter(x).GetValidator(PropertyInfo.Name, model)).ToArray();
+                options.Validators.Merge(propertyMetadata.Validators);
+            });
         }
 
-        private static readonly MethodInfo _inputMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(Input) && x.GetParameters().Length == 3);
-        private static readonly MethodInfo _selectMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(Select) && x.GetParameters().Length == 3);
-        private static readonly MethodInfo _multiSelectMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(MultiSelect) && x.GetParameters().Length == 5);
+        private static object MakeList(PropertyMetadata propertyMetadata)
+        {
+            var method = typeof(Prompt).GetMethod(nameof(MakeListCore)).MakeGenericMethod(propertyMetadata.PropertyType);
+
+            return method.Invoke(null, new object[] { propertyMetadata });
+        }
+
+        private static IEnumerable<T> MakeListCore<T>(PropertyMetadata propertyMetadata)
+        {
+            return List<T>(options =>
+            {
+                options.Message = propertyMetadata.Message;
+
+                options.Validators.Merge(propertyMetadata.Validators);
+            });
+        }
+
+        private static object MakeMultiSelect(PropertyMetadata propertyMetadata)
+        {
+            var method = typeof(Prompt).GetMethod(nameof(MakeMultiSelectCore)).MakeGenericMethod(propertyMetadata.PropertyType);
+
+            return method.Invoke(null, new object[] { propertyMetadata });
+        }
+
+        private static IEnumerable<T> MakeMultiSelectCore<T>(PropertyMetadata propertyMetadata)
+        {
+            return MultiSelect<T>(options =>
+            {
+                options.Message = propertyMetadata.Message;
+            });
+        }
+
+        private static string MakePassword(PropertyMetadata propertyMetadata)
+        {
+            return Password(options =>
+            {
+                options.Message = propertyMetadata.Message;
+
+                options.Validators.Merge(propertyMetadata.Validators);
+            });
+        }
+
+        private static object MakeSelect(PropertyMetadata propertyMetadata)
+        {
+            var method = typeof(Prompt).GetMethod(nameof(MakeSelectCore)).MakeGenericMethod(propertyMetadata.PropertyType);
+
+            return method.Invoke(null, new object[] { propertyMetadata });
+        }
+
+        private static T MakeSelectCore<T>(PropertyMetadata propertyMetadata)
+        {
+            return Select<T>(options =>
+            {
+                options.Message = propertyMetadata.Message;
+                options.DefaultValue = propertyMetadata.DefaultValue;
+            });
+        }
     }
 }
