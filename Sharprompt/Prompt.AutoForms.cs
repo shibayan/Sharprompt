@@ -115,7 +115,7 @@ namespace Sharprompt
         private static object InvokeMethod(string name, PropertyMetadata propertyMetadata)
         {
             var method = typeof(Prompt).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)
-                                       .MakeGenericMethod(propertyMetadata.PropertyType);
+                                       .MakeGenericMethod(propertyMetadata.Type);
 
             return method.Invoke(null, new object[] { propertyMetadata });
         }
