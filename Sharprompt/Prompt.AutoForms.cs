@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 
 using Sharprompt.Forms;
 using Sharprompt.Internal;
@@ -55,12 +56,7 @@ namespace Sharprompt
             });
         }
 
-        private static object MakeInput(PropertyMetadata propertyMetadata)
-        {
-            var method = typeof(Prompt).GetMethod(nameof(MakeInputCore)).MakeGenericMethod(propertyMetadata.PropertyType);
-
-            return method.Invoke(null, new object[] { propertyMetadata });
-        }
+        private static object MakeInput(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeInputCore), propertyMetadata);
 
         private static T MakeInputCore<T>(PropertyMetadata propertyMetadata)
         {
@@ -73,12 +69,7 @@ namespace Sharprompt
             });
         }
 
-        private static object MakeList(PropertyMetadata propertyMetadata)
-        {
-            var method = typeof(Prompt).GetMethod(nameof(MakeListCore)).MakeGenericMethod(propertyMetadata.PropertyType);
-
-            return method.Invoke(null, new object[] { propertyMetadata });
-        }
+        private static object MakeList(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeListCore), propertyMetadata);
 
         private static IEnumerable<T> MakeListCore<T>(PropertyMetadata propertyMetadata)
         {
@@ -90,12 +81,7 @@ namespace Sharprompt
             });
         }
 
-        private static object MakeMultiSelect(PropertyMetadata propertyMetadata)
-        {
-            var method = typeof(Prompt).GetMethod(nameof(MakeMultiSelectCore)).MakeGenericMethod(propertyMetadata.PropertyType);
-
-            return method.Invoke(null, new object[] { propertyMetadata });
-        }
+        private static object MakeMultiSelect(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeMultiSelectCore), propertyMetadata);
 
         private static IEnumerable<T> MakeMultiSelectCore<T>(PropertyMetadata propertyMetadata)
         {
@@ -115,12 +101,7 @@ namespace Sharprompt
             });
         }
 
-        private static object MakeSelect(PropertyMetadata propertyMetadata)
-        {
-            var method = typeof(Prompt).GetMethod(nameof(MakeSelectCore)).MakeGenericMethod(propertyMetadata.PropertyType);
-
-            return method.Invoke(null, new object[] { propertyMetadata });
-        }
+        private static object MakeSelect(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeSelectCore), propertyMetadata);
 
         private static T MakeSelectCore<T>(PropertyMetadata propertyMetadata)
         {
@@ -129,6 +110,14 @@ namespace Sharprompt
                 options.Message = propertyMetadata.Message;
                 options.DefaultValue = propertyMetadata.DefaultValue;
             });
+        }
+
+        private static object InvokeMethod(string name, PropertyMetadata propertyMetadata)
+        {
+            var method = typeof(Prompt).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)
+                                       .MakeGenericMethod(propertyMetadata.PropertyType);
+
+            return method.Invoke(null, new object[] { propertyMetadata });
         }
     }
 }
