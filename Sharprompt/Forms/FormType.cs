@@ -2,7 +2,6 @@
 {
     internal enum FormType
     {
-        Unknown,
         Confirm,
         Input,
         List,
