@@ -1,4 +1,4 @@
-# Sharprompt
+# Sharprompt <img align="right" src="icon.png" width="88" height="88">
 
 [![Build](https://github.com/shibayan/Sharprompt/workflows/Build/badge.svg)](https://github.com/shibayan/Sharprompt/actions/workflows/build.yml)
 [![Downloads](https://img.shields.io/nuget/dt/Sharprompt)](https://www.nuget.org/packages/Sharprompt/)
