@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 using Sharprompt.Forms;
 using Sharprompt.Internal;
@@ -97,6 +98,42 @@ namespace Sharprompt.Tests
             Assert.Equal("sample", metadata[2].DefaultValue);
         }
 
+        [Fact]
+        public void Nullable()
+        {
+            var metadata = PropertyMetadataFactory.Create(new NullableModel());
+
+            Assert.NotNull(metadata);
+            Assert.Equal(3, metadata.Count);
+
+            Assert.Equal(typeof(int?), metadata[0].Type);
+            Assert.Equal(FormType.Input, metadata[0].DetermineFormType());
+
+            Assert.Equal(typeof(bool?), metadata[1].Type);
+            Assert.Equal(FormType.Input, metadata[1].DetermineFormType());
+
+            Assert.Equal(typeof(double?), metadata[2].Type);
+            Assert.Equal(FormType.Input, metadata[2].DetermineFormType());
+        }
+
+        [Fact]
+        public void Enum()
+        {
+            var metadata = PropertyMetadataFactory.Create(new EnumModel());
+
+            Assert.NotNull(metadata);
+            Assert.Equal(3, metadata.Count);
+
+            Assert.Equal(typeof(EnumValue), metadata[0].Type);
+            Assert.Equal(FormType.Select, metadata[0].DetermineFormType());
+
+            Assert.Equal(typeof(EnumValue?), metadata[1].Type);
+            Assert.Equal(FormType.Select, metadata[1].DetermineFormType());
+
+            Assert.Equal(typeof(IEnumerable<EnumValue>), metadata[2].Type);
+            Assert.Equal(FormType.MultiSelect, metadata[2].DetermineFormType());
+        }
+
         public class BasicModel
         {
             [Display(Prompt = "Input Value")]
@@ -121,6 +158,27 @@ namespace Sharprompt.Tests
 
             [Display(Order = 2)]
             public bool Value3 { get; set; }
+        }
+
+        public class NullableModel
+        {
+            public int? IntValue { get; set; }
+            public bool? BoolValue { get; set; }
+            public double? DoubleValue { get; set; }
+        }
+
+        public class EnumModel
+        {
+            public EnumValue Enum1 { get; set; }
+            public EnumValue? Enum2 { get; set; }
+            public IEnumerable<EnumValue> Enum3 { get; set; }
+        }
+
+        public enum EnumValue
+        {
+            Value1,
+            Value2,
+            Value3
         }
     }
 }

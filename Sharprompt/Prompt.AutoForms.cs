@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 using Sharprompt.Forms;
@@ -101,7 +102,7 @@ namespace Sharprompt
             });
         }
 
-        private static object MakeSelect(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeSelectCore), propertyMetadata);
+        private static object MakeSelect(PropertyMetadata propertyMetadata) => InvokeMethod(propertyMetadata.UnderlyingType.IsEnum ? nameof(MakeSelectEnumCore) : nameof(MakeSelectCore), propertyMetadata);
 
         private static T MakeSelectCore<T>(PropertyMetadata propertyMetadata)
         {
@@ -110,6 +111,17 @@ namespace Sharprompt
                 options.Message = propertyMetadata.Message;
                 options.DefaultValue = propertyMetadata.DefaultValue;
             });
+        }
+
+        private static T MakeSelectEnumCore<T>(PropertyMetadata propertyMetadata) where T : struct, Enum
+        {
+            return Select<EnumValue<T>>(options =>
+            {
+                options.Message = propertyMetadata.Message;
+                options.Items = EnumValue<T>.GetValues();
+                options.DefaultValue = (EnumValue<T>)propertyMetadata.DefaultValue;
+                options.TextSelector = x => x.DisplayName;
+            }).Value;
         }
 
         private static object InvokeMethod(string name, PropertyMetadata propertyMetadata)
