@@ -126,12 +126,10 @@ namespace Sharprompt
 
         public static T Select<T>(string message, int? pageSize = default, T? defaultValue = default) where T : struct, Enum
         {
-            var items = EnumValue<T>.GetValues();
-
             var options = new SelectOptions<EnumValue<T>>
             {
                 Message = message,
-                Items = items,
+                Items = EnumValue<T>.GetValues(),
                 DefaultValue = (EnumValue<T>)defaultValue,
                 PageSize = pageSize,
                 TextSelector = x => x.DisplayName
@@ -172,12 +170,10 @@ namespace Sharprompt
 
         public static IEnumerable<T> MultiSelect<T>(string message, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = default) where T : struct, Enum
         {
-            var items = EnumValue<T>.GetValues();
-
             var options = new MultiSelectOptions<EnumValue<T>>
             {
                 Message = message,
-                Items = items,
+                Items = EnumValue<T>.GetValues(),
                 DefaultValues = defaultValues?.Select(x => (EnumValue<T>)x),
                 PageSize = pageSize,
                 Minimum = minimum,
