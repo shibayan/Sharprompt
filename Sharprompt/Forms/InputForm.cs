@@ -20,6 +20,8 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out T result)
         {
+            result = default;
+
             do
             {
                 var keyInfo = ConsoleDriver.ReadKey();
@@ -27,50 +29,12 @@ namespace Sharprompt.Forms
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.Enter:
-                    {
-                        var input = _textInputBuffer.ToString();
-
-                        try
-                        {
-                            if (string.IsNullOrEmpty(input))
-                            {
-                                if (TypeHelper<T>.IsValueType && !_defaultValue.HasValue)
-                                {
-                                    SetError("Value is required");
-
-                                    result = default;
-
-                                    return false;
-                                }
-
-                                result = _defaultValue;
-                            }
-                            else
-                            {
-                                result = TypeHelper<T>.ConvertTo(input);
-                            }
-
-                            if (!TryValidate(result, _options.Validators))
-                            {
-                                result = default;
-
-                                return false;
-                            }
-
-                            return true;
-                        }
-                        catch (Exception ex)
-                        {
-                            SetError(ex);
-                        }
-
-                        break;
-                    }
+                        return HandleEnter(ref result);
                     case ConsoleKey.LeftArrow when !_textInputBuffer.IsStart:
-                        _textInputBuffer.Backward();
+                        _textInputBuffer.MoveBackward();
                         break;
                     case ConsoleKey.RightArrow when !_textInputBuffer.IsEnd:
-                        _textInputBuffer.Forward();
+                        _textInputBuffer.MoveForward();
                         break;
                     case ConsoleKey.Backspace when !_textInputBuffer.IsStart:
                         _textInputBuffer.Backspace();
@@ -93,8 +57,6 @@ namespace Sharprompt.Forms
                 }
 
             } while (ConsoleDriver.KeyAvailable);
-
-            result = default;
 
             return false;
         }
@@ -119,6 +81,47 @@ namespace Sharprompt.Forms
             {
                 offscreenBuffer.WriteAnswer(result.ToString());
             }
+        }
+
+        private bool HandleEnter(ref T result)
+        {
+            var input = _textInputBuffer.ToString();
+
+            try
+            {
+                if (string.IsNullOrEmpty(input))
+                {
+                    if (TypeHelper<T>.IsValueType && !_defaultValue.HasValue)
+                    {
+                        SetError("Value is required");
+
+                        result = default;
+
+                        return false;
+                    }
+
+                    result = _defaultValue;
+                }
+                else
+                {
+                    result = TypeHelper<T>.ConvertTo(input);
+                }
+
+                if (!TryValidate(result, _options.Validators))
+                {
+                    result = default;
+
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SetError(ex);
+            }
+
+            return false;
         }
     }
 }

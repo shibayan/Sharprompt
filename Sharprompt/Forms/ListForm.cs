@@ -32,6 +32,8 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out IEnumerable<T> result)
         {
+            result = default;
+
             do
             {
                 var keyInfo = ConsoleDriver.ReadKey();
@@ -39,57 +41,12 @@ namespace Sharprompt.Forms
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.Enter:
-                    {
-                        var input = _textInputBuffer.ToString();
-
-                        try
-                        {
-                            result = _inputItems;
-
-                            if (string.IsNullOrEmpty(input))
-                            {
-                                if (_inputItems.Count >= _options.Minimum)
-                                {
-                                    return true;
-                                }
-
-                                SetError($"A minimum input of {_options.Minimum} items is required");
-
-                                return false;
-                            }
-
-                            if (_inputItems.Count >= _options.Maximum)
-                            {
-                                SetError($"A maximum input of {_options.Maximum} items is required");
-
-                                return false;
-                            }
-
-                            var inputValue = TypeHelper<T>.ConvertTo(input);
-
-                            if (!TryValidate(inputValue, _options.Validators))
-                            {
-                                return false;
-                            }
-
-                            _textInputBuffer.Clear();
-
-                            _inputItems.Add(inputValue);
-
-                            return false;
-                        }
-                        catch (Exception ex)
-                        {
-                            SetError(ex);
-                        }
-
-                        break;
-                    }
+                        return HandleEnter(ref result);
                     case ConsoleKey.LeftArrow when !_textInputBuffer.IsStart:
-                        _textInputBuffer.Backward();
+                        _textInputBuffer.MoveBackward();
                         break;
                     case ConsoleKey.RightArrow when !_textInputBuffer.IsEnd:
-                        _textInputBuffer.Forward();
+                        _textInputBuffer.MoveForward();
                         break;
                     case ConsoleKey.Backspace when !_textInputBuffer.IsStart:
                         _textInputBuffer.Backspace();
@@ -119,8 +76,6 @@ namespace Sharprompt.Forms
 
             } while (ConsoleDriver.KeyAvailable);
 
-            result = default;
-
             return false;
         }
 
@@ -141,6 +96,52 @@ namespace Sharprompt.Forms
         {
             offscreenBuffer.WriteDone(_options.Message);
             offscreenBuffer.WriteAnswer(string.Join(", ", result));
+        }
+
+        private bool HandleEnter(ref IEnumerable<T> result)
+        {
+            var input = _textInputBuffer.ToString();
+
+            try
+            {
+                result = _inputItems;
+
+                if (string.IsNullOrEmpty(input))
+                {
+                    if (_inputItems.Count >= _options.Minimum)
+                    {
+                        return true;
+                    }
+
+                    SetError($"A minimum input of {_options.Minimum} items is required");
+
+                    return false;
+                }
+
+                if (_inputItems.Count >= _options.Maximum)
+                {
+                    SetError($"A maximum input of {_options.Maximum} items is required");
+
+                    return false;
+                }
+
+                var inputValue = TypeHelper<T>.ConvertTo(input);
+
+                if (!TryValidate(inputValue, _options.Validators))
+                {
+                    return false;
+                }
+
+                _textInputBuffer.Clear();
+
+                _inputItems.Add(inputValue);
+            }
+            catch (Exception ex)
+            {
+                SetError(ex);
+            }
+
+            return false;
         }
     }
 }

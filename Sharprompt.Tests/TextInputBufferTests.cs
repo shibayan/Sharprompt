@@ -30,53 +30,6 @@ namespace Sharprompt.Tests
         }
 
         [Theory]
-        [InlineData("abc", "ab", "c")]
-        [InlineData("あいう", "あい", "う")]
-        [InlineData("𩸽𠈻𠮷", "𩸽𠈻", "𠮷")]
-        [InlineData("🍣🍖🥂", "🍣🍖", "🥂")]
-        [InlineData("aあ𩸽🍣", "aあ𩸽", "🍣")]
-        public void Backward(string value, string backward, string forward)
-        {
-            var textInputBuffer = new TextInputBuffer();
-
-            foreach (var c in value)
-            {
-                textInputBuffer.Insert(c);
-            }
-
-            textInputBuffer.Backward();
-
-            Assert.Equal(backward, textInputBuffer.ToBackwardString());
-            Assert.Equal(forward, textInputBuffer.ToForwardString());
-        }
-
-        [Theory]
-        [InlineData("abc", "a", "bc")]
-        [InlineData("あいう", "あ", "いう")]
-        [InlineData("𩸽𠈻𠮷", "𩸽", "𠈻𠮷")]
-        [InlineData("🍣🍖🥂", "🍣", "🍖🥂")]
-        [InlineData("aあ𩸽🍣", "a", "あ𩸽🍣")]
-        public void Forward(string value, string backward, string forward)
-        {
-            var textInputBuffer = new TextInputBuffer();
-
-            foreach (var c in value)
-            {
-                textInputBuffer.Insert(c);
-            }
-
-            while (!textInputBuffer.IsStart)
-            {
-                textInputBuffer.Backward();
-            }
-
-            textInputBuffer.Forward();
-
-            Assert.Equal(backward, textInputBuffer.ToBackwardString());
-            Assert.Equal(forward, textInputBuffer.ToForwardString());
-        }
-
-        [Theory]
         [InlineData("abc", "ab")]
         [InlineData("あいう", "あい")]
         [InlineData("𩸽𠈻𠮷", "𩸽𠈻")]
@@ -115,7 +68,7 @@ namespace Sharprompt.Tests
 
             while (!textInputBuffer.IsStart)
             {
-                textInputBuffer.Backward();
+                textInputBuffer.MoveBackward();
             }
 
             textInputBuffer.Delete();
@@ -123,6 +76,53 @@ namespace Sharprompt.Tests
             Assert.Equal(substring, textInputBuffer.ToString());
             Assert.Equal(string.Empty, textInputBuffer.ToBackwardString());
             Assert.Equal(substring, textInputBuffer.ToForwardString());
+        }
+
+        [Theory]
+        [InlineData("abc", "ab", "c")]
+        [InlineData("あいう", "あい", "う")]
+        [InlineData("𩸽𠈻𠮷", "𩸽𠈻", "𠮷")]
+        [InlineData("🍣🍖🥂", "🍣🍖", "🥂")]
+        [InlineData("aあ𩸽🍣", "aあ𩸽", "🍣")]
+        public void MoveBackward(string value, string backward, string forward)
+        {
+            var textInputBuffer = new TextInputBuffer();
+
+            foreach (var c in value)
+            {
+                textInputBuffer.Insert(c);
+            }
+
+            textInputBuffer.MoveBackward();
+
+            Assert.Equal(backward, textInputBuffer.ToBackwardString());
+            Assert.Equal(forward, textInputBuffer.ToForwardString());
+        }
+
+        [Theory]
+        [InlineData("abc", "a", "bc")]
+        [InlineData("あいう", "あ", "いう")]
+        [InlineData("𩸽𠈻𠮷", "𩸽", "𠈻𠮷")]
+        [InlineData("🍣🍖🥂", "🍣", "🍖🥂")]
+        [InlineData("aあ𩸽🍣", "a", "あ𩸽🍣")]
+        public void MoveForward(string value, string backward, string forward)
+        {
+            var textInputBuffer = new TextInputBuffer();
+
+            foreach (var c in value)
+            {
+                textInputBuffer.Insert(c);
+            }
+
+            while (!textInputBuffer.IsStart)
+            {
+                textInputBuffer.MoveBackward();
+            }
+
+            textInputBuffer.MoveForward();
+
+            Assert.Equal(backward, textInputBuffer.ToBackwardString());
+            Assert.Equal(forward, textInputBuffer.ToForwardString());
         }
     }
 }
