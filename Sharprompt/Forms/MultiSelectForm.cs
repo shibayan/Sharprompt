@@ -10,6 +10,11 @@ namespace Sharprompt.Forms
     {
         public MultiSelectForm(MultiSelectOptions<T> options)
         {
+            if (options.Items is null)
+            {
+                throw new ArgumentNullException(nameof(options.Items));
+            }
+
             if (options.Minimum < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(options.Minimum), $"The minimum ({options.Minimum}) is not valid");
@@ -17,7 +22,7 @@ namespace Sharprompt.Forms
 
             if (options.Maximum < options.Minimum)
             {
-                throw new ArgumentException($"The maximum ({options.Maximum}) is not valid when minimum is set to ({options.Minimum})", nameof(options.Maximum));
+                throw new ArgumentOutOfRangeException(nameof(options.Maximum), $"The maximum ({options.Maximum}) is not valid when minimum is set to ({options.Minimum})");
             }
 
             _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Empty, options.TextSelector);
@@ -45,7 +50,9 @@ namespace Sharprompt.Forms
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.Enter when _selectedItems.Count >= _options.Minimum:
-                        result = _selectedItems;
+                        result = _options.Items
+                                         .Where(x => _selectedItems.Contains(x))
+                                         .ToArray();
                         return true;
                     case ConsoleKey.Enter:
                         SetError($"A minimum selection of {_options.Minimum} items is required");

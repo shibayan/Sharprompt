@@ -8,6 +8,8 @@
   <PropertyGroup>
     <Authors>shibayan</Authors>
     <Description>Interactive command-line based application framework for C#</Description>
+    <PackageId>Sharprompt</PackageId>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>https://github.com/shibayan/Sharprompt/releases</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -21,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\icon.png" Pack="true" PackagePath="\" />
     <None Include="..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 

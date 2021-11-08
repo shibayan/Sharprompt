@@ -16,22 +16,6 @@ namespace Sharprompt.Internal
 
         public void Insert(char value) => _inputBuffer.Insert(_position++, value);
 
-        public void Backward()
-        {
-            if (char.IsLowSurrogate(_inputBuffer[--_position]))
-            {
-                _position--;
-            }
-        }
-
-        public void Forward()
-        {
-            if (char.IsHighSurrogate(_inputBuffer[_position++]))
-            {
-                _position++;
-            }
-        }
-
         public void Backspace()
         {
             var count = 1;
@@ -61,6 +45,22 @@ namespace Sharprompt.Internal
         {
             _position = 0;
             _inputBuffer.Clear();
+        }
+
+        public void MoveBackward()
+        {
+            if (char.IsLowSurrogate(_inputBuffer[--_position]))
+            {
+                _position--;
+            }
+        }
+
+        public void MoveForward()
+        {
+            if (char.IsHighSurrogate(_inputBuffer[_position++]))
+            {
+                _position++;
+            }
         }
 
         public string ToBackwardString() => _inputBuffer.ToString(0, _position);

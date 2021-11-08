@@ -17,7 +17,7 @@ namespace Sharprompt.Forms
 
             if (options.Maximum < options.Minimum)
             {
-                throw new ArgumentException($"The maximum ({options.Maximum}) is not valid when minimum is set to ({options.Minimum})", nameof(options.Maximum));
+                throw new ArgumentOutOfRangeException(nameof(options.Maximum), $"The maximum ({options.Maximum}) is not valid when minimum is set to ({options.Minimum})");
             }
 
             _options = options;
@@ -39,57 +39,12 @@ namespace Sharprompt.Forms
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.Enter:
-                    {
-                        var input = _textInputBuffer.ToString();
-
-                        try
-                        {
-                            result = _inputItems;
-
-                            if (string.IsNullOrEmpty(input))
-                            {
-                                if (_inputItems.Count >= _options.Minimum)
-                                {
-                                    return true;
-                                }
-
-                                SetError($"A minimum input of {_options.Minimum} items is required");
-
-                                return false;
-                            }
-
-                            if (_inputItems.Count >= _options.Maximum)
-                            {
-                                SetError($"A maximum input of {_options.Maximum} items is required");
-
-                                return false;
-                            }
-
-                            var inputValue = TypeHelper<T>.ConvertTo(input);
-
-                            if (!TryValidate(inputValue, _options.Validators))
-                            {
-                                return false;
-                            }
-
-                            _textInputBuffer.Clear();
-
-                            _inputItems.Add(inputValue);
-
-                            return false;
-                        }
-                        catch (Exception ex)
-                        {
-                            SetError(ex);
-                        }
-
-                        break;
-                    }
+                        return HandleEnter(out result);
                     case ConsoleKey.LeftArrow when !_textInputBuffer.IsStart:
-                        _textInputBuffer.Backward();
+                        _textInputBuffer.MoveBackward();
                         break;
                     case ConsoleKey.RightArrow when !_textInputBuffer.IsEnd:
-                        _textInputBuffer.Forward();
+                        _textInputBuffer.MoveForward();
                         break;
                     case ConsoleKey.Backspace when !_textInputBuffer.IsStart:
                         _textInputBuffer.Backspace();
@@ -141,6 +96,54 @@ namespace Sharprompt.Forms
         {
             offscreenBuffer.WriteDone(_options.Message);
             offscreenBuffer.WriteAnswer(string.Join(", ", result));
+        }
+
+        private bool HandleEnter(out IEnumerable<T> result)
+        {
+            var input = _textInputBuffer.ToString();
+
+            try
+            {
+                result = _inputItems;
+
+                if (string.IsNullOrEmpty(input))
+                {
+                    if (_inputItems.Count >= _options.Minimum)
+                    {
+                        return true;
+                    }
+
+                    SetError($"A minimum input of {_options.Minimum} items is required");
+
+                    return false;
+                }
+
+                if (_inputItems.Count >= _options.Maximum)
+                {
+                    SetError($"A maximum input of {_options.Maximum} items is required");
+
+                    return false;
+                }
+
+                var inputValue = TypeHelper<T>.ConvertTo(input);
+
+                if (!TryValidate(inputValue, _options.Validators))
+                {
+                    return false;
+                }
+
+                _textInputBuffer.Clear();
+
+                _inputItems.Add(inputValue);
+            }
+            catch (Exception ex)
+            {
+                SetError(ex);
+            }
+
+            result = default;
+
+            return false;
         }
     }
 }
