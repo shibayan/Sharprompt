@@ -17,8 +17,6 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out bool result)
         {
-            result = default;
-
             do
             {
                 var keyInfo = ConsoleDriver.ReadKey();
@@ -26,7 +24,7 @@ namespace Sharprompt.Forms
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.Enter:
-                        return HandleEnter(ref result);
+                        return HandleEnter(out result);
                     case ConsoleKey.LeftArrow when !_textInputBuffer.IsStart:
                         _textInputBuffer.MoveBackward();
                         break;
@@ -55,6 +53,8 @@ namespace Sharprompt.Forms
 
             } while (ConsoleDriver.KeyAvailable);
 
+            result = default;
+
             return false;
         }
 
@@ -80,7 +80,7 @@ namespace Sharprompt.Forms
             offscreenBuffer.WriteAnswer(result ? "Yes" : "No");
         }
 
-        private bool HandleEnter(ref bool result)
+        private bool HandleEnter(out bool result)
         {
             var input = _textInputBuffer.ToString();
 
@@ -112,6 +112,8 @@ namespace Sharprompt.Forms
                         break;
                 }
             }
+
+            result = default;
 
             return false;
         }

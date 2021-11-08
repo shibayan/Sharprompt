@@ -18,8 +18,6 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out string result)
         {
-            result = default;
-
             do
             {
                 var keyInfo = ConsoleDriver.ReadKey();
@@ -49,6 +47,8 @@ namespace Sharprompt.Forms
                 }
 
             } while (ConsoleDriver.KeyAvailable);
+
+            result = default;
 
             return false;
         }

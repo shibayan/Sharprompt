@@ -17,7 +17,7 @@ namespace Sharprompt.Forms
 
             if (options.Maximum < options.Minimum)
             {
-                throw new ArgumentException($"The maximum ({options.Maximum}) is not valid when minimum is set to ({options.Minimum})", nameof(options.Maximum));
+                throw new ArgumentOutOfRangeException(nameof(options.Maximum), $"The maximum ({options.Maximum}) is not valid when minimum is set to ({options.Minimum})");
             }
 
             _options = options;
@@ -32,8 +32,6 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out IEnumerable<T> result)
         {
-            result = default;
-
             do
             {
                 var keyInfo = ConsoleDriver.ReadKey();
@@ -41,7 +39,7 @@ namespace Sharprompt.Forms
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.Enter:
-                        return HandleEnter(ref result);
+                        return HandleEnter(out result);
                     case ConsoleKey.LeftArrow when !_textInputBuffer.IsStart:
                         _textInputBuffer.MoveBackward();
                         break;
@@ -76,6 +74,8 @@ namespace Sharprompt.Forms
 
             } while (ConsoleDriver.KeyAvailable);
 
+            result = default;
+
             return false;
         }
 
@@ -98,7 +98,7 @@ namespace Sharprompt.Forms
             offscreenBuffer.WriteAnswer(string.Join(", ", result));
         }
 
-        private bool HandleEnter(ref IEnumerable<T> result)
+        private bool HandleEnter(out IEnumerable<T> result)
         {
             var input = _textInputBuffer.ToString();
 
@@ -140,6 +140,8 @@ namespace Sharprompt.Forms
             {
                 SetError(ex);
             }
+
+            result = default;
 
             return false;
         }

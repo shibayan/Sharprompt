@@ -20,8 +20,6 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out T result)
         {
-            result = default;
-
             do
             {
                 var keyInfo = ConsoleDriver.ReadKey();
@@ -29,7 +27,7 @@ namespace Sharprompt.Forms
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.Enter:
-                        return HandleEnter(ref result);
+                        return HandleEnter(out result);
                     case ConsoleKey.LeftArrow when !_textInputBuffer.IsStart:
                         _textInputBuffer.MoveBackward();
                         break;
@@ -58,6 +56,8 @@ namespace Sharprompt.Forms
 
             } while (ConsoleDriver.KeyAvailable);
 
+            result = default;
+
             return false;
         }
 
@@ -83,7 +83,7 @@ namespace Sharprompt.Forms
             }
         }
 
-        private bool HandleEnter(ref T result)
+        private bool HandleEnter(out T result)
         {
             var input = _textInputBuffer.ToString();
 
@@ -107,19 +107,18 @@ namespace Sharprompt.Forms
                     result = TypeHelper<T>.ConvertTo(input);
                 }
 
-                if (!TryValidate(result, _options.Validators))
+                if (TryValidate(result, _options.Validators))
                 {
-                    result = default;
-
-                    return false;
+                    return true;
                 }
 
-                return true;
             }
             catch (Exception ex)
             {
                 SetError(ex);
             }
+
+            result = default;
 
             return false;
         }

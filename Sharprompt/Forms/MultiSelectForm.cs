@@ -22,7 +22,7 @@ namespace Sharprompt.Forms
 
             if (options.Maximum < options.Minimum)
             {
-                throw new ArgumentException($"The maximum ({options.Maximum}) is not valid when minimum is set to ({options.Minimum})", nameof(options.Maximum));
+                throw new ArgumentOutOfRangeException(nameof(options.Maximum), $"The maximum ({options.Maximum}) is not valid when minimum is set to ({options.Minimum})");
             }
 
             _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Empty, options.TextSelector);
@@ -43,8 +43,6 @@ namespace Sharprompt.Forms
 
         protected override bool TryGetResult(out IEnumerable<T> result)
         {
-            result = default;
-
             do
             {
                 var keyInfo = ConsoleDriver.ReadKey();
@@ -108,6 +106,8 @@ namespace Sharprompt.Forms
                 }
 
             } while (ConsoleDriver.KeyAvailable);
+
+            result = default;
 
             return false;
         }
