@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  DOTNET_VERSION: 5.0.x
+  DOTNET_VERSION: 6.0.x
 
 jobs:
   build:
@@ -30,4 +30,4 @@ jobs:
       run: dotnet test -c Release --no-build
 
     - name: Lint C# code
-      run: dotnet format --check --verbosity detailed --no-restore
+      run: dotnet format --verify-no-changes --verbosity detailed --no-restore
