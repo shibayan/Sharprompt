@@ -24,45 +24,12 @@ namespace Sharprompt.Forms
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.Enter:
-                    {
-                        var input = _textInputBuffer.ToString();
-
-                        if (string.IsNullOrEmpty(input))
-                        {
-                            if (_options.DefaultValue.HasValue)
-                            {
-                                result = _options.DefaultValue.Value;
-
-                                return true;
-                            }
-
-                            SetError("Value is required");
-                        }
-                        else
-                        {
-                            switch (input.ToLowerInvariant())
-                            {
-                                case "y" or "yes":
-                                    result = true;
-
-                                    return true;
-                                case "n" or "no":
-                                    result = false;
-
-                                    return true;
-                                default:
-                                    SetError("Value is invalid");
-                                    break;
-                            }
-                        }
-
-                        break;
-                    }
+                        return HandleEnter(out result);
                     case ConsoleKey.LeftArrow when !_textInputBuffer.IsStart:
-                        _textInputBuffer.Backward();
+                        _textInputBuffer.MoveBackward();
                         break;
                     case ConsoleKey.RightArrow when !_textInputBuffer.IsEnd:
-                        _textInputBuffer.Forward();
+                        _textInputBuffer.MoveForward();
                         break;
                     case ConsoleKey.Backspace when !_textInputBuffer.IsStart:
                         _textInputBuffer.Backspace();
@@ -111,6 +78,44 @@ namespace Sharprompt.Forms
         {
             offscreenBuffer.WriteDone(_options.Message);
             offscreenBuffer.WriteAnswer(result ? "Yes" : "No");
+        }
+
+        private bool HandleEnter(out bool result)
+        {
+            var input = _textInputBuffer.ToString();
+
+            if (string.IsNullOrEmpty(input))
+            {
+                if (_options.DefaultValue.HasValue)
+                {
+                    result = _options.DefaultValue.Value;
+
+                    return true;
+                }
+
+                SetError("Value is required");
+            }
+            else
+            {
+                switch (input.ToLowerInvariant())
+                {
+                    case "y" or "yes":
+                        result = true;
+
+                        return true;
+                    case "n" or "no":
+                        result = false;
+
+                        return true;
+                    default:
+                        SetError("Value is invalid");
+                        break;
+                }
+            }
+
+            result = default;
+
+            return false;
         }
     }
 }
