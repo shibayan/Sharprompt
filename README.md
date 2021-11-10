@@ -1,9 +1,9 @@
 # Sharprompt
 
 [![Build](https://github.com/shibayan/Sharprompt/workflows/Build/badge.svg)](https://github.com/shibayan/Sharprompt/actions/workflows/build.yml)
-[![Downloads](https://img.shields.io/nuget/dt/Sharprompt)](https://www.nuget.org/packages/Sharprompt/)
-[![NuGet](https://img.shields.io/nuget/v/Sharprompt)](https://www.nuget.org/packages/Sharprompt/)
-[![License](https://img.shields.io/github/license/shibayan/Sharprompt)](https://github.com/shibayan/Sharprompt/blob/master/LICENSE)
+[![Downloads](https://badgen.net/nuget/dt/Sharprompt)](https://www.nuget.org/packages/Sharprompt/)
+[![NuGet](https://badgen.net/nuget/v/Sharprompt)](https://www.nuget.org/packages/Sharprompt/)
+[![License](https://badgen.net/github/license/shibayan/Sharprompt)](https://github.com/shibayan/Sharprompt/blob/master/LICENSE)
 
 Interactive command-line based application framework for C#
 
