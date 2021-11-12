@@ -15,13 +15,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Use .NET Core ${{ env.DOTNET_VERSION }}
+    - name: Use .NET ${{ env.DOTNET_VERSION }}
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
-
-    - name: Install .NET Core format tool
-      run: dotnet tool update -g dotnet-format
 
     - name: Build project
       run: dotnet build -c Release
