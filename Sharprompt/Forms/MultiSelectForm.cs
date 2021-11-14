@@ -29,7 +29,10 @@ namespace Sharprompt.Forms
 
             if (options.DefaultValues is not null)
             {
-                _selectedItems.AddRange(options.DefaultValues);
+                foreach (var defaultValue in options.DefaultValues)
+                {
+                    _selectedItems.Add(defaultValue);
+                }
             }
 
             _options = options;
@@ -38,7 +41,7 @@ namespace Sharprompt.Forms
         private readonly MultiSelectOptions<T> _options;
         private readonly Paginator<T> _paginator;
 
-        private readonly List<T> _selectedItems = new();
+        private readonly HashSet<T> _selectedItems = new();
         private readonly TextInputBuffer _filterBuffer = new();
 
         protected override bool TryGetResult(out IEnumerable<T> result)
@@ -95,6 +98,31 @@ namespace Sharprompt.Forms
                     case ConsoleKey.Backspace:
                         ConsoleDriver.Beep();
                         break;
+                    case ConsoleKey.A when keyInfo.Modifiers == ConsoleModifiers.Control:
+                        if (_selectedItems.Count == _paginator.TotalCount)
+                        {
+                            _selectedItems.Clear();
+                        }
+                        else
+                        {
+                            foreach (var item in _paginator.FilteredItems)
+                            {
+                                _selectedItems.Add(item);
+                            }
+                        }
+                        break;
+                    case ConsoleKey.I when keyInfo.Modifiers == ConsoleModifiers.Control:
+                    {
+                        var invertedItems = _paginator.FilteredItems.Except(_selectedItems).ToArray();
+
+                        _selectedItems.Clear();
+
+                        foreach (var item in invertedItems)
+                        {
+                            _selectedItems.Add(item);
+                        }
+                    }
+                    break;
                     default:
                         if (!char.IsControl(keyInfo.KeyChar))
                         {
@@ -121,7 +149,7 @@ namespace Sharprompt.Forms
 
             if (string.IsNullOrEmpty(_paginator.FilterTerm))
             {
-                offscreenBuffer.WriteHint("Hit <space> key to select");
+                offscreenBuffer.WriteHint("Hit <space> to select, <ctrl+a> to toggle all, <ctrl+i> to invert selection");
             }
 
             var subset = _paginator.ToSubset();
