@@ -14,10 +14,7 @@ namespace Sharprompt
         private readonly string _value;
         private readonly string _fallbackValue;
 
-        public override string ToString()
-        {
-            return IsUnicodeSupported ? _value : _fallbackValue;
-        }
+        public override string ToString() => IsUnicodeSupported ? _value : _fallbackValue;
 
         public static implicit operator string(Symbol symbol) => symbol.ToString();
 

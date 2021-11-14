@@ -19,16 +19,17 @@ namespace Sharprompt.Internal
         private readonly int _pageSize;
         private readonly Func<T, string> _textSelector;
 
-        private T[] _filteredItems;
         private int _selectedIndex = -1;
+
+        public T[] FilteredItems { get; private set; }
 
         public int PageCount { get; private set; }
 
         public int SelectedPage { get; private set; }
 
-        public int Count => Math.Min(_filteredItems.Length - (_pageSize * SelectedPage), _pageSize);
+        public int Count => Math.Min(FilteredItems.Length - (_pageSize * SelectedPage), _pageSize);
 
-        public int TotalCount => _filteredItems.Length;
+        public int TotalCount => FilteredItems.Length;
 
         public string FilterTerm { get; private set; } = "";
 
@@ -41,7 +42,7 @@ namespace Sharprompt.Internal
                 return false;
             }
 
-            selectedItem = _filteredItems[(_pageSize * SelectedPage) + _selectedIndex];
+            selectedItem = FilteredItems[(_pageSize * SelectedPage) + _selectedIndex];
 
             return true;
         }
@@ -88,14 +89,14 @@ namespace Sharprompt.Internal
             UpdateItems();
         }
 
-        public ArraySegment<T> ToSubset() => new(_filteredItems, _pageSize * SelectedPage, Count);
+        public ArraySegment<T> ToSubset() => new(FilteredItems, _pageSize * SelectedPage, Count);
 
         private void UpdateItems()
         {
-            _filteredItems = _items.Where(x => _textSelector(x).IndexOf(FilterTerm, StringComparison.OrdinalIgnoreCase) != -1)
+            FilteredItems = _items.Where(x => _textSelector(x).IndexOf(FilterTerm, StringComparison.OrdinalIgnoreCase) != -1)
                                    .ToArray();
 
-            PageCount = (_filteredItems.Length - 1) / _pageSize + 1;
+            PageCount = (FilteredItems.Length - 1) / _pageSize + 1;
         }
 
         private void InitializeDefaults(Optional<T> defaultValue)
@@ -107,9 +108,9 @@ namespace Sharprompt.Internal
                 return;
             }
 
-            for (var i = 0; i < _filteredItems.Length; i++)
+            for (var i = 0; i < FilteredItems.Length; i++)
             {
-                if (EqualityComparer<T>.Default.Equals(_filteredItems[i], defaultValue))
+                if (EqualityComparer<T>.Default.Equals(FilteredItems[i], defaultValue))
                 {
                     _selectedIndex = i % _pageSize;
                     SelectedPage = i / _pageSize;
