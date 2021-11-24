@@ -16,12 +16,15 @@ namespace Sharprompt.Example.Models
         public string Password { get; set; }
 
         [Display(Prompt = "Select enum value", Order = 3)]
-        public MyEnum? MyEnum { get; set; }
+        public MyEnum MyEnum { get; set; }
 
         [Display(Prompt = "Select enum values", Order = 4)]
         public IEnumerable<MyEnum> MyEnums { get; set; }
 
-        [Display(Prompt = "Are you ready?", Order = 5)]
+        [Display(Prompt = "Please add item(s)", Order = 5)]
+        public IEnumerable<string> Lists { get; set; }
+
+        [Display(Prompt = "Are you ready?", Order = 10)]
         public bool Ready { get; set; }
     }
 }

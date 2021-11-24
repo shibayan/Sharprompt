@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 using Sharprompt.Forms;
@@ -70,26 +71,39 @@ namespace Sharprompt
             });
         }
 
-        private static object MakeList(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeListCore), propertyMetadata);
+        private static object MakeList(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeListCore), propertyMetadata, propertyMetadata.UnderlyingType.GetGenericArguments()[0]);
 
         private static IEnumerable<T> MakeListCore<T>(PropertyMetadata propertyMetadata)
         {
             return List<T>(options =>
             {
                 options.Message = propertyMetadata.Message;
+                options.DefaultValues = (IEnumerable<T>)propertyMetadata.DefaultValue;
 
                 options.Validators.Merge(propertyMetadata.Validators);
             });
         }
 
-        private static object MakeMultiSelect(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeMultiSelectCore), propertyMetadata);
+        private static object MakeMultiSelect(PropertyMetadata propertyMetadata) => InvokeMethod(propertyMetadata.UnderlyingType.GetGenericArguments()[0].IsEnum ? nameof(MakeMultiSelectEnumCore) : nameof(MakeMultiSelectCore), propertyMetadata, propertyMetadata.UnderlyingType.GetGenericArguments()[0]);
 
         private static IEnumerable<T> MakeMultiSelectCore<T>(PropertyMetadata propertyMetadata)
         {
             return MultiSelect<T>(options =>
             {
                 options.Message = propertyMetadata.Message;
+                options.DefaultValues = (IEnumerable<T>)propertyMetadata.DefaultValue;
             });
+        }
+
+        private static IEnumerable<T> MakeMultiSelectEnumCore<T>(PropertyMetadata propertyMetadata) where T : struct, Enum
+        {
+            return MultiSelect<EnumValue<T>>(options =>
+            {
+                options.Message = propertyMetadata.Message;
+                options.Items = EnumValue<T>.GetValues();
+                options.DefaultValues = ((IEnumerable<T>)propertyMetadata.DefaultValue)?.Select(x => (EnumValue<T>)x);
+                options.TextSelector = x => x.DisplayName;
+            }).Select(x => x.Value);
         }
 
         private static string MakePassword(PropertyMetadata propertyMetadata)
@@ -119,15 +133,15 @@ namespace Sharprompt
             {
                 options.Message = propertyMetadata.Message;
                 options.Items = EnumValue<T>.GetValues();
-                options.DefaultValue = (EnumValue<T>)propertyMetadata.DefaultValue;
+                options.DefaultValue = (EnumValue<T>)(T)propertyMetadata.DefaultValue;
                 options.TextSelector = x => x.DisplayName;
             }).Value;
         }
 
-        private static object InvokeMethod(string name, PropertyMetadata propertyMetadata)
+        private static object InvokeMethod(string name, PropertyMetadata propertyMetadata, Type genericType = default)
         {
             var method = typeof(Prompt).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)
-                                       .MakeGenericMethod(propertyMetadata.Type);
+                                       .MakeGenericMethod(genericType ?? propertyMetadata.Type);
 
             return method.Invoke(null, new object[] { propertyMetadata });
         }
