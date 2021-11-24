@@ -52,7 +52,7 @@ namespace Sharprompt.Example
 
         private static void RunInputSample()
         {
-            var name = Prompt.Input<string>("What's your name?", "John Smith", new[] { Validators.Required(), Validators.MinLength(3) });
+            var name = Prompt.Input<string>("What's your name?", defaultValue: "John Smith", placeholder: "At least 3 characters", validators: new[] { Validators.Required(), Validators.MinLength(3) });
             Console.WriteLine($"Hello, {name}!");
         }
 
@@ -64,7 +64,7 @@ namespace Sharprompt.Example
 
         private static void RunPasswordSample()
         {
-            var secret = Prompt.Password("Type new password", validators: new[] { Validators.Required(), Validators.MinLength(8) });
+            var secret = Prompt.Password("Type new password", placeholder: "At least 8 characters", validators: new[] { Validators.Required(), Validators.MinLength(8) });
             Console.WriteLine("Password OK");
         }
 

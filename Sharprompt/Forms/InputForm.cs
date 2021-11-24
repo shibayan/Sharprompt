@@ -70,6 +70,12 @@ namespace Sharprompt.Forms
                 offscreenBuffer.WriteHint($"({_defaultValue.Value}) ");
             }
 
+            if (_textInputBuffer.Length == 0 && !string.IsNullOrEmpty(_options.Placeholder))
+            {
+                offscreenBuffer.PushCursor();
+                offscreenBuffer.WriteHint(_options.Placeholder);
+            }
+
             offscreenBuffer.WriteInput(_textInputBuffer);
         }
 

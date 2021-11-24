@@ -57,12 +57,17 @@ namespace Sharprompt.Forms
         {
             offscreenBuffer.WritePrompt(_options.Message);
 
+            if (_textInputBuffer.Length == 0 && !string.IsNullOrEmpty(_options.Placeholder))
+            {
+                offscreenBuffer.PushCursor();
+                offscreenBuffer.WriteHint(_options.Placeholder);
+            }
+
             if (_options.PasswordChar != null)
             {
                 offscreenBuffer.Write(string.Concat(Enumerable.Repeat(_options.PasswordChar, _textInputBuffer.Length)));
+                offscreenBuffer.PushCursor();
             }
-
-            offscreenBuffer.PushCursor();
         }
 
         protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, string result)
