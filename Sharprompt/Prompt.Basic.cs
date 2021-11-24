@@ -26,11 +26,12 @@ namespace Sharprompt
             return Input<T>(options);
         }
 
-        public static T Input<T>(string message, object defaultValue = default, IList<Func<object, ValidationResult>> validators = default)
+        public static T Input<T>(string message, object defaultValue = default, string placeholder = default, IList<Func<object, ValidationResult>> validators = default)
         {
             var options = new InputOptions
             {
                 Message = message,
+                Placeholder = placeholder,
                 DefaultValue = defaultValue
             };
 
@@ -55,11 +56,12 @@ namespace Sharprompt
             return Password(options);
         }
 
-        public static string Password(string message, string passwordChar = "*", IList<Func<object, ValidationResult>> validators = default)
+        public static string Password(string message, string passwordChar = "*", string placeholder = default, IList<Func<object, ValidationResult>> validators = default)
         {
             var options = new PasswordOptions
             {
                 Message = message,
+                Placeholder = placeholder,
                 PasswordChar = passwordChar
             };
 

@@ -41,6 +41,11 @@ namespace Sharprompt.Internal
 
         public void PushCursor()
         {
+            if (_pushedCursor is not null)
+            {
+                return;
+            }
+
             _pushedCursor = new Cursor
             {
                 Left = _outputBuffer.Last().Sum(x => x.Width),
