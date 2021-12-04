@@ -71,7 +71,7 @@ namespace Sharprompt
             });
         }
 
-        private static object MakeList(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeListCore), propertyMetadata, propertyMetadata.UnderlyingType.GetGenericArguments()[0]);
+        private static object MakeList(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeListCore), propertyMetadata, propertyMetadata.Type.GetGenericArguments()[0]);
 
         private static IEnumerable<T> MakeListCore<T>(PropertyMetadata propertyMetadata)
         {
@@ -84,7 +84,7 @@ namespace Sharprompt
             });
         }
 
-        private static object MakeMultiSelect(PropertyMetadata propertyMetadata) => InvokeMethod(propertyMetadata.UnderlyingType.GetGenericArguments()[0].IsEnum ? nameof(MakeMultiSelectEnumCore) : nameof(MakeMultiSelectCore), propertyMetadata, propertyMetadata.UnderlyingType.GetGenericArguments()[0]);
+        private static object MakeMultiSelect(PropertyMetadata propertyMetadata) => InvokeMethod(propertyMetadata.Type.GetGenericArguments()[0].IsEnum ? nameof(MakeMultiSelectEnumCore) : nameof(MakeMultiSelectCore), propertyMetadata, propertyMetadata.Type.GetGenericArguments()[0]);
 
         private static IEnumerable<T> MakeMultiSelectCore<T>(PropertyMetadata propertyMetadata)
         {
@@ -116,7 +116,7 @@ namespace Sharprompt
             });
         }
 
-        private static object MakeSelect(PropertyMetadata propertyMetadata) => InvokeMethod(propertyMetadata.UnderlyingType.IsEnum ? nameof(MakeSelectEnumCore) : nameof(MakeSelectCore), propertyMetadata);
+        private static object MakeSelect(PropertyMetadata propertyMetadata) => InvokeMethod(propertyMetadata.Type.IsEnum ? nameof(MakeSelectEnumCore) : nameof(MakeSelectCore), propertyMetadata);
 
         private static T MakeSelectCore<T>(PropertyMetadata propertyMetadata)
         {

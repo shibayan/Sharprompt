@@ -128,7 +128,7 @@ namespace Sharprompt.Tests
             Assert.Equal(FormType.Select, metadata[0].DetermineFormType());
 
             Assert.Equal(typeof(EnumValue?), metadata[1].Type);
-            Assert.Equal(FormType.Select, metadata[1].DetermineFormType());
+            Assert.Equal(FormType.Input, metadata[1].DetermineFormType());
 
             Assert.Equal(typeof(IEnumerable<EnumValue>), metadata[2].Type);
             Assert.Equal(FormType.MultiSelect, metadata[2].DetermineFormType());

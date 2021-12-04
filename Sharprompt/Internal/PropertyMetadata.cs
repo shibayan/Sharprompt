@@ -19,7 +19,6 @@ namespace Sharprompt.Internal
 
             PropertyInfo = propertyInfo;
             Type = propertyInfo.PropertyType;
-            UnderlyingType = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
             IsCollection = propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>);
             DataType = dataTypeAttribute?.DataType;
             Message = displayAttribute?.GetPrompt();
@@ -32,7 +31,6 @@ namespace Sharprompt.Internal
 
         public PropertyInfo PropertyInfo { get; }
         public Type Type { get; }
-        public Type UnderlyingType { get; }
         public bool IsCollection { get; }
         public AnnotationsDataType? DataType { get; }
         public string Message { get; }
@@ -52,12 +50,12 @@ namespace Sharprompt.Internal
                 return FormType.Confirm;
             }
 
-            if (UnderlyingType.IsEnum)
+            if (Type.IsEnum)
             {
                 return FormType.Select;
             }
 
-            if (IsCollection && UnderlyingType.GetGenericArguments()[0].IsEnum)
+            if (IsCollection && Type.GetGenericArguments()[0].IsEnum)
             {
                 return FormType.MultiSelect;
             }

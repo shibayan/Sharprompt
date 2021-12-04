@@ -4,7 +4,6 @@ using System.Reflection;
 
 namespace Sharprompt.Internal
 {
-
     internal static class PropertyMetadataFactory
     {
         public static IReadOnlyList<PropertyMetadata> Create<T>(T model)
