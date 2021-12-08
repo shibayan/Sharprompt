@@ -113,21 +113,7 @@ namespace Sharprompt
             return Select(options);
         }
 
-        public static T Select<T>(string message, int? pageSize = default, T? defaultValue = default) where T : struct, Enum
-        {
-            var options = new SelectOptions<EnumValue<T>>
-            {
-                Message = message,
-                Items = EnumValue<T>.GetValues(),
-                DefaultValue = (EnumValue<T>)defaultValue,
-                PageSize = pageSize,
-                TextSelector = x => x.DisplayName
-            };
-
-            return Select(options).Value;
-        }
-
-        public static T Select<T>(string message, IEnumerable<T> items, int? pageSize = default, object defaultValue = default, Func<T, string> textSelector = default)
+        public static T Select<T>(string message, IEnumerable<T> items = default, int? pageSize = default, object defaultValue = default, Func<T, string> textSelector = default)
         {
             var options = new SelectOptions<T>
             {

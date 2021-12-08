@@ -13,7 +13,7 @@ namespace Sharprompt.Example
 
             while (true)
             {
-                var type = Prompt.Select<ExampleType>("Choose prompt example");
+                var type = Prompt.Select<ExampleType>("Choose prompt example", new[] { ExampleType.Input, ExampleType.Confirm });
 
                 switch (type)
                 {
@@ -82,7 +82,7 @@ namespace Sharprompt.Example
 
         private static void RunSelectEnumSample()
         {
-            var value = Prompt.Select<MyEnum>("Select enum value", defaultValue: MyEnum.Bar);
+            var value = Prompt.Select<MyEnum>("Select enum value", new[] { MyEnum.Foo, MyEnum.Bar }, defaultValue: MyEnum.Bar);
             Console.WriteLine($"You selected {value}");
         }
 
