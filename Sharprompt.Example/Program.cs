@@ -88,7 +88,7 @@ namespace Sharprompt.Example
 
         private static void RunMultiSelectEnumSample()
         {
-            var value = Prompt.MultiSelect<MyEnum>("Select enum value", defaultValues: new[] { MyEnum.Bar });
+            var value = Prompt.MultiSelect<MyEnum>("Select enum value", new[] { MyEnum.Foo, MyEnum.Bar }, defaultValues: new[] { MyEnum.Bar });
             Console.WriteLine($"You picked {string.Join(", ", value)}");
         }
 

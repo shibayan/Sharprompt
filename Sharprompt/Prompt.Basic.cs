@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 
 using Sharprompt.Forms;
 using Sharprompt.Internal;
@@ -141,22 +140,6 @@ namespace Sharprompt
             configure(options);
 
             return MultiSelect(options);
-        }
-
-        public static IEnumerable<T> MultiSelect<T>(string message, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = default) where T : struct, Enum
-        {
-            var options = new MultiSelectOptions<EnumValue<T>>
-            {
-                Message = message,
-                Items = EnumValue<T>.GetValues(),
-                DefaultValues = defaultValues?.Select(x => (EnumValue<T>)x),
-                PageSize = pageSize,
-                Minimum = minimum,
-                Maximum = maximum,
-                TextSelector = x => x.DisplayName
-            };
-
-            return MultiSelect(options).Select(x => x.Value);
         }
 
         public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = default, Func<T, string> textSelector = default)
