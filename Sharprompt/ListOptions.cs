@@ -53,5 +53,18 @@ namespace Sharprompt
 
             return this;
         }
+
+        internal void EnsureOptions()
+        {
+            if (Minimum < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(Minimum), $"The minimum ({Minimum}) is not valid");
+            }
+
+            if (Maximum < Minimum)
+            {
+                throw new ArgumentOutOfRangeException(nameof(Maximum), $"The maximum ({Maximum}) is not valid when minimum is set to ({Minimum})");
+            }
+        }
     }
 }
