@@ -19,48 +19,6 @@ namespace Sharprompt
 
         public Func<int, int, int, string> Pagination { get; set; }
 
-        public SelectOptions<T> SetMessage(string message)
-        {
-            Message = message;
-
-            return this;
-        }
-
-        public SelectOptions<T> SetItems(IEnumerable<T> items)
-        {
-            Items = items;
-
-            return this;
-        }
-
-        public SelectOptions<T> SetDefaultValue(object defaultValue)
-        {
-            DefaultValue = defaultValue;
-
-            return this;
-        }
-
-        public SelectOptions<T> SetPageSize(int? pageSize)
-        {
-            PageSize = pageSize;
-
-            return this;
-        }
-
-        public SelectOptions<T> SetTextSelector(Func<T, string> textSelector)
-        {
-            TextSelector = textSelector;
-
-            return this;
-        }
-
-        public SelectOptions<T> SetPagination(Func<int, int, int, string> pagination)
-        {
-            Pagination = pagination;
-
-            return this;
-        }
-
         internal void EnsureOptions()
         {
             if (Items is null && typeof(T).IsEnum)
