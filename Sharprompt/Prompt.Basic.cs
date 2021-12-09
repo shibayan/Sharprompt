@@ -98,6 +98,23 @@ namespace Sharprompt
 
         public static T Select<T>(SelectOptions<T> options)
         {
+            if (options.Items is null && typeof(T).IsEnum)
+            {
+                options.Items = EnumHelper<T>.GetValues();
+            }
+
+            if (options.TextSelector == null)
+            {
+                if (typeof(T).IsEnum)
+                {
+                    options.TextSelector = EnumHelper<T>.GetDisplayName;
+                }
+                else
+                {
+                    options.TextSelector = x => x.ToString();
+                }
+            }
+
             using var form = new SelectForm<T>(options);
 
             return form.Start();
@@ -120,7 +137,7 @@ namespace Sharprompt
                 Items = items,
                 DefaultValue = defaultValue,
                 PageSize = pageSize,
-                TextSelector = textSelector ?? (x => x.ToString())
+                TextSelector = textSelector
             };
 
             return Select(options);
@@ -128,6 +145,23 @@ namespace Sharprompt
 
         public static IEnumerable<T> MultiSelect<T>(MultiSelectOptions<T> options)
         {
+            if (options.Items is null && typeof(T).IsEnum)
+            {
+                options.Items = EnumHelper<T>.GetValues();
+            }
+
+            if (options.TextSelector == null)
+            {
+                if (typeof(T).IsEnum)
+                {
+                    options.TextSelector = EnumHelper<T>.GetDisplayName;
+                }
+                else
+                {
+                    options.TextSelector = x => x.ToString();
+                }
+            }
+
             using var form = new MultiSelectForm<T>(options);
 
             return form.Start();
@@ -142,7 +176,7 @@ namespace Sharprompt
             return MultiSelect(options);
         }
 
-        public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = default, Func<T, string> textSelector = default)
+        public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items = null, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = default, Func<T, string> textSelector = default)
         {
             var options = new MultiSelectOptions<T>
             {
@@ -152,7 +186,7 @@ namespace Sharprompt
                 PageSize = pageSize,
                 Minimum = minimum,
                 Maximum = maximum,
-                TextSelector = textSelector ?? (x => x.ToString())
+                TextSelector = textSelector
             };
 
             return MultiSelect(options);
