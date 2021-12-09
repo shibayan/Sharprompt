@@ -9,10 +9,7 @@ namespace Sharprompt.Forms
     {
         public SelectForm(SelectOptions<T> options)
         {
-            if (options.Items is null)
-            {
-                throw new ArgumentNullException(nameof(options.Items));
-            }
+            options.EnsureOptions();
 
             _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector);
 
