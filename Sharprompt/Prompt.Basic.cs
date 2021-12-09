@@ -98,23 +98,6 @@ namespace Sharprompt
 
         public static T Select<T>(SelectOptions<T> options)
         {
-            if (options.Items is null && typeof(T).IsEnum)
-            {
-                options.Items = EnumHelper<T>.GetValues();
-            }
-
-            if (options.TextSelector == null)
-            {
-                if (typeof(T).IsEnum)
-                {
-                    options.TextSelector = EnumHelper<T>.GetDisplayName;
-                }
-                else
-                {
-                    options.TextSelector = x => x.ToString();
-                }
-            }
-
             using var form = new SelectForm<T>(options);
 
             return form.Start();
@@ -145,23 +128,6 @@ namespace Sharprompt
 
         public static IEnumerable<T> MultiSelect<T>(MultiSelectOptions<T> options)
         {
-            if (options.Items is null && typeof(T).IsEnum)
-            {
-                options.Items = EnumHelper<T>.GetValues();
-            }
-
-            if (options.TextSelector == null)
-            {
-                if (typeof(T).IsEnum)
-                {
-                    options.TextSelector = EnumHelper<T>.GetDisplayName;
-                }
-                else
-                {
-                    options.TextSelector = x => x.ToString();
-                }
-            }
-
             using var form = new MultiSelectForm<T>(options);
 
             return form.Start();
