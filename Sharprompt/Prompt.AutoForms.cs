@@ -52,19 +52,19 @@ namespace Sharprompt
                 {
                     var method = _selectMethod.MakeGenericMethod(propertyMetadata.PropertyType);
 
-                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, null, defaultValue));
+                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, null, defaultValue, null, null));
                 }
                 else if (propertyMetadata.IsCollection && propertyMetadata.PropertyType.GetGenericArguments()[0].IsEnum)
                 {
                     var method = _multiSelectMethod.MakeGenericMethod(propertyMetadata.PropertyType.GetGenericArguments()[0]);
 
-                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, null, 1, int.MaxValue, defaultValue));
+                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, null, null, 1, int.MaxValue, defaultValue, null));
                 }
                 else
                 {
                     var method = _inputMethod.MakeGenericMethod(propertyMetadata.PropertyType);
 
-                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, defaultValue, validators));
+                    propertyInfo.SetValue(model, InvokeMethod(method, propertyMetadata.Prompt, defaultValue, null, validators));
                 }
             }
         }
@@ -100,7 +100,7 @@ namespace Sharprompt
         }
 
         private static readonly MethodInfo _inputMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(Input) && x.GetParameters().Length == 4);
-        private static readonly MethodInfo _selectMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(Select) && x.GetParameters().Length == 3);
-        private static readonly MethodInfo _multiSelectMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(MultiSelect) && x.GetParameters().Length == 5);
+        private static readonly MethodInfo _selectMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(Select) && x.GetParameters().Length == 5);
+        private static readonly MethodInfo _multiSelectMethod = typeof(Prompt).GetMethods().First(x => x.Name == nameof(MultiSelect) && x.GetParameters().Length == 7);
     }
 }

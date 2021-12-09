@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 
 using Sharprompt.Forms;
 using Sharprompt.Internal;
@@ -113,21 +112,7 @@ namespace Sharprompt
             return Select(options);
         }
 
-        public static T Select<T>(string message, int? pageSize = default, T? defaultValue = default) where T : struct, Enum
-        {
-            var options = new SelectOptions<EnumValue<T>>
-            {
-                Message = message,
-                Items = EnumValue<T>.GetValues(),
-                DefaultValue = (EnumValue<T>)defaultValue,
-                PageSize = pageSize,
-                TextSelector = x => x.DisplayName
-            };
-
-            return Select(options).Value;
-        }
-
-        public static T Select<T>(string message, IEnumerable<T> items, int? pageSize = default, object defaultValue = default, Func<T, string> textSelector = default)
+        public static T Select<T>(string message, IEnumerable<T> items = default, int? pageSize = default, object defaultValue = default, Func<T, string> textSelector = default)
         {
             var options = new SelectOptions<T>
             {
@@ -135,7 +120,7 @@ namespace Sharprompt
                 Items = items,
                 DefaultValue = defaultValue,
                 PageSize = pageSize,
-                TextSelector = textSelector ?? (x => x.ToString())
+                TextSelector = textSelector
             };
 
             return Select(options);
@@ -157,23 +142,7 @@ namespace Sharprompt
             return MultiSelect(options);
         }
 
-        public static IEnumerable<T> MultiSelect<T>(string message, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = default) where T : struct, Enum
-        {
-            var options = new MultiSelectOptions<EnumValue<T>>
-            {
-                Message = message,
-                Items = EnumValue<T>.GetValues(),
-                DefaultValues = defaultValues?.Select(x => (EnumValue<T>)x),
-                PageSize = pageSize,
-                Minimum = minimum,
-                Maximum = maximum,
-                TextSelector = x => x.DisplayName
-            };
-
-            return MultiSelect(options).Select(x => x.Value);
-        }
-
-        public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = default, Func<T, string> textSelector = default)
+        public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items = null, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = default, Func<T, string> textSelector = default)
         {
             var options = new MultiSelectOptions<T>
             {
@@ -183,7 +152,7 @@ namespace Sharprompt
                 PageSize = pageSize,
                 Minimum = minimum,
                 Maximum = maximum,
-                TextSelector = textSelector ?? (x => x.ToString())
+                TextSelector = textSelector
             };
 
             return MultiSelect(options);

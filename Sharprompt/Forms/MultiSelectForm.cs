@@ -10,20 +10,7 @@ namespace Sharprompt.Forms
     {
         public MultiSelectForm(MultiSelectOptions<T> options)
         {
-            if (options.Items is null)
-            {
-                throw new ArgumentNullException(nameof(options.Items));
-            }
-
-            if (options.Minimum < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(options.Minimum), $"The minimum ({options.Minimum}) is not valid");
-            }
-
-            if (options.Maximum < options.Minimum)
-            {
-                throw new ArgumentOutOfRangeException(nameof(options.Maximum), $"The maximum ({options.Maximum}) is not valid when minimum is set to ({options.Minimum})");
-            }
+            options.EnsureOptions();
 
             _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Empty, options.TextSelector);
 
