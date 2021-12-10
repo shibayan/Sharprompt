@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Sharprompt
 {
-    public class InputOptions
+    public class InputOptions<T>
     {
         public string Message { get; set; }
 

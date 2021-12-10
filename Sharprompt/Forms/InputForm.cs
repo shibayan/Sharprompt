@@ -6,14 +6,14 @@ namespace Sharprompt.Forms
 {
     internal class InputForm<T> : FormBase<T>
     {
-        public InputForm(InputOptions options)
+        public InputForm(InputOptions<T> options)
         {
             _defaultValue = Optional<T>.Create(options.DefaultValue);
 
             _options = options;
         }
 
-        private readonly InputOptions _options;
+        private readonly InputOptions<T> _options;
         private readonly Optional<T> _defaultValue;
 
         private readonly TextInputBuffer _textInputBuffer = new();
