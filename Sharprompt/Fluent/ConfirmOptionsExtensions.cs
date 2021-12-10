@@ -2,14 +2,14 @@
 {
     public static class ConfirmOptionsExtensions
     {
-        public static ConfirmOptions SetMessage(this ConfirmOptions options, string message)
+        public static ConfirmOptions WithMessage(this ConfirmOptions options, string message)
         {
             options.Message = message;
 
             return options;
         }
 
-        public static ConfirmOptions SetDefaultValue(this ConfirmOptions options, bool? defaultValue)
+        public static ConfirmOptions WithDefaultValue(this ConfirmOptions options, bool defaultValue)
         {
             options.DefaultValue = defaultValue;
 

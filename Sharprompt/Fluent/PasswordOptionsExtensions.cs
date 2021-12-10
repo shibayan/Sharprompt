@@ -5,21 +5,21 @@ namespace Sharprompt.Fluent
 {
     public static class PasswordOptionsExtensions
     {
-        public static PasswordOptions SetMessage(this PasswordOptions options, string message)
+        public static PasswordOptions WithMessage(this PasswordOptions options, string message)
         {
             options.Message = message;
 
             return options;
         }
 
-        public static PasswordOptions SetPlaceholder(this PasswordOptions options, string placeholder)
+        public static PasswordOptions WithPlaceholder(this PasswordOptions options, string placeholder)
         {
             options.Placeholder = placeholder;
 
             return options;
         }
 
-        public static PasswordOptions SetPasswordChar(this PasswordOptions options, string passwordChar)
+        public static PasswordOptions WithPasswordChar(this PasswordOptions options, string passwordChar)
         {
             options.PasswordChar = passwordChar;
 

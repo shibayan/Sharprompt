@@ -9,25 +9,25 @@ namespace Sharprompt
 {
     public static partial class Prompt
     {
-        public static T Input<T>(InputOptions options)
+        public static T Input<T>(InputOptions<T> options)
         {
             using var form = new InputForm<T>(options);
 
             return form.Start();
         }
 
-        public static T Input<T>(Action<InputOptions> configure)
+        public static T Input<T>(Action<InputOptions<T>> configure)
         {
-            var options = new InputOptions();
+            var options = new InputOptions<T>();
 
             configure(options);
 
-            return Input<T>(options);
+            return Input(options);
         }
 
         public static T Input<T>(string message, object defaultValue = default, string placeholder = default, IList<Func<object, ValidationResult>> validators = default)
         {
-            var options = new InputOptions
+            var options = new InputOptions<T>
             {
                 Message = message,
                 Placeholder = placeholder,
@@ -36,7 +36,7 @@ namespace Sharprompt
 
             options.Validators.Merge(validators);
 
-            return Input<T>(options);
+            return Input(options);
         }
 
         public static string Password(PasswordOptions options)
