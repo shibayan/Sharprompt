@@ -27,16 +27,14 @@ namespace Sharprompt
 
         public static T Input<T>(string message, object defaultValue = default, string placeholder = default, IList<Func<object, ValidationResult>> validators = default)
         {
-            var options = new InputOptions<T>
+            return Input<T>(options =>
             {
-                Message = message,
-                Placeholder = placeholder,
-                DefaultValue = defaultValue
-            };
+                options.Message = message;
+                options.Placeholder = placeholder;
+                options.DefaultValue = defaultValue;
 
-            options.Validators.Merge(validators);
-
-            return Input(options);
+                options.Validators.Merge(validators);
+            });
         }
 
         public static string Password(PasswordOptions options)
@@ -57,16 +55,14 @@ namespace Sharprompt
 
         public static string Password(string message, string passwordChar = "*", string placeholder = default, IList<Func<object, ValidationResult>> validators = default)
         {
-            var options = new PasswordOptions
+            return Password(options =>
             {
-                Message = message,
-                Placeholder = placeholder,
-                PasswordChar = passwordChar
-            };
+                options.Message = message;
+                options.Placeholder = placeholder;
+                options.PasswordChar = passwordChar;
 
-            options.Validators.Merge(validators);
-
-            return Password(options);
+                options.Validators.Merge(validators);
+            });
         }
 
         public static bool Confirm(ConfirmOptions options)
@@ -87,13 +83,11 @@ namespace Sharprompt
 
         public static bool Confirm(string message, bool? defaultValue = default)
         {
-            var options = new ConfirmOptions
+            return Confirm(options =>
             {
-                Message = message,
-                DefaultValue = defaultValue
-            };
-
-            return Confirm(options);
+                options.Message = message;
+                options.DefaultValue = defaultValue;
+            });
         }
 
         public static T Select<T>(SelectOptions<T> options)
@@ -114,16 +108,14 @@ namespace Sharprompt
 
         public static T Select<T>(string message, IEnumerable<T> items = default, int? pageSize = default, object defaultValue = default, Func<T, string> textSelector = default)
         {
-            var options = new SelectOptions<T>
+            return Select<T>(options =>
             {
-                Message = message,
-                Items = items,
-                DefaultValue = defaultValue,
-                PageSize = pageSize,
-                TextSelector = textSelector
-            };
-
-            return Select(options);
+                options.Message = message;
+                options.Items = items;
+                options.DefaultValue = defaultValue;
+                options.PageSize = pageSize;
+                options.TextSelector = textSelector;
+            });
         }
 
         public static IEnumerable<T> MultiSelect<T>(MultiSelectOptions<T> options)
@@ -144,18 +136,16 @@ namespace Sharprompt
 
         public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items = null, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = default, Func<T, string> textSelector = default)
         {
-            var options = new MultiSelectOptions<T>
+            return MultiSelect<T>(options =>
             {
-                Message = message,
-                Items = items,
-                DefaultValues = defaultValues,
-                PageSize = pageSize,
-                Minimum = minimum,
-                Maximum = maximum,
-                TextSelector = textSelector
-            };
-
-            return MultiSelect(options);
+                options.Message = message;
+                options.Items = items;
+                options.DefaultValues = defaultValues;
+                options.PageSize = pageSize;
+                options.Minimum = minimum;
+                options.Maximum = maximum;
+                options.TextSelector = textSelector;
+            });
         }
 
         public static IEnumerable<T> List<T>(ListOptions<T> options)
@@ -176,16 +166,14 @@ namespace Sharprompt
 
         public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = int.MaxValue, IList<Func<object, ValidationResult>> validators = default)
         {
-            var options = new ListOptions<T>
+            return List<T>(options =>
             {
-                Message = message,
-                Minimum = minimum,
-                Maximum = maximum
-            };
+                options.Message = message;
+                options.Minimum = minimum;
+                options.Maximum = maximum;
 
-            options.Validators.Merge(validators);
-
-            return List(options);
+                options.Validators.Merge(validators);
+            });
         }
     }
 }

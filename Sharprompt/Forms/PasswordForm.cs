@@ -9,6 +9,8 @@ namespace Sharprompt.Forms
     {
         public PasswordForm(PasswordOptions options)
         {
+            options.EnsureOptions();
+
             _options = options;
         }
 
@@ -63,7 +65,7 @@ namespace Sharprompt.Forms
                 offscreenBuffer.WriteHint(_options.Placeholder);
             }
 
-            if (_options.PasswordChar != null)
+            if (!string.IsNullOrEmpty(_options.PasswordChar))
             {
                 offscreenBuffer.Write(string.Concat(Enumerable.Repeat(_options.PasswordChar, _textInputBuffer.Length)));
                 offscreenBuffer.PushCursor();
@@ -74,7 +76,7 @@ namespace Sharprompt.Forms
         {
             offscreenBuffer.WriteDone(_options.Message);
 
-            if (_options.PasswordChar != null)
+            if (!string.IsNullOrEmpty(_options.PasswordChar))
             {
                 offscreenBuffer.WriteAnswer(string.Concat(Enumerable.Repeat(_options.PasswordChar, _textInputBuffer.Length)));
             }

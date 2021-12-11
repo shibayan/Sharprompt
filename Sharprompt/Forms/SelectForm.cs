@@ -11,9 +11,9 @@ namespace Sharprompt.Forms
         {
             options.EnsureOptions();
 
-            _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector);
-
             _options = options;
+
+            _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector);
         }
 
         private readonly SelectOptions<T> _options;

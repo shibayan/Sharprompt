@@ -12,6 +12,8 @@ namespace Sharprompt.Forms
         {
             options.EnsureOptions();
 
+            _options = options;
+
             _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Empty, options.TextSelector);
 
             if (options.DefaultValues is not null)
@@ -21,8 +23,6 @@ namespace Sharprompt.Forms
                     _selectedItems.Add(defaultValue);
                 }
             }
-
-            _options = options;
         }
 
         private readonly MultiSelectOptions<T> _options;
