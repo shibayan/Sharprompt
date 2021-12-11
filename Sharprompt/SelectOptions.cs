@@ -29,6 +29,7 @@ namespace Sharprompt
             TextSelector ??= typeof(T).IsEnum ? EnumHelper<T>.GetDisplayName : x => x.ToString();
             Pagination ??= (count, current, total) => $"({count} items, {current}/{total} pages)";
 
+            _ = Message ?? throw new ArgumentNullException(nameof(Message));
             _ = Items ?? throw new ArgumentNullException(nameof(Items));
         }
     }

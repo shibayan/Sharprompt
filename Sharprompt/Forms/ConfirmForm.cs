@@ -8,6 +8,8 @@ namespace Sharprompt.Forms
     {
         public ConfirmForm(ConfirmOptions options)
         {
+            options.EnsureOptions();
+
             _options = options;
         }
 

@@ -13,5 +13,11 @@ namespace Sharprompt
         public string PasswordChar { get; set; } = "*";
 
         public IList<Func<object, ValidationResult>> Validators { get; } = new List<Func<object, ValidationResult>>();
+
+        internal void EnsureOptions()
+        {
+            _ = Message ?? throw new ArgumentNullException(nameof(Message));
+            _ = PasswordChar ?? throw new ArgumentNullException(nameof(PasswordChar));
+        }
     }
 }

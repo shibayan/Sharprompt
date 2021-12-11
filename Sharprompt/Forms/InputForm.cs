@@ -8,9 +8,11 @@ namespace Sharprompt.Forms
     {
         public InputForm(InputOptions<T> options)
         {
-            _defaultValue = Optional<T>.Create(options.DefaultValue);
+            options.EnsureOptions();
 
             _options = options;
+
+            _defaultValue = Optional<T>.Create(options.DefaultValue);
         }
 
         private readonly InputOptions<T> _options;
