@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 using Sharprompt.Forms;
 using Sharprompt.Internal;
@@ -21,6 +22,7 @@ namespace Sharprompt.Tests
             Assert.Equal(typeof(string), metadata[0].Type);
             Assert.Equal(FormType.Input, metadata[0].DetermineFormType());
             Assert.Equal("Input Value", metadata[0].Message);
+            Assert.Equal("Required Value", metadata[0].Placeholder);
             Assert.Null(metadata[0].DefaultValue);
             Assert.Null(metadata[0].Order);
             Assert.Equal(1, metadata[0].Validators.Count);
@@ -134,9 +136,36 @@ namespace Sharprompt.Tests
             Assert.Equal(FormType.MultiSelect, metadata[2].DetermineFormType());
         }
 
+        [Fact]
+        public void InlineDataSource()
+        {
+            var metadata = PropertyMetadataFactory.Create(new InlineDataSourceModel());
+
+            Assert.NotNull(metadata);
+            Assert.Equal(2, metadata.Count);
+
+            Assert.Equal(FormType.Select, metadata[0].DetermineFormType());
+            Assert.Equal(Enumerable.Range(1, 5), metadata[0].DataSourceProvider.GetItems<int>());
+
+            Assert.Equal(FormType.MultiSelect, metadata[1].DetermineFormType());
+            Assert.Equal(Enumerable.Range(1, 10), metadata[1].DataSourceProvider.GetItems<int>());
+        }
+
+        [Fact]
+        public void MemberDataSource()
+        {
+            var metadata = PropertyMetadataFactory.Create(new MemberDataSourceModel());
+
+            Assert.NotNull(metadata);
+            Assert.Equal(1, metadata.Count);
+
+            Assert.Equal(FormType.Select, metadata[0].DetermineFormType());
+            Assert.Equal(Enumerable.Range(1, 5), metadata[0].DataSourceProvider.GetItems<int>());
+        }
+
         public class BasicModel
         {
-            [Display(Prompt = "Input Value")]
+            [Display(Name = "Input Value", Prompt = "Required Value")]
             [Required]
             public string Value { get; set; }
         }
@@ -179,6 +208,27 @@ namespace Sharprompt.Tests
             Value1,
             Value2,
             Value3
+        }
+
+        public class InlineDataSourceModel
+        {
+            [InlineDataSource(1, 2, 3, 4, 5)]
+            public int IntValue { get; set; }
+
+            [InlineDataSource(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)]
+            public IEnumerable<int> IntArray { get; set; }
+        }
+
+
+        public class MemberDataSourceModel
+        {
+            [MemberDataSource(typeof(MemberDataSourceModel), nameof(GetSelectItems))]
+            public int IntValue { get; set; }
+
+            public static IEnumerable<int> GetSelectItems()
+            {
+                return new[] { 1, 2, 3, 4, 5 };
+            }
         }
     }
 }

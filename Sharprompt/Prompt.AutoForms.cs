@@ -90,6 +90,7 @@ namespace Sharprompt
             return MultiSelect<T>(options =>
             {
                 options.Message = propertyMetadata.Message;
+                options.Items = propertyMetadata.DataSourceProvider?.GetItems<T>();
                 options.DefaultValues = (IEnumerable<T>)propertyMetadata.DefaultValue;
             });
         }
@@ -111,6 +112,7 @@ namespace Sharprompt
             return Select<T>(options =>
             {
                 options.Message = propertyMetadata.Message;
+                options.Items = propertyMetadata.DataSourceProvider?.GetItems<T>();
                 options.DefaultValue = propertyMetadata.DefaultValue;
             });
         }

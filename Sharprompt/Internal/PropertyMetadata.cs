@@ -21,12 +21,14 @@ namespace Sharprompt.Internal
             Type = propertyInfo.PropertyType;
             IsCollection = propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>);
             DataType = dataTypeAttribute?.DataType;
-            Message = displayAttribute?.GetPrompt();
+            Message = displayAttribute?.GetName() ?? displayAttribute?.GetDescription();
+            Placeholder = displayAttribute?.GetPrompt();
             Order = displayAttribute?.GetOrder();
             DefaultValue = propertyInfo.GetValue(model);
             Validators = propertyInfo.GetCustomAttributes<ValidationAttribute>(true)
                                      .Select(x => new ValidationAttributeAdapter(x).GetValidator(propertyInfo.Name, model))
                                      .ToArray();
+            DataSourceProvider = (IDataSourceProvider)propertyInfo.GetCustomAttribute<InlineDataSourceAttribute>() ?? propertyInfo.GetCustomAttribute<MemberDataSourceAttribute>();
         }
 
         public PropertyInfo PropertyInfo { get; }
@@ -34,9 +36,11 @@ namespace Sharprompt.Internal
         public bool IsCollection { get; }
         public AnnotationsDataType? DataType { get; }
         public string Message { get; }
+        public string Placeholder { get; set; }
         public int? Order { get; }
         public object DefaultValue { get; }
         public IReadOnlyList<Func<object, ValidationResult>> Validators { get; }
+        public IDataSourceProvider DataSourceProvider { get; set; }
 
         public FormType DetermineFormType()
         {
@@ -50,17 +54,17 @@ namespace Sharprompt.Internal
                 return FormType.Confirm;
             }
 
-            if (Type.IsEnum)
+            if (!IsCollection && (Type.IsEnum || DataSourceProvider is not null))
             {
                 return FormType.Select;
             }
 
-            if (IsCollection && Type.GetGenericArguments()[0].IsEnum)
+            if (IsCollection && (Type.GetGenericArguments()[0].IsEnum || DataSourceProvider is not null))
             {
                 return FormType.MultiSelect;
             }
 
-            if (IsCollection)
+            if (IsCollection && DataSourceProvider is null)
             {
                 return FormType.List;
             }
