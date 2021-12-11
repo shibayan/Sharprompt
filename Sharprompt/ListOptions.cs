@@ -18,6 +18,8 @@ namespace Sharprompt
 
         internal void EnsureOptions()
         {
+            _ = Message ?? throw new ArgumentNullException(nameof(Message));
+
             if (Minimum < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(Minimum), $"The minimum ({Minimum}) is not valid");

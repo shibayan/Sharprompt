@@ -19,8 +19,8 @@ namespace Sharprompt.Forms
 
         private readonly ListOptions<T> _options;
 
-        private readonly TextInputBuffer _textInputBuffer = new();
         private readonly List<T> _inputItems = new();
+        private readonly TextInputBuffer _textInputBuffer = new();
 
         protected override bool TryGetResult(out IEnumerable<T> result)
         {

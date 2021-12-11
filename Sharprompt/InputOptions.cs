@@ -13,5 +13,10 @@ namespace Sharprompt
         public object DefaultValue { get; set; }
 
         public IList<Func<object, ValidationResult>> Validators { get; } = new List<Func<object, ValidationResult>>();
+
+        internal void EnsureOptions()
+        {
+            _ = Message ?? throw new ArgumentNullException(nameof(Message));
+        }
     }
 }
