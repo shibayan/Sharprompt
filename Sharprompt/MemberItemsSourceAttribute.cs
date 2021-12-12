@@ -8,9 +8,9 @@ using Sharprompt.Internal;
 namespace Sharprompt
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public sealed class MemberDataSourceAttribute : Attribute, IDataSourceProvider
+    public sealed class MemberItemsSourceAttribute : Attribute, IItemsSourceProvider
     {
-        public MemberDataSourceAttribute(Type memberType, string memberName)
+        public MemberItemsSourceAttribute(Type memberType, string memberName)
         {
             _memberType = memberType;
             _memberName = memberName;

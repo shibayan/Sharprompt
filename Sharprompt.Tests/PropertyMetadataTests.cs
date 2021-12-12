@@ -145,10 +145,10 @@ namespace Sharprompt.Tests
             Assert.Equal(2, metadata.Count);
 
             Assert.Equal(FormType.Select, metadata[0].DetermineFormType());
-            Assert.Equal(Enumerable.Range(1, 5), metadata[0].DataSourceProvider.GetItems<int>());
+            Assert.Equal(Enumerable.Range(1, 5), metadata[0].ItemsSourceProvider.GetItems<int>());
 
             Assert.Equal(FormType.MultiSelect, metadata[1].DetermineFormType());
-            Assert.Equal(Enumerable.Range(1, 10), metadata[1].DataSourceProvider.GetItems<int>());
+            Assert.Equal(Enumerable.Range(1, 10), metadata[1].ItemsSourceProvider.GetItems<int>());
         }
 
         [Fact]
@@ -157,10 +157,13 @@ namespace Sharprompt.Tests
             var metadata = PropertyMetadataFactory.Create(new MemberDataSourceModel());
 
             Assert.NotNull(metadata);
-            Assert.Equal(1, metadata.Count);
+            Assert.Equal(2, metadata.Count);
 
             Assert.Equal(FormType.Select, metadata[0].DetermineFormType());
-            Assert.Equal(Enumerable.Range(1, 5), metadata[0].DataSourceProvider.GetItems<int>());
+            Assert.Equal(Enumerable.Range(1, 5), metadata[0].ItemsSourceProvider.GetItems<int>());
+
+            Assert.Equal(FormType.Select, metadata[1].DetermineFormType());
+            Assert.Equal(Enumerable.Range(1, 10), metadata[1].ItemsSourceProvider.GetItems<int>());
         }
 
         public class BasicModel
@@ -212,23 +215,28 @@ namespace Sharprompt.Tests
 
         public class InlineDataSourceModel
         {
-            [InlineDataSource(1, 2, 3, 4, 5)]
+            [InlineItemsSource(1, 2, 3, 4, 5)]
             public int IntValue { get; set; }
 
-            [InlineDataSource(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)]
+            [InlineItemsSource(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)]
             public IEnumerable<int> IntArray { get; set; }
         }
 
 
         public class MemberDataSourceModel
         {
-            [MemberDataSource(typeof(MemberDataSourceModel), nameof(GetSelectItems))]
-            public int IntValue { get; set; }
+            [MemberItemsSource(typeof(MemberDataSourceModel), nameof(GetSelectItems))]
+            public int MemberValue { get; set; }
+
+            [MemberItemsSource(typeof(MemberDataSourceModel), nameof(SelectItems))]
+            public int PropertyValue { get; set; }
 
             public static IEnumerable<int> GetSelectItems()
             {
                 return new[] { 1, 2, 3, 4, 5 };
             }
+
+            public static IEnumerable<int> SelectItems => new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
         }
     }
 }
