@@ -7,9 +7,9 @@ using Sharprompt.Internal;
 namespace Sharprompt
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public sealed class InlineItemsSourceAttribute : Attribute, IItemsSourceProvider
+    public sealed class InlineItemsAttribute : Attribute, IItemsProvider
     {
-        public InlineItemsSourceAttribute(params object[] items)
+        public InlineItemsAttribute(params object[] items)
         {
             _items = items;
         }

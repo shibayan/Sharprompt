@@ -2,7 +2,7 @@
 
 namespace Sharprompt.Internal
 {
-    internal interface IItemsSourceProvider
+    internal interface IItemsProvider
     {
         IEnumerable<T> GetItems<T>();
     }

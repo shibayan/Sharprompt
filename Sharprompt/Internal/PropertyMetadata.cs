@@ -28,7 +28,7 @@ namespace Sharprompt.Internal
             Validators = propertyInfo.GetCustomAttributes<ValidationAttribute>(true)
                                      .Select(x => new ValidationAttributeAdapter(x).GetValidator(propertyInfo.Name, model))
                                      .ToArray();
-            ItemsSourceProvider = (IItemsSourceProvider)propertyInfo.GetCustomAttribute<InlineItemsSourceAttribute>() ?? propertyInfo.GetCustomAttribute<MemberItemsSourceAttribute>();
+            ItemsProvider = (IItemsProvider)propertyInfo.GetCustomAttribute<InlineItemsAttribute>(true) ?? propertyInfo.GetCustomAttribute<MemberItemsAttribute>(true);
         }
 
         public PropertyInfo PropertyInfo { get; }
@@ -40,7 +40,7 @@ namespace Sharprompt.Internal
         public int? Order { get; }
         public object DefaultValue { get; }
         public IReadOnlyList<Func<object, ValidationResult>> Validators { get; }
-        public IItemsSourceProvider ItemsSourceProvider { get; set; }
+        public IItemsProvider ItemsProvider { get; set; }
 
         public FormType DetermineFormType()
         {
@@ -54,17 +54,17 @@ namespace Sharprompt.Internal
                 return FormType.Confirm;
             }
 
-            if (!IsCollection && (Type.IsEnum || ItemsSourceProvider is not null))
+            if (!IsCollection && (Type.IsEnum || ItemsProvider is not null))
             {
                 return FormType.Select;
             }
 
-            if (IsCollection && (Type.GetGenericArguments()[0].IsEnum || ItemsSourceProvider is not null))
+            if (IsCollection && (Type.GetGenericArguments()[0].IsEnum || ItemsProvider is not null))
             {
                 return FormType.MultiSelect;
             }
 
-            if (IsCollection && ItemsSourceProvider is null)
+            if (IsCollection && ItemsProvider is null)
             {
                 return FormType.List;
             }
