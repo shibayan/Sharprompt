@@ -13,9 +13,9 @@ Interactive command-line based application framework for C#
 
 - Multi-platform support
 - Supports the popular prompts (`Input` / `Password` / `Select` / etc)
-- Supports model-based prompts (In preview)
+- Supports model-based prompts
 - Validation of input value
-- Automatic generation of data source using Enum value
+- Automatic generation of data source using Enum type
 - Customizable symbols and color schema
 - Unicode support (Multi-byte characters and Emoji😀🎉)
 
@@ -94,7 +94,7 @@ Console.WriteLine($"Hello, {city}!");
 
 ![select](https://user-images.githubusercontent.com/1356444/62228719-2de93e80-b3f9-11e9-8be5-f19e6ef58aeb.gif)
 
-**Enum support**
+**Enum type support**
 
 ```csharp
 var value = Prompt.Select<MyEnum>("Select enum value");
@@ -119,27 +119,27 @@ Console.WriteLine($"You picked {string.Join(", ", value)}");
 
 ![list](https://user-images.githubusercontent.com/1356444/127033968-cf70bd1b-bcd1-4c4f-bdbe-74aae52cdb86.gif)
 
-### AutoForms (Preview)
+### Bind (Model-based prompts)
 
 ```csharp
 // Input model definition
 public class MyFormModel
 {
-    [Display(Prompt = "What's your name?")]
+    [Display(Name = "What's your name?")]
     [Required]
     public string Name { get; set; }
 
-    [Display(Prompt = "Type new password")]
+    [Display(Name = "Type new password")]
     [DataType(DataType.Password)]
     [Required]
     [MinLength(8)]
     public string Password { get; set; }
 
-    [Display(Prompt = "Are you ready?")]
+    [Display(Name = "Are you ready?")]
     public bool Ready { get; set; }
 }
 
-var result = Prompt.AutoForms<MyFormModel>();
+var result = Prompt.Bind<MyFormModel>();
 ```
 
 ## Configuration
