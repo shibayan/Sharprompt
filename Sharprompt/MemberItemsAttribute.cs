@@ -26,9 +26,9 @@ namespace Sharprompt
 
             if (memberInfo is PropertyInfo propertyInfo)
             {
-                if (propertyInfo.PropertyType != typeof(IEnumerable<T>))
+                if (!typeof(IEnumerable<T>).IsAssignableFrom(propertyInfo.PropertyType))
                 {
-                    throw new ArgumentException("");
+                    throw new ArgumentException($"{propertyInfo.PropertyType} is incompatible type with {typeof(IEnumerable<T>)}");
                 }
 
                 return (IEnumerable<T>)propertyInfo.GetValue(null);
@@ -38,18 +38,18 @@ namespace Sharprompt
             {
                 if (methodInfo.GetParameters().Length != 0)
                 {
-                    throw new ArgumentException("");
+                    throw new ArgumentException("Cannot specify a method with arguments");
                 }
 
-                if (methodInfo.ReturnType != typeof(IEnumerable<T>))
+                if (!typeof(IEnumerable<T>).IsAssignableFrom(methodInfo.ReturnType))
                 {
-                    throw new ArgumentException("");
+                    throw new ArgumentException($"{methodInfo.ReturnType} is incompatible type with {typeof(IEnumerable<T>)}");
                 }
 
                 return (IEnumerable<T>)methodInfo.Invoke(null, null);
             }
 
-            throw new ArgumentException($"{_memberType.Name} {_memberName}");
+            throw new ArgumentException($"{_memberType} does not have a {_memberName} member");
         }
     }
 }
