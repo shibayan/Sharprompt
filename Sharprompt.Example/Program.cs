@@ -41,8 +41,8 @@ namespace Sharprompt.Example
                     case ExampleType.List:
                         RunListSample();
                         break;
-                    case ExampleType.AutoForms:
-                        RunAutoFormsSample();
+                    case ExampleType.Bind:
+                        RunBindSample();
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -98,9 +98,9 @@ namespace Sharprompt.Example
             Console.WriteLine($"You picked {string.Join(", ", value)}");
         }
 
-        private static void RunAutoFormsSample()
+        private static void RunBindSample()
         {
-            var model = Prompt.AutoForms<MyFormModel>();
+            var model = Prompt.Bind<MyFormModel>();
             Console.WriteLine("Forms OK");
         }
     }

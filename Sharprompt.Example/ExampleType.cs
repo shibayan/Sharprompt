@@ -10,6 +10,6 @@
         SelectWithEnum,
         MultiSelectWithEnum,
         List,
-        AutoForms
+        Bind
     }
 }

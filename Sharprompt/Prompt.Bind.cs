@@ -9,23 +9,21 @@ namespace Sharprompt
 {
     public static partial class Prompt
     {
-        public static T AutoForms<T>() where T : new()
+        public static T Bind<T>() where T : new()
         {
             var model = new T();
 
-            StartForms(model);
-
-            return model;
+            return Bind(model);
         }
 
-        public static T AutoForms<T>(T model)
+        public static T Bind<T>(T model)
         {
-            StartForms(model);
+            StartBind(model);
 
             return model;
         }
 
-        private static void StartForms<T>(T model)
+        private static void StartBind<T>(T model)
         {
             var propertyMetadatas = PropertyMetadataFactory.Create(model);
 
