@@ -70,7 +70,7 @@ namespace Sharprompt
             });
         }
 
-        private static object MakeList(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeListCore), propertyMetadata, propertyMetadata.Type.GetGenericArguments()[0]);
+        private static object MakeList(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeListCore), propertyMetadata, propertyMetadata.ElementType);
 
         private static IEnumerable<T> MakeListCore<T>(PropertyMetadata propertyMetadata)
         {
@@ -83,7 +83,7 @@ namespace Sharprompt
             });
         }
 
-        private static object MakeMultiSelect(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeMultiSelectCore), propertyMetadata, propertyMetadata.Type.GetGenericArguments()[0]);
+        private static object MakeMultiSelect(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeMultiSelectCore), propertyMetadata, propertyMetadata.ElementType);
 
         private static IEnumerable<T> MakeMultiSelectCore<T>(PropertyMetadata propertyMetadata)
         {

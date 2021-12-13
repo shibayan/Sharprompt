@@ -23,6 +23,7 @@ namespace Sharprompt.Tests
             Assert.Equal(FormType.Input, metadata[0].DetermineFormType());
             Assert.Equal("Input Value", metadata[0].Message);
             Assert.Equal("Required Value", metadata[0].Placeholder);
+            Assert.False(metadata[0].IsCollection);
             Assert.Null(metadata[0].DefaultValue);
             Assert.Null(metadata[0].Order);
             Assert.Equal(1, metadata[0].Validators.Count);
@@ -98,6 +99,23 @@ namespace Sharprompt.Tests
             Assert.Equal(typeof(string), metadata[2].Type);
             Assert.Equal(FormType.Input, metadata[2].DetermineFormType());
             Assert.Equal("sample", metadata[2].DefaultValue);
+        }
+
+        [Fact]
+        public void Collection()
+        {
+            var metadata = PropertyMetadataFactory.Create(new CollectionModel());
+
+            Assert.NotNull(metadata);
+            Assert.Equal(2, metadata.Count);
+
+            Assert.Equal(typeof(IEnumerable<string>), metadata[0].Type);
+            Assert.True(metadata[0].IsCollection);
+            Assert.Equal(typeof(string), metadata[0].ElementType);
+
+            Assert.Equal(typeof(IReadOnlyList<int>), metadata[1].Type);
+            Assert.True(metadata[1].IsCollection);
+            Assert.Equal(typeof(int), metadata[1].ElementType);
         }
 
         [Fact]
@@ -190,6 +208,13 @@ namespace Sharprompt.Tests
 
             [Display(Order = 2)]
             public bool Value3 { get; set; }
+        }
+
+        public class CollectionModel
+        {
+            public IEnumerable<string> StrArray { get; set; }
+
+            public IReadOnlyList<int> IntArray { get; set; }
         }
 
         public class NullableModel

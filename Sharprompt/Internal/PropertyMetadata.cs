@@ -19,7 +19,8 @@ namespace Sharprompt.Internal
 
             PropertyInfo = propertyInfo;
             Type = propertyInfo.PropertyType;
-            IsCollection = propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>);
+            ElementType = TypeHelper.IsCollection(propertyInfo.PropertyType) ? propertyInfo.PropertyType.GetGenericArguments()[0] : null;
+            IsCollection = TypeHelper.IsCollection(propertyInfo.PropertyType);
             DataType = dataTypeAttribute?.DataType;
             Message = displayAttribute?.GetName() ?? displayAttribute?.GetDescription();
             Placeholder = displayAttribute?.GetPrompt();
@@ -33,6 +34,7 @@ namespace Sharprompt.Internal
 
         public PropertyInfo PropertyInfo { get; }
         public Type Type { get; }
+        public Type ElementType { get; set; }
         public bool IsCollection { get; }
         public AnnotationsDataType? DataType { get; }
         public string Message { get; }
