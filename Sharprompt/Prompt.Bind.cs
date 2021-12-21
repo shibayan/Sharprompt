@@ -63,6 +63,7 @@ namespace Sharprompt
             {
                 options.Message = propertyMetadata.Message;
                 options.DefaultValue = propertyMetadata.DefaultValue;
+                options.Placeholder = propertyMetadata.Placeholder;
 
                 options.Validators.Merge(propertyMetadata.Validators);
             });
@@ -98,6 +99,7 @@ namespace Sharprompt
             return Password(options =>
             {
                 options.Message = propertyMetadata.Message;
+                options.Placeholder = propertyMetadata.Placeholder;
 
                 options.Validators.Merge(propertyMetadata.Validators);
             });

@@ -5,7 +5,7 @@ namespace Sharprompt.Example.Models
 {
     public class MyFormModel
     {
-        [Display(Name = "What's your name?", Order = 1)]
+        [Display(Name = "What's your name?", Prompt = "Required", Order = 1)]
         [Required]
         public string Name { get; set; }
 
