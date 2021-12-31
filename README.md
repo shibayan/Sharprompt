@@ -211,6 +211,17 @@ Console.WriteLine($"Hello, {name}!");
 
 ![unicode support](https://user-images.githubusercontent.com/1356444/89803983-86a3f900-db6e-11ea-8fc8-5b6f9ef5644f.gif)
 
+### Fluent interface support
+
+```csharp
+using Sharprompt.Fluent;
+
+// Use fluent interface
+var city = Prompt.Select<string>(o => o.WithMessage("Select your city")
+                                       .WithItems(new[] { "Seattle", "London", "Tokyo" })
+                                       .WithDefaultValue("Seattle"));
+```
+
 ## Supported platforms
 
 - Windows
