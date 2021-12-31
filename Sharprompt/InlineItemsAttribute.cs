@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 using Sharprompt.Internal;
 
@@ -16,6 +17,6 @@ namespace Sharprompt
 
         private readonly object[] _items;
 
-        public IEnumerable<T> GetItems<T>() => _items.Cast<T>();
+        public IEnumerable<T> GetItems<T>(PropertyInfo targetPropertyInfo) => _items.Cast<T>();
     }
 }

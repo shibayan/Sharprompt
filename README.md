@@ -34,7 +34,7 @@ dotnet add package Sharprompt
 var name = Prompt.Input<string>("What's your name?");
 Console.WriteLine($"Hello, {name}!");
 
-// Password
+// Password input
 var secret = Prompt.Password("Type new password", new[] { Validators.Required(), Validators.MinLength(8) });
 Console.WriteLine("Password OK");
 
@@ -94,13 +94,6 @@ Console.WriteLine($"Hello, {city}!");
 
 ![select](https://user-images.githubusercontent.com/1356444/62228719-2de93e80-b3f9-11e9-8be5-f19e6ef58aeb.gif)
 
-**Enum type support**
-
-```csharp
-var value = Prompt.Select<MyEnum>("Select enum value");
-Console.WriteLine($"You selected {value}");
-```
-
 ### MultiSelect (Checkbox)
 
 ```csharp
@@ -135,8 +128,13 @@ public class MyFormModel
     [MinLength(8)]
     public string Password { get; set; }
 
+    [Display(Name = "Select your city")]
+    [Required]
+    [InlineItems("Seattle", "London", "Tokyo")]
+    public string City { get; set; }
+
     [Display(Name = "Are you ready?")]
-    public bool Ready { get; set; }
+    public bool? Ready { get; set; }
 }
 
 var result = Prompt.Bind<MyFormModel>();
@@ -165,18 +163,6 @@ var name = Prompt.Input<string>("What's your name?");
 Console.WriteLine($"Hello, {name}!");
 ```
 
-### Unicode support
-
-```csharp
-// Prefer UTF-8 as the output encoding
-Console.OutputEncoding = Encoding.UTF8;
-
-var name = Prompt.Input<string>("What's your name?");
-Console.WriteLine($"Hello, {name}!");
-```
-
-![unicode support](https://user-images.githubusercontent.com/1356444/89803983-86a3f900-db6e-11ea-8fc8-5b6f9ef5644f.gif)
-
 ### Cancellation support
 
 ```csharp
@@ -193,6 +179,37 @@ catch (PromptCanceledException ex)
     Console.WriteLine("Prompt canceled");
 }
 ```
+
+## Features
+
+### Enum type support
+
+```csharp
+public enum MyEnum
+{
+    [Display(Name = "First value")]
+    First,
+    [Display(Name = "Second value")]
+    Second,
+    [Display(Name = "Third value")]
+    Third
+}
+
+var value = Prompt.Select<MyEnum>("Select enum value");
+Console.WriteLine($"You selected {value}");
+```
+
+### Unicode support
+
+```csharp
+// Prefer UTF-8 as the output encoding
+Console.OutputEncoding = Encoding.UTF8;
+
+var name = Prompt.Input<string>("What's your name?");
+Console.WriteLine($"Hello, {name}!");
+```
+
+![unicode support](https://user-images.githubusercontent.com/1356444/89803983-86a3f900-db6e-11ea-8fc8-5b6f9ef5644f.gif)
 
 ## Supported platforms
 

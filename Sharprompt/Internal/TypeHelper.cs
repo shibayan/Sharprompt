@@ -6,6 +6,8 @@ namespace Sharprompt.Internal
 {
     internal static class TypeHelper
     {
+        public static bool IsNullable(Type type) => !type.IsValueType || Nullable.GetUnderlyingType(type) is not null;
+
         public static bool IsCollection(Type type) => typeof(IEnumerable).IsAssignableFrom(type) && type != typeof(string);
     }
 

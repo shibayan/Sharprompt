@@ -18,8 +18,9 @@ namespace Sharprompt.Internal
             var dataTypeAttribute = propertyInfo.GetCustomAttribute<DataTypeAttribute>();
 
             PropertyInfo = propertyInfo;
-            Type = propertyInfo.PropertyType;
+            Type = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
             ElementType = TypeHelper.IsCollection(propertyInfo.PropertyType) ? propertyInfo.PropertyType.GetGenericArguments()[0] : null;
+            IsNullable = TypeHelper.IsNullable(propertyInfo.PropertyType);
             IsCollection = TypeHelper.IsCollection(propertyInfo.PropertyType);
             DataType = dataTypeAttribute?.DataType;
             Message = displayAttribute?.GetName() ?? displayAttribute?.GetDescription();
@@ -35,6 +36,7 @@ namespace Sharprompt.Internal
         public PropertyInfo PropertyInfo { get; }
         public Type Type { get; }
         public Type ElementType { get; set; }
+        public bool IsNullable { get; set; }
         public bool IsCollection { get; }
         public AnnotationsDataType? DataType { get; }
         public string Message { get; }
@@ -61,7 +63,7 @@ namespace Sharprompt.Internal
                 return FormType.Select;
             }
 
-            if (IsCollection && (Type.GetGenericArguments()[0].IsEnum || ItemsProvider is not null))
+            if (IsCollection && (ElementType.IsEnum || ItemsProvider is not null))
             {
                 return FormType.MultiSelect;
             }
