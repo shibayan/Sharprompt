@@ -10,19 +10,27 @@ namespace Sharprompt
     [AttributeUsage(AttributeTargets.Property)]
     public sealed class MemberItemsAttribute : Attribute, IItemsProvider
     {
-        public MemberItemsAttribute(Type memberType, string memberName)
+        public MemberItemsAttribute(string memberName)
         {
-            _memberType = memberType;
             _memberName = memberName;
+            _memberType = null;
         }
 
-        private readonly Type _memberType;
-        private readonly string _memberName;
-
-        public IEnumerable<T> GetItems<T>()
+        public MemberItemsAttribute(string memberName, Type memberType)
         {
-            var memberInfo = _memberType.GetMember(_memberName, BindingFlags.Public | BindingFlags.Static)
-                                        .FirstOrDefault();
+            _memberName = memberName;
+            _memberType = memberType;
+        }
+
+        private readonly string _memberName;
+        private readonly Type _memberType;
+
+        public IEnumerable<T> GetItems<T>(PropertyInfo targetPropertyInfo)
+        {
+            var targetType = _memberType ?? targetPropertyInfo.DeclaringType;
+
+            var memberInfo = targetType.GetMember(_memberName, BindingFlags.Public | BindingFlags.Static)
+                                       .FirstOrDefault();
 
             if (memberInfo is PropertyInfo propertyInfo)
             {

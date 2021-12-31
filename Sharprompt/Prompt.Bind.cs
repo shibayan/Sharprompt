@@ -55,7 +55,7 @@ namespace Sharprompt
             });
         }
 
-        private static object MakeInput(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeInputCore), propertyMetadata);
+        private static object MakeInput(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeInputCore), propertyMetadata, propertyMetadata.PropertyInfo.PropertyType);
 
         private static T MakeInputCore<T>(PropertyMetadata propertyMetadata)
         {
@@ -89,7 +89,7 @@ namespace Sharprompt
             return MultiSelect<T>(options =>
             {
                 options.Message = propertyMetadata.Message;
-                options.Items = propertyMetadata.ItemsProvider?.GetItems<T>();
+                options.Items = propertyMetadata.ItemsProvider?.GetItems<T>(propertyMetadata.PropertyInfo);
                 options.DefaultValues = (IEnumerable<T>)propertyMetadata.DefaultValue;
             });
         }
@@ -112,7 +112,7 @@ namespace Sharprompt
             return Select<T>(options =>
             {
                 options.Message = propertyMetadata.Message;
-                options.Items = propertyMetadata.ItemsProvider?.GetItems<T>();
+                options.Items = propertyMetadata.ItemsProvider?.GetItems<T>(propertyMetadata.PropertyInfo);
                 options.DefaultValue = propertyMetadata.DefaultValue;
             });
         }

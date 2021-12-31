@@ -23,6 +23,7 @@ namespace Sharprompt.Tests
             Assert.Equal(FormType.Input, metadata[0].DetermineFormType());
             Assert.Equal("Input Value", metadata[0].Message);
             Assert.Equal("Required Value", metadata[0].Placeholder);
+            Assert.True(metadata[0].IsNullable);
             Assert.False(metadata[0].IsCollection);
             Assert.Null(metadata[0].DefaultValue);
             Assert.Null(metadata[0].Order);
@@ -126,14 +127,17 @@ namespace Sharprompt.Tests
             Assert.NotNull(metadata);
             Assert.Equal(3, metadata.Count);
 
-            Assert.Equal(typeof(int?), metadata[0].Type);
+            Assert.Equal(typeof(int), metadata[0].Type);
             Assert.Equal(FormType.Input, metadata[0].DetermineFormType());
+            Assert.True(metadata[0].IsNullable);
 
-            Assert.Equal(typeof(bool?), metadata[1].Type);
-            Assert.Equal(FormType.Input, metadata[1].DetermineFormType());
+            Assert.Equal(typeof(bool), metadata[1].Type);
+            Assert.Equal(FormType.Confirm, metadata[1].DetermineFormType());
+            Assert.True(metadata[1].IsNullable);
 
-            Assert.Equal(typeof(double?), metadata[2].Type);
+            Assert.Equal(typeof(double), metadata[2].Type);
             Assert.Equal(FormType.Input, metadata[2].DetermineFormType());
+            Assert.True(metadata[2].IsNullable);
         }
 
         [Fact]
@@ -146,12 +150,15 @@ namespace Sharprompt.Tests
 
             Assert.Equal(typeof(EnumValue), metadata[0].Type);
             Assert.Equal(FormType.Select, metadata[0].DetermineFormType());
+            Assert.False(metadata[0].IsNullable);
 
-            Assert.Equal(typeof(EnumValue?), metadata[1].Type);
-            Assert.Equal(FormType.Input, metadata[1].DetermineFormType());
+            Assert.Equal(typeof(EnumValue), metadata[1].Type);
+            Assert.Equal(FormType.Select, metadata[1].DetermineFormType());
+            Assert.True(metadata[1].IsNullable);
 
             Assert.Equal(typeof(IEnumerable<EnumValue>), metadata[2].Type);
             Assert.Equal(FormType.MultiSelect, metadata[2].DetermineFormType());
+            Assert.False(metadata[0].IsNullable);
         }
 
         [Fact]
@@ -163,10 +170,10 @@ namespace Sharprompt.Tests
             Assert.Equal(2, metadata.Count);
 
             Assert.Equal(FormType.Select, metadata[0].DetermineFormType());
-            Assert.Equal(Enumerable.Range(1, 5), metadata[0].ItemsProvider.GetItems<int>());
+            Assert.Equal(Enumerable.Range(1, 5), metadata[0].ItemsProvider.GetItems<int>(metadata[0].PropertyInfo));
 
             Assert.Equal(FormType.MultiSelect, metadata[1].DetermineFormType());
-            Assert.Equal(Enumerable.Range(1, 10), metadata[1].ItemsProvider.GetItems<int>());
+            Assert.Equal(Enumerable.Range(1, 10), metadata[1].ItemsProvider.GetItems<int>(metadata[1].PropertyInfo));
         }
 
         [Fact]
@@ -178,10 +185,10 @@ namespace Sharprompt.Tests
             Assert.Equal(2, metadata.Count);
 
             Assert.Equal(FormType.Select, metadata[0].DetermineFormType());
-            Assert.Equal(Enumerable.Range(1, 5), metadata[0].ItemsProvider.GetItems<int>());
+            Assert.Equal(Enumerable.Range(1, 5), metadata[0].ItemsProvider.GetItems<int>(metadata[0].PropertyInfo));
 
             Assert.Equal(FormType.Select, metadata[1].DetermineFormType());
-            Assert.Equal(Enumerable.Range(1, 10), metadata[1].ItemsProvider.GetItems<int>());
+            Assert.Equal(Enumerable.Range(1, 10), metadata[1].ItemsProvider.GetItems<int>(metadata[1].PropertyInfo));
         }
 
         public class BasicModel
@@ -247,13 +254,12 @@ namespace Sharprompt.Tests
             public IEnumerable<int> IntArray { get; set; }
         }
 
-
         public class MemberItemsModel
         {
-            [MemberItems(typeof(MemberItemsModel), nameof(GetSelectItems))]
+            [MemberItems(nameof(GetSelectItems))]
             public int MemberValue { get; set; }
 
-            [MemberItems(typeof(MemberItemsModel), nameof(SelectItems))]
+            [MemberItems(nameof(SelectItems), typeof(MemberItemsModel))]
             public int PropertyValue { get; set; }
 
             public static IEnumerable<int> GetSelectItems()
