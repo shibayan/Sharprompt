@@ -2,7 +2,7 @@
 
 namespace Sharprompt.Drivers
 {
-    internal interface IConsoleDriver : IDisposable
+    public interface IConsoleDriver : IDisposable
     {
         void Beep();
         void Reset();
