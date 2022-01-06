@@ -14,9 +14,6 @@ namespace Sharprompt.Tests
 
         public event EventHandler AwaitingKeyPress;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MockConsoleDriver" /> class.
-        /// </summary>
         public MockConsoleDriver()
         {
             Reset();
@@ -29,6 +26,7 @@ namespace Sharprompt.Tests
         public int BufferWidth { get; } = 120;
         public int BufferHeight { get; } = 30;
         public Action CancellationCallback { get; set; }
+        public bool IsUnicodeSupported { get; } = false;
 
         public void Dispose()
         {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace Sharprompt.Drivers
 {
@@ -68,6 +69,10 @@ namespace Sharprompt.Drivers
 
         public Action CancellationCallback { get; set; }
 
+        public bool IsUnicodeSupported
+        {
+            get => !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || Console.OutputEncoding.CodePage is 1200 or 65001;
+        }
         #endregion
     }
 }

@@ -18,5 +18,6 @@ namespace Sharprompt.Drivers
         int BufferWidth { get; }
         int BufferHeight { get; }
         Action CancellationCallback { get; set; }
+        bool IsUnicodeSupported { get; }
     }
 }
