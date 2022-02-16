@@ -35,7 +35,7 @@ var name = Prompt.Input<string>("What's your name?");
 Console.WriteLine($"Hello, {name}!");
 
 // Password input
-var secret = Prompt.Password("Type new password", new[] { Validators.Required(), Validators.MinLength(8) });
+var secret = Prompt.Password("Type new password", validators: new[] { Validators.Required(), Validators.MinLength(8) });
 Console.WriteLine("Password OK");
 
 // Confirmation
