@@ -2,7 +2,7 @@
 
 namespace Sharprompt.Drivers
 {
-    internal interface IConsoleDriver : IDisposable
+    public interface IConsoleDriver : IDisposable
     {
         void Beep();
         void Reset();
@@ -18,5 +18,6 @@ namespace Sharprompt.Drivers
         int BufferWidth { get; }
         int BufferHeight { get; }
         Action CancellationCallback { get; set; }
+        bool IsUnicodeSupported { get; }
     }
 }

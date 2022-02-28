@@ -11,10 +11,7 @@ namespace Sharprompt.Forms
     {
         protected FormBase()
         {
-            ConsoleDriver = new DefaultConsoleDriver
-            {
-                CancellationCallback = CancellationHandler
-            };
+            ConsoleDriver = ConsoleDriverFactory.Instance.Create();
 
             _formRenderer = new FormRenderer(ConsoleDriver);
         }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
+using Sharprompt.Drivers;
+
 namespace Sharprompt
 {
     public class Symbol
@@ -18,6 +20,13 @@ namespace Sharprompt
 
         public static implicit operator string(Symbol symbol) => symbol.ToString();
 
-        private static bool IsUnicodeSupported => !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || Console.OutputEncoding.CodePage is 1200 or 65001;
+        private static bool IsUnicodeSupported
+        {
+            get
+            {
+                var consoleDriver = ConsoleDriverFactory.Instance.Create();
+                return consoleDriver.IsUnicodeSupported;
+            }
+        }
     }
 }
