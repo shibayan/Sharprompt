@@ -4,151 +4,150 @@ using System.Linq;
 
 using Sharprompt.Drivers;
 
-namespace Sharprompt.Internal
+namespace Sharprompt.Internal;
+
+internal class OffscreenBuffer : IDisposable
 {
-    internal class OffscreenBuffer : IDisposable
+    public OffscreenBuffer(IConsoleDriver consoleDriver)
     {
-        public OffscreenBuffer(IConsoleDriver consoleDriver)
-        {
-            _consoleDriver = consoleDriver;
+        _consoleDriver = consoleDriver;
 
-            _cursorBottom = _consoleDriver.CursorTop;
+        _cursorBottom = _consoleDriver.CursorTop;
+    }
+
+    private readonly IConsoleDriver _consoleDriver;
+    private readonly List<List<TextInfo>> _outputBuffer = new() { new List<TextInfo>() };
+
+    private int _cursorBottom;
+    private Cursor _pushedCursor;
+
+    private int WrittenLineCount => _outputBuffer.Sum(x => (x.Sum(xs => xs.Width) - 1) / _consoleDriver.BufferWidth + 1) - 1;
+
+    public void Dispose() => _consoleDriver.Dispose();
+
+    public void Write(string text) => Write(text, Console.ForegroundColor);
+
+    public void Write(string text, ConsoleColor color)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
         }
 
-        private readonly IConsoleDriver _consoleDriver;
-        private readonly List<List<TextInfo>> _outputBuffer = new() { new List<TextInfo>() };
+        _outputBuffer.Last().Add(new TextInfo(text, color));
+    }
 
-        private int _cursorBottom;
-        private Cursor _pushedCursor;
+    public void WriteLine() => _outputBuffer.Add(new List<TextInfo>());
 
-        private int WrittenLineCount => _outputBuffer.Sum(x => (x.Sum(xs => xs.Width) - 1) / _consoleDriver.BufferWidth + 1) - 1;
-
-        public void Dispose() => _consoleDriver.Dispose();
-
-        public void Write(string text) => Write(text, Console.ForegroundColor);
-
-        public void Write(string text, ConsoleColor color)
+    public void PushCursor()
+    {
+        if (_pushedCursor is not null)
         {
-            if (string.IsNullOrEmpty(text))
-            {
-                return;
-            }
-
-            _outputBuffer.Last().Add(new TextInfo(text, color));
+            return;
         }
 
-        public void WriteLine() => _outputBuffer.Add(new List<TextInfo>());
-
-        public void PushCursor()
+        _pushedCursor = new Cursor
         {
-            if (_pushedCursor is not null)
+            Left = _outputBuffer.Last().Sum(x => x.Width),
+            Top = _outputBuffer.Count - 1
+        };
+    }
+
+    public IDisposable BeginRender() => new RenderScope(this, _consoleDriver, _cursorBottom, WrittenLineCount);
+
+    public void RenderToConsole()
+    {
+        for (var i = 0; i < _outputBuffer.Count; i++)
+        {
+            var lineBuffer = _outputBuffer[i];
+
+            foreach (var textInfo in lineBuffer)
             {
-                return;
+                _consoleDriver.Write(textInfo.Text, textInfo.Color);
             }
 
-            _pushedCursor = new Cursor
+            if (i < _outputBuffer.Count - 1)
             {
-                Left = _outputBuffer.Last().Sum(x => x.Width),
-                Top = _outputBuffer.Count - 1
-            };
-        }
-
-        public IDisposable BeginRender() => new RenderScope(this, _consoleDriver, _cursorBottom, WrittenLineCount);
-
-        public void RenderToConsole()
-        {
-            for (var i = 0; i < _outputBuffer.Count; i++)
-            {
-                var lineBuffer = _outputBuffer[i];
-
-                foreach (var textInfo in lineBuffer)
-                {
-                    _consoleDriver.Write(textInfo.Text, textInfo.Color);
-                }
-
-                if (i < _outputBuffer.Count - 1)
-                {
-                    _consoleDriver.WriteLine();
-                }
-            }
-
-            _cursorBottom = _consoleDriver.CursorTop;
-
-            if (_pushedCursor is not null)
-            {
-                var physicalLeft = _pushedCursor.Left % _consoleDriver.BufferWidth;
-                var physicalTop = _pushedCursor.Top + (_pushedCursor.Left / _consoleDriver.BufferWidth);
-
-                _consoleDriver.SetCursorPosition(physicalLeft, _cursorBottom - WrittenLineCount + physicalTop);
+                _consoleDriver.WriteLine();
             }
         }
 
-        public void ClearConsole(int cursorBottom, int writtenLineCount)
+        _cursorBottom = _consoleDriver.CursorTop;
+
+        if (_pushedCursor is not null)
         {
-            for (var i = 0; i <= writtenLineCount; i++)
+            var physicalLeft = _pushedCursor.Left % _consoleDriver.BufferWidth;
+            var physicalTop = _pushedCursor.Top + (_pushedCursor.Left / _consoleDriver.BufferWidth);
+
+            _consoleDriver.SetCursorPosition(physicalLeft, _cursorBottom - WrittenLineCount + physicalTop);
+        }
+    }
+
+    public void ClearConsole(int cursorBottom, int writtenLineCount)
+    {
+        for (var i = 0; i <= writtenLineCount; i++)
+        {
+            _consoleDriver.ClearLine(cursorBottom - i);
+        }
+    }
+
+    public void ClearBuffer()
+    {
+        _outputBuffer.Clear();
+        _outputBuffer.Add(new List<TextInfo>());
+
+        _pushedCursor = null;
+    }
+
+    public void Cancel()
+    {
+        _consoleDriver.Reset();
+        _consoleDriver.SetCursorPosition(0, _cursorBottom);
+
+        _consoleDriver.WriteLine();
+    }
+
+    private class Cursor
+    {
+        public int Left { get; set; }
+        public int Top { get; set; }
+    }
+
+    private class TextInfo : IEquatable<TextInfo>
+    {
+        public TextInfo(string text, ConsoleColor color)
+        {
+            Text = text ?? throw new ArgumentNullException(nameof(text));
+            Color = color;
+            Width = text.GetWidth();
+        }
+
+        public string Text { get; }
+        public ConsoleColor Color { get; }
+        public int Width { get; }
+
+        public bool Equals(TextInfo other)
+        {
+            if (other is null)
             {
-                _consoleDriver.ClearLine(cursorBottom - i);
+                return false;
             }
-        }
 
-        public void ClearBuffer()
-        {
-            _outputBuffer.Clear();
-            _outputBuffer.Add(new List<TextInfo>());
-
-            _pushedCursor = null;
-        }
-
-        public void Cancel()
-        {
-            _consoleDriver.Reset();
-            _consoleDriver.SetCursorPosition(0, _cursorBottom);
-
-            _consoleDriver.WriteLine();
-        }
-
-        private class Cursor
-        {
-            public int Left { get; set; }
-            public int Top { get; set; }
-        }
-
-        private class TextInfo : IEquatable<TextInfo>
-        {
-            public TextInfo(string text, ConsoleColor color)
+            if (ReferenceEquals(this, other))
             {
-                Text = text ?? throw new ArgumentNullException(nameof(text));
-                Color = color;
-                Width = text.GetWidth();
+                return true;
             }
 
-            public string Text { get; }
-            public ConsoleColor Color { get; }
-            public int Width { get; }
+            return Text == other.Text && Color == other.Color;
+        }
 
-            public bool Equals(TextInfo other)
+        public override bool Equals(object obj) => Equals(obj as TextInfo);
+
+        public override int GetHashCode()
+        {
+            unchecked
             {
-                if (other is null)
-                {
-                    return false;
-                }
-
-                if (ReferenceEquals(this, other))
-                {
-                    return true;
-                }
-
-                return Text == other.Text && Color == other.Color;
-            }
-
-            public override bool Equals(object obj) => Equals(obj as TextInfo);
-
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    return (Text.GetHashCode() * 397) ^ (int)Color;
-                }
+                return (Text.GetHashCode() * 397) ^ (int)Color;
             }
         }
     }

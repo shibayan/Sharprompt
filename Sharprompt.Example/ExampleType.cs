@@ -1,15 +1,14 @@
-﻿namespace Sharprompt.Example
+﻿namespace Sharprompt.Example;
+
+public enum ExampleType
 {
-    public enum ExampleType
-    {
-        Input,
-        Confirm,
-        Password,
-        Select,
-        MultiSelect,
-        SelectWithEnum,
-        MultiSelectWithEnum,
-        List,
-        Bind
-    }
+    Input,
+    Confirm,
+    Password,
+    Select,
+    MultiSelect,
+    SelectWithEnum,
+    MultiSelectWithEnum,
+    List,
+    Bind
 }

@@ -5,175 +5,174 @@ using System.ComponentModel.DataAnnotations;
 using Sharprompt.Forms;
 using Sharprompt.Internal;
 
-namespace Sharprompt
+namespace Sharprompt;
+
+public static partial class Prompt
 {
-    public static partial class Prompt
+    public static T Input<T>(InputOptions<T> options)
     {
-        public static T Input<T>(InputOptions<T> options)
+        using var form = new InputForm<T>(options);
+
+        return form.Start();
+    }
+
+    public static T Input<T>(Action<InputOptions<T>> configure)
+    {
+        var options = new InputOptions<T>();
+
+        configure(options);
+
+        return Input(options);
+    }
+
+    public static T Input<T>(string message, object defaultValue = default, string placeholder = default, IList<Func<object, ValidationResult>> validators = default)
+    {
+        return Input<T>(options =>
         {
-            using var form = new InputForm<T>(options);
+            options.Message = message;
+            options.Placeholder = placeholder;
+            options.DefaultValue = defaultValue;
 
-            return form.Start();
-        }
+            options.Validators.Merge(validators);
+        });
+    }
 
-        public static T Input<T>(Action<InputOptions<T>> configure)
+    public static string Password(PasswordOptions options)
+    {
+        using var form = new PasswordForm(options);
+
+        return form.Start();
+    }
+
+    public static string Password(Action<PasswordOptions> configure)
+    {
+        var options = new PasswordOptions();
+
+        configure(options);
+
+        return Password(options);
+    }
+
+    public static string Password(string message, string passwordChar = "*", string placeholder = default, IList<Func<object, ValidationResult>> validators = default)
+    {
+        return Password(options =>
         {
-            var options = new InputOptions<T>();
+            options.Message = message;
+            options.Placeholder = placeholder;
+            options.PasswordChar = passwordChar;
 
-            configure(options);
+            options.Validators.Merge(validators);
+        });
+    }
 
-            return Input(options);
-        }
+    public static bool Confirm(ConfirmOptions options)
+    {
+        using var form = new ConfirmForm(options);
 
-        public static T Input<T>(string message, object defaultValue = default, string placeholder = default, IList<Func<object, ValidationResult>> validators = default)
+        return form.Start();
+    }
+
+    public static bool Confirm(Action<ConfirmOptions> configure)
+    {
+        var options = new ConfirmOptions();
+
+        configure(options);
+
+        return Confirm(options);
+    }
+
+    public static bool Confirm(string message, bool? defaultValue = default)
+    {
+        return Confirm(options =>
         {
-            return Input<T>(options =>
-            {
-                options.Message = message;
-                options.Placeholder = placeholder;
-                options.DefaultValue = defaultValue;
+            options.Message = message;
+            options.DefaultValue = defaultValue;
+        });
+    }
 
-                options.Validators.Merge(validators);
-            });
-        }
+    public static T Select<T>(SelectOptions<T> options)
+    {
+        using var form = new SelectForm<T>(options);
 
-        public static string Password(PasswordOptions options)
+        return form.Start();
+    }
+
+    public static T Select<T>(Action<SelectOptions<T>> configure)
+    {
+        var options = new SelectOptions<T>();
+
+        configure(options);
+
+        return Select(options);
+    }
+
+    public static T Select<T>(string message, IEnumerable<T> items = default, int? pageSize = default, object defaultValue = default, Func<T, string> textSelector = default)
+    {
+        return Select<T>(options =>
         {
-            using var form = new PasswordForm(options);
+            options.Message = message;
+            options.Items = items;
+            options.DefaultValue = defaultValue;
+            options.PageSize = pageSize;
+            options.TextSelector = textSelector;
+        });
+    }
 
-            return form.Start();
-        }
+    public static IEnumerable<T> MultiSelect<T>(MultiSelectOptions<T> options)
+    {
+        using var form = new MultiSelectForm<T>(options);
 
-        public static string Password(Action<PasswordOptions> configure)
+        return form.Start();
+    }
+
+    public static IEnumerable<T> MultiSelect<T>(Action<MultiSelectOptions<T>> configure)
+    {
+        var options = new MultiSelectOptions<T>();
+
+        configure(options);
+
+        return MultiSelect(options);
+    }
+
+    public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items = null, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = default, Func<T, string> textSelector = default)
+    {
+        return MultiSelect<T>(options =>
         {
-            var options = new PasswordOptions();
+            options.Message = message;
+            options.Items = items;
+            options.DefaultValues = defaultValues;
+            options.PageSize = pageSize;
+            options.Minimum = minimum;
+            options.Maximum = maximum;
+            options.TextSelector = textSelector;
+        });
+    }
 
-            configure(options);
+    public static IEnumerable<T> List<T>(ListOptions<T> options)
+    {
+        using var form = new ListForm<T>(options);
 
-            return Password(options);
-        }
+        return form.Start();
+    }
 
-        public static string Password(string message, string passwordChar = "*", string placeholder = default, IList<Func<object, ValidationResult>> validators = default)
+    public static IEnumerable<T> List<T>(Action<ListOptions<T>> configure)
+    {
+        var options = new ListOptions<T>();
+
+        configure(options);
+
+        return List(options);
+    }
+
+    public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = int.MaxValue, IList<Func<object, ValidationResult>> validators = default)
+    {
+        return List<T>(options =>
         {
-            return Password(options =>
-            {
-                options.Message = message;
-                options.Placeholder = placeholder;
-                options.PasswordChar = passwordChar;
+            options.Message = message;
+            options.Minimum = minimum;
+            options.Maximum = maximum;
 
-                options.Validators.Merge(validators);
-            });
-        }
-
-        public static bool Confirm(ConfirmOptions options)
-        {
-            using var form = new ConfirmForm(options);
-
-            return form.Start();
-        }
-
-        public static bool Confirm(Action<ConfirmOptions> configure)
-        {
-            var options = new ConfirmOptions();
-
-            configure(options);
-
-            return Confirm(options);
-        }
-
-        public static bool Confirm(string message, bool? defaultValue = default)
-        {
-            return Confirm(options =>
-            {
-                options.Message = message;
-                options.DefaultValue = defaultValue;
-            });
-        }
-
-        public static T Select<T>(SelectOptions<T> options)
-        {
-            using var form = new SelectForm<T>(options);
-
-            return form.Start();
-        }
-
-        public static T Select<T>(Action<SelectOptions<T>> configure)
-        {
-            var options = new SelectOptions<T>();
-
-            configure(options);
-
-            return Select(options);
-        }
-
-        public static T Select<T>(string message, IEnumerable<T> items = default, int? pageSize = default, object defaultValue = default, Func<T, string> textSelector = default)
-        {
-            return Select<T>(options =>
-            {
-                options.Message = message;
-                options.Items = items;
-                options.DefaultValue = defaultValue;
-                options.PageSize = pageSize;
-                options.TextSelector = textSelector;
-            });
-        }
-
-        public static IEnumerable<T> MultiSelect<T>(MultiSelectOptions<T> options)
-        {
-            using var form = new MultiSelectForm<T>(options);
-
-            return form.Start();
-        }
-
-        public static IEnumerable<T> MultiSelect<T>(Action<MultiSelectOptions<T>> configure)
-        {
-            var options = new MultiSelectOptions<T>();
-
-            configure(options);
-
-            return MultiSelect(options);
-        }
-
-        public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items = null, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = default, Func<T, string> textSelector = default)
-        {
-            return MultiSelect<T>(options =>
-            {
-                options.Message = message;
-                options.Items = items;
-                options.DefaultValues = defaultValues;
-                options.PageSize = pageSize;
-                options.Minimum = minimum;
-                options.Maximum = maximum;
-                options.TextSelector = textSelector;
-            });
-        }
-
-        public static IEnumerable<T> List<T>(ListOptions<T> options)
-        {
-            using var form = new ListForm<T>(options);
-
-            return form.Start();
-        }
-
-        public static IEnumerable<T> List<T>(Action<ListOptions<T>> configure)
-        {
-            var options = new ListOptions<T>();
-
-            configure(options);
-
-            return List(options);
-        }
-
-        public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = int.MaxValue, IList<Func<object, ValidationResult>> validators = default)
-        {
-            return List<T>(options =>
-            {
-                options.Message = message;
-                options.Minimum = minimum;
-                options.Maximum = maximum;
-
-                options.Validators.Merge(validators);
-            });
-        }
+            options.Validators.Merge(validators);
+        });
     }
 }

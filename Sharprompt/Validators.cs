@@ -2,80 +2,79 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
-namespace Sharprompt
+namespace Sharprompt;
+
+public static class Validators
 {
-    public static class Validators
+    public static Func<object, ValidationResult> Required(string errorMessage = default)
     {
-        public static Func<object, ValidationResult> Required(string errorMessage = default)
+        return input =>
         {
-            return input =>
+            if (input is null)
             {
-                if (input is null)
-                {
-                    return new ValidationResult(errorMessage ?? "Value is required");
-                }
+                return new ValidationResult(errorMessage ?? "Value is required");
+            }
 
-                if (input is string strValue && string.IsNullOrEmpty(strValue))
-                {
-                    return new ValidationResult(errorMessage ?? "Value is required");
-                }
+            if (input is string strValue && string.IsNullOrEmpty(strValue))
+            {
+                return new ValidationResult(errorMessage ?? "Value is required");
+            }
 
+            return ValidationResult.Success;
+        };
+    }
+
+    public static Func<object, ValidationResult> MinLength(int length, string errorMessage = default)
+    {
+        return input =>
+        {
+            if (input is not string strValue)
+            {
                 return ValidationResult.Success;
-            };
-        }
+            }
 
-        public static Func<object, ValidationResult> MinLength(int length, string errorMessage = default)
-        {
-            return input =>
+            if (strValue.Length >= length)
             {
-                if (input is not string strValue)
-                {
-                    return ValidationResult.Success;
-                }
+                return ValidationResult.Success;
+            }
 
-                if (strValue.Length >= length)
-                {
-                    return ValidationResult.Success;
-                }
+            return new ValidationResult(errorMessage ?? "Value is too short");
+        };
+    }
 
-                return new ValidationResult(errorMessage ?? "Value is too short");
-            };
-        }
-
-        public static Func<object, ValidationResult> MaxLength(int length, string errorMessage = default)
+    public static Func<object, ValidationResult> MaxLength(int length, string errorMessage = default)
+    {
+        return input =>
         {
-            return input =>
+            if (input is not string strValue)
             {
-                if (input is not string strValue)
-                {
-                    return ValidationResult.Success;
-                }
+                return ValidationResult.Success;
+            }
 
-                if (strValue.Length <= length)
-                {
-                    return ValidationResult.Success;
-                }
+            if (strValue.Length <= length)
+            {
+                return ValidationResult.Success;
+            }
 
-                return new ValidationResult(errorMessage ?? "Value is too long");
-            };
-        }
+            return new ValidationResult(errorMessage ?? "Value is too long");
+        };
+    }
 
-        public static Func<object, ValidationResult> RegularExpression(string pattern, string errorMessage = default)
+    public static Func<object, ValidationResult> RegularExpression(string pattern, string errorMessage = default)
+    {
+        return input =>
         {
-            return input =>
+            if (input is not string strValue)
             {
-                if (input is not string strValue)
-                {
-                    return ValidationResult.Success;
-                }
+                return ValidationResult.Success;
+            }
 
-                if (Regex.IsMatch(strValue, pattern))
-                {
-                    return ValidationResult.Success;
-                }
+            if (Regex.IsMatch(strValue, pattern))
+            {
+                return ValidationResult.Success;
+            }
 
-                return new ValidationResult(errorMessage ?? "Value is not match pattern");
-            };
-        }
+            return new ValidationResult(errorMessage ?? "Value is not match pattern");
+        };
     }
 }

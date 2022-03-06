@@ -1,19 +1,18 @@
-﻿namespace Sharprompt.Fluent
+﻿namespace Sharprompt.Fluent;
+
+public static class ConfirmOptionsExtensions
 {
-    public static class ConfirmOptionsExtensions
+    public static ConfirmOptions WithMessage(this ConfirmOptions options, string message)
     {
-        public static ConfirmOptions WithMessage(this ConfirmOptions options, string message)
-        {
-            options.Message = message;
+        options.Message = message;
 
-            return options;
-        }
+        return options;
+    }
 
-        public static ConfirmOptions WithDefaultValue(this ConfirmOptions options, bool defaultValue)
-        {
-            options.DefaultValue = defaultValue;
+    public static ConfirmOptions WithDefaultValue(this ConfirmOptions options, bool defaultValue)
+    {
+        options.DefaultValue = defaultValue;
 
-            return options;
-        }
+        return options;
     }
 }

@@ -2,133 +2,132 @@
 
 using Sharprompt.Internal;
 
-namespace Sharprompt.Forms
+namespace Sharprompt.Forms;
+
+internal class InputForm<T> : FormBase<T>
 {
-    internal class InputForm<T> : FormBase<T>
+    public InputForm(InputOptions<T> options)
     {
-        public InputForm(InputOptions<T> options)
+        options.EnsureOptions();
+
+        _options = options;
+
+        _defaultValue = Optional<T>.Create(options.DefaultValue);
+    }
+
+    private readonly InputOptions<T> _options;
+    private readonly Optional<T> _defaultValue;
+
+    private readonly TextInputBuffer _textInputBuffer = new();
+
+    protected override bool TryGetResult(out T result)
+    {
+        do
         {
-            options.EnsureOptions();
+            var keyInfo = ConsoleDriver.ReadKey();
 
-            _options = options;
-
-            _defaultValue = Optional<T>.Create(options.DefaultValue);
-        }
-
-        private readonly InputOptions<T> _options;
-        private readonly Optional<T> _defaultValue;
-
-        private readonly TextInputBuffer _textInputBuffer = new();
-
-        protected override bool TryGetResult(out T result)
-        {
-            do
+            switch (keyInfo.Key)
             {
-                var keyInfo = ConsoleDriver.ReadKey();
-
-                switch (keyInfo.Key)
-                {
-                    case ConsoleKey.Enter:
-                        return HandleEnter(out result);
-                    case ConsoleKey.LeftArrow when !_textInputBuffer.IsStart:
-                        _textInputBuffer.MoveBackward();
-                        break;
-                    case ConsoleKey.RightArrow when !_textInputBuffer.IsEnd:
-                        _textInputBuffer.MoveForward();
-                        break;
-                    case ConsoleKey.Backspace when !_textInputBuffer.IsStart:
-                        _textInputBuffer.Backspace();
-                        break;
-                    case ConsoleKey.Delete when !_textInputBuffer.IsEnd:
-                        _textInputBuffer.Delete();
-                        break;
-                    case ConsoleKey.LeftArrow:
-                    case ConsoleKey.RightArrow:
-                    case ConsoleKey.Backspace:
-                    case ConsoleKey.Delete:
-                        ConsoleDriver.Beep();
-                        break;
-                    default:
-                        if (!char.IsControl(keyInfo.KeyChar))
-                        {
-                            _textInputBuffer.Insert(keyInfo.KeyChar);
-                        }
-                        break;
-                }
-
-            } while (ConsoleDriver.KeyAvailable);
-
-            result = default;
-
-            return false;
-        }
-
-        protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
-        {
-            offscreenBuffer.WritePrompt(_options.Message);
-
-            if (_defaultValue.HasValue)
-            {
-                offscreenBuffer.WriteHint($"({_defaultValue.Value}) ");
-            }
-
-            if (_textInputBuffer.Length == 0 && !string.IsNullOrEmpty(_options.Placeholder))
-            {
-                offscreenBuffer.PushCursor();
-                offscreenBuffer.WriteHint(_options.Placeholder);
-            }
-
-            offscreenBuffer.WriteInput(_textInputBuffer);
-        }
-
-        protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, T result)
-        {
-            offscreenBuffer.WriteDone(_options.Message);
-
-            if (result is not null)
-            {
-                offscreenBuffer.WriteAnswer(result.ToString());
-            }
-        }
-
-        private bool HandleEnter(out T result)
-        {
-            var input = _textInputBuffer.ToString();
-
-            try
-            {
-                if (string.IsNullOrEmpty(input))
-                {
-                    if (TypeHelper<T>.IsValueType && !_defaultValue.HasValue)
+                case ConsoleKey.Enter:
+                    return HandleEnter(out result);
+                case ConsoleKey.LeftArrow when !_textInputBuffer.IsStart:
+                    _textInputBuffer.MoveBackward();
+                    break;
+                case ConsoleKey.RightArrow when !_textInputBuffer.IsEnd:
+                    _textInputBuffer.MoveForward();
+                    break;
+                case ConsoleKey.Backspace when !_textInputBuffer.IsStart:
+                    _textInputBuffer.Backspace();
+                    break;
+                case ConsoleKey.Delete when !_textInputBuffer.IsEnd:
+                    _textInputBuffer.Delete();
+                    break;
+                case ConsoleKey.LeftArrow:
+                case ConsoleKey.RightArrow:
+                case ConsoleKey.Backspace:
+                case ConsoleKey.Delete:
+                    ConsoleDriver.Beep();
+                    break;
+                default:
+                    if (!char.IsControl(keyInfo.KeyChar))
                     {
-                        SetError("Value is required");
-
-                        result = default;
-
-                        return false;
+                        _textInputBuffer.Insert(keyInfo.KeyChar);
                     }
-
-                    result = _defaultValue;
-                }
-                else
-                {
-                    result = TypeHelper<T>.ConvertTo(input);
-                }
-
-                if (TryValidate(result, _options.Validators))
-                {
-                    return true;
-                }
-
-            }
-            catch (Exception ex)
-            {
-                SetError(ex);
+                    break;
             }
 
-            result = default;
+        } while (ConsoleDriver.KeyAvailable);
 
-            return false;
+        result = default;
+
+        return false;
+    }
+
+    protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
+    {
+        offscreenBuffer.WritePrompt(_options.Message);
+
+        if (_defaultValue.HasValue)
+        {
+            offscreenBuffer.WriteHint($"({_defaultValue.Value}) ");
         }
+
+        if (_textInputBuffer.Length == 0 && !string.IsNullOrEmpty(_options.Placeholder))
+        {
+            offscreenBuffer.PushCursor();
+            offscreenBuffer.WriteHint(_options.Placeholder);
+        }
+
+        offscreenBuffer.WriteInput(_textInputBuffer);
+    }
+
+    protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, T result)
+    {
+        offscreenBuffer.WriteDone(_options.Message);
+
+        if (result is not null)
+        {
+            offscreenBuffer.WriteAnswer(result.ToString());
+        }
+    }
+
+    private bool HandleEnter(out T result)
+    {
+        var input = _textInputBuffer.ToString();
+
+        try
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                if (TypeHelper<T>.IsValueType && !_defaultValue.HasValue)
+                {
+                    SetError("Value is required");
+
+                    result = default;
+
+                    return false;
+                }
+
+                result = _defaultValue;
+            }
+            else
+            {
+                result = TypeHelper<T>.ConvertTo(input);
+            }
+
+            if (TryValidate(result, _options.Validators))
+            {
+                return true;
+            }
+
+        }
+        catch (Exception ex)
+        {
+            SetError(ex);
+        }
+
+        result = default;
+
+        return false;
     }
 }
