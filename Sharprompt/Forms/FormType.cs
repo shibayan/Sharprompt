@@ -1,12 +1,11 @@
-﻿namespace Sharprompt.Forms
+﻿namespace Sharprompt.Forms;
+
+internal enum FormType
 {
-    internal enum FormType
-    {
-        Confirm,
-        Input,
-        List,
-        MultiSelect,
-        Password,
-        Select
-    }
+    Confirm,
+    Input,
+    List,
+    MultiSelect,
+    Password,
+    Select
 }

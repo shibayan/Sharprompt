@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 
-namespace Sharprompt.Internal
+namespace Sharprompt.Internal;
+
+internal interface IItemsProvider
 {
-    internal interface IItemsProvider
-    {
-        IEnumerable<T> GetItems<T>(PropertyInfo targetPropertyInfo);
-    }
+    IEnumerable<T> GetItems<T>(PropertyInfo targetPropertyInfo);
 }

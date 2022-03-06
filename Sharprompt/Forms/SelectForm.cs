@@ -3,110 +3,109 @@ using System.Collections.Generic;
 
 using Sharprompt.Internal;
 
-namespace Sharprompt.Forms
+namespace Sharprompt.Forms;
+
+internal class SelectForm<T> : FormBase<T>
 {
-    internal class SelectForm<T> : FormBase<T>
+    public SelectForm(SelectOptions<T> options)
     {
-        public SelectForm(SelectOptions<T> options)
+        options.EnsureOptions();
+
+        _options = options;
+
+        _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector);
+    }
+
+    private readonly SelectOptions<T> _options;
+    private readonly Paginator<T> _paginator;
+
+    private readonly TextInputBuffer _filterBuffer = new();
+
+    protected override bool TryGetResult(out T result)
+    {
+        do
         {
-            options.EnsureOptions();
+            var keyInfo = ConsoleDriver.ReadKey();
 
-            _options = options;
-
-            _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector);
-        }
-
-        private readonly SelectOptions<T> _options;
-        private readonly Paginator<T> _paginator;
-
-        private readonly TextInputBuffer _filterBuffer = new();
-
-        protected override bool TryGetResult(out T result)
-        {
-            do
+            switch (keyInfo.Key)
             {
-                var keyInfo = ConsoleDriver.ReadKey();
+                case ConsoleKey.Enter when _paginator.TryGetSelectedItem(out result):
+                    return true;
+                case ConsoleKey.Enter:
+                    SetError("Value is required");
+                    break;
+                case ConsoleKey.UpArrow:
+                    _paginator.PreviousItem();
+                    break;
+                case ConsoleKey.DownArrow:
+                    _paginator.NextItem();
+                    break;
+                case ConsoleKey.LeftArrow:
+                    _paginator.PreviousPage();
+                    break;
+                case ConsoleKey.RightArrow:
+                    _paginator.NextPage();
+                    break;
+                case ConsoleKey.Backspace when !_filterBuffer.IsStart:
+                    _filterBuffer.Backspace();
 
-                switch (keyInfo.Key)
-                {
-                    case ConsoleKey.Enter when _paginator.TryGetSelectedItem(out result):
-                        return true;
-                    case ConsoleKey.Enter:
-                        SetError("Value is required");
-                        break;
-                    case ConsoleKey.UpArrow:
-                        _paginator.PreviousItem();
-                        break;
-                    case ConsoleKey.DownArrow:
-                        _paginator.NextItem();
-                        break;
-                    case ConsoleKey.LeftArrow:
-                        _paginator.PreviousPage();
-                        break;
-                    case ConsoleKey.RightArrow:
-                        _paginator.NextPage();
-                        break;
-                    case ConsoleKey.Backspace when !_filterBuffer.IsStart:
-                        _filterBuffer.Backspace();
+                    _paginator.UpdateFilter(_filterBuffer.ToString());
+                    break;
+                case ConsoleKey.Backspace:
+                    ConsoleDriver.Beep();
+                    break;
+                default:
+                    if (!char.IsControl(keyInfo.KeyChar))
+                    {
+                        _filterBuffer.Insert(keyInfo.KeyChar);
 
                         _paginator.UpdateFilter(_filterBuffer.ToString());
-                        break;
-                    case ConsoleKey.Backspace:
-                        ConsoleDriver.Beep();
-                        break;
-                    default:
-                        if (!char.IsControl(keyInfo.KeyChar))
-                        {
-                            _filterBuffer.Insert(keyInfo.KeyChar);
-
-                            _paginator.UpdateFilter(_filterBuffer.ToString());
-                        }
-                        break;
-                }
-
-            } while (ConsoleDriver.KeyAvailable);
-
-            result = default;
-
-            return false;
-        }
-
-        protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
-        {
-            offscreenBuffer.WritePrompt(_options.Message);
-            offscreenBuffer.Write(_paginator.FilterTerm);
-
-            offscreenBuffer.PushCursor();
-
-            var subset = _paginator.ToSubset();
-
-            foreach (var item in subset)
-            {
-                var value = _options.TextSelector(item);
-
-                offscreenBuffer.WriteLine();
-
-                if (_paginator.TryGetSelectedItem(out var selectedItem) && EqualityComparer<T>.Default.Equals(item, selectedItem))
-                {
-                    offscreenBuffer.WriteSelect($"{Prompt.Symbols.Selector} {value}");
-                }
-                else
-                {
-                    offscreenBuffer.Write($"  {value}");
-                }
+                    }
+                    break;
             }
 
-            if (_paginator.PageCount > 1 && _options.Pagination != null)
+        } while (ConsoleDriver.KeyAvailable);
+
+        result = default;
+
+        return false;
+    }
+
+    protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
+    {
+        offscreenBuffer.WritePrompt(_options.Message);
+        offscreenBuffer.Write(_paginator.FilterTerm);
+
+        offscreenBuffer.PushCursor();
+
+        var subset = _paginator.ToSubset();
+
+        foreach (var item in subset)
+        {
+            var value = _options.TextSelector(item);
+
+            offscreenBuffer.WriteLine();
+
+            if (_paginator.TryGetSelectedItem(out var selectedItem) && EqualityComparer<T>.Default.Equals(item, selectedItem))
             {
-                offscreenBuffer.WriteLine();
-                offscreenBuffer.WriteHint(_options.Pagination(_paginator.TotalCount, _paginator.SelectedPage + 1, _paginator.PageCount));
+                offscreenBuffer.WriteSelect($"{Prompt.Symbols.Selector} {value}");
+            }
+            else
+            {
+                offscreenBuffer.Write($"  {value}");
             }
         }
 
-        protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, T result)
+        if (_paginator.PageCount > 1 && _options.Pagination != null)
         {
-            offscreenBuffer.WriteDone(_options.Message);
-            offscreenBuffer.WriteAnswer(_options.TextSelector(result));
+            offscreenBuffer.WriteLine();
+            offscreenBuffer.WriteHint(_options.Pagination(_paginator.TotalCount, _paginator.SelectedPage + 1, _paginator.PageCount));
         }
+    }
+
+    protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, T result)
+    {
+        offscreenBuffer.WriteDone(_options.Message);
+        offscreenBuffer.WriteAnswer(_options.TextSelector(result));
     }
 }
