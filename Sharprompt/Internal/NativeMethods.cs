@@ -5,7 +5,10 @@ namespace Sharprompt.Internal;
 
 internal static class NativeMethods
 {
+    // ReSharper disable once InconsistentNaming
     public const int STD_OUTPUT_HANDLE = -11;
+
+    // ReSharper disable once InconsistentNaming
     public const int ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
 
     [DllImport("kernel32.dll")]
