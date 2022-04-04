@@ -117,7 +117,7 @@ public static partial class Prompt
         });
     }
 
-    private static object InvokeMethod(string name, PropertyMetadata propertyMetadata, Type genericType = default)
+    private static object InvokeMethod(string name, PropertyMetadata propertyMetadata, Type? genericType = default)
     {
         var method = typeof(Prompt).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)
                                    .MakeGenericMethod(genericType ?? propertyMetadata.Type);

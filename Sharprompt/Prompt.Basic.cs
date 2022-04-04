@@ -25,7 +25,7 @@ public static partial class Prompt
         return Input(options);
     }
 
-    public static T Input<T>(string message, object defaultValue = default, string placeholder = default, IList<Func<object, ValidationResult>> validators = default)
+    public static T Input<T>(string message, object? defaultValue = default, string? placeholder = default, IList<Func<object, ValidationResult>>? validators = default)
     {
         return Input<T>(options =>
         {
@@ -53,7 +53,7 @@ public static partial class Prompt
         return Password(options);
     }
 
-    public static string Password(string message, string passwordChar = "*", string placeholder = default, IList<Func<object, ValidationResult>> validators = default)
+    public static string Password(string message, string passwordChar = "*", string? placeholder = default, IList<Func<object, ValidationResult>>? validators = default)
     {
         return Password(options =>
         {
@@ -106,7 +106,7 @@ public static partial class Prompt
         return Select(options);
     }
 
-    public static T Select<T>(string message, IEnumerable<T> items = default, int? pageSize = default, object defaultValue = default, Func<T, string> textSelector = default)
+    public static T Select<T>(string message, IEnumerable<T>? items = default, int? pageSize = default, object? defaultValue = default, Func<T, string>? textSelector = default)
     {
         return Select<T>(options =>
         {
@@ -134,7 +134,7 @@ public static partial class Prompt
         return MultiSelect(options);
     }
 
-    public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items = null, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = default, Func<T, string> textSelector = default)
+    public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T>? items = null, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T>? defaultValues = default, Func<T, string>? textSelector = default)
     {
         return MultiSelect<T>(options =>
         {
@@ -164,7 +164,7 @@ public static partial class Prompt
         return List(options);
     }
 
-    public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = int.MaxValue, IList<Func<object, ValidationResult>> validators = default)
+    public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = int.MaxValue, IList<Func<object, ValidationResult>>? validators = default)
     {
         return List<T>(options =>
         {

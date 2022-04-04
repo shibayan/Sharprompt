@@ -31,7 +31,7 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>>
     private readonly HashSet<T> _selectedItems = new();
     private readonly TextInputBuffer _filterBuffer = new();
 
-    protected override bool TryGetResult(out IEnumerable<T> result)
+    protected override bool TryGetResult(out IEnumerable<T>? result)
     {
         do
         {
