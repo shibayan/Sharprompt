@@ -14,11 +14,11 @@ internal static class EnumHelper<T>
 
         foreach (var value in values)
         {
-            _cache.Add(value, GetEnumMetadata(value));
+            s_metadataCache.Add(value, GetEnumMetadata(value));
         }
     }
 
-    private static readonly Dictionary<T, EnumMetadata> _cache = new();
+    private static readonly Dictionary<T, EnumMetadata> s_metadataCache = new();
 
     private static EnumMetadata GetEnumMetadata(T value)
     {
@@ -33,12 +33,12 @@ internal static class EnumHelper<T>
 
     public static string GetDisplayName(T value)
     {
-        return _cache[value]?.DisplayName ?? value.ToString();
+        return s_metadataCache[value]?.DisplayName ?? value.ToString();
     }
 
     public static IEnumerable<T> GetValues()
     {
-        return _cache.OrderBy(x => x.Value.Order)
+        return s_metadataCache.OrderBy(x => x.Value.Order)
                      .Select(x => x.Key)
                      .ToArray();
     }

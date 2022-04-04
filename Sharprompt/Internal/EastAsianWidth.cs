@@ -32,13 +32,13 @@ internal static class EastAsianWidth
     private static bool IsFullWidth(uint codePoint)
     {
         var left = 0;
-        var right = _eastAsianWidthRanges.Length - 1;
+        var right = s_eastAsianWidthRanges.Length - 1;
 
         while (left <= right)
         {
             var center = left + (right - left) / 2;
 
-            ref var range = ref _eastAsianWidthRanges[center];
+            ref var range = ref s_eastAsianWidthRanges[center];
 
             if (codePoint < range.Start)
             {
@@ -60,7 +60,7 @@ internal static class EastAsianWidth
         return false;
     }
 
-    private static readonly EastAsianWidthRange[] _eastAsianWidthRanges =
+    private static readonly EastAsianWidthRange[] s_eastAsianWidthRanges =
     {
         new(161, 0, true),
         new(164, 0, true),
