@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Sharprompt.Internal;
+using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
@@ -101,7 +102,7 @@ internal class InputForm<T> : FormBase<T>
             {
                 if (TypeHelper<T>.IsValueType && !_defaultValue.HasValue)
                 {
-                    SetError("Value is required");
+                    SetError(Resource.Validation_Required);
 
                     result = default;
 

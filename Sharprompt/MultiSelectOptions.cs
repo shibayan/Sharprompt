@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using Sharprompt.Internal;
+using Sharprompt.Strings;
 
 namespace Sharprompt;
 
@@ -31,19 +32,19 @@ public class MultiSelectOptions<T>
         }
 
         TextSelector ??= typeof(T).IsEnum ? EnumHelper<T>.GetDisplayName : x => x.ToString();
-        Pagination ??= (count, current, total) => $"({count} items, {current}/{total} pages)";
+        Pagination ??= (count, current, total) => string.Format(Resource.Message_Pagination, count, current, total);
 
         _ = Message ?? throw new ArgumentNullException(nameof(Message));
         _ = Items ?? throw new ArgumentNullException(nameof(Items));
 
         if (Minimum < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(Minimum), $"The minimum ({Minimum}) is not valid");
+            throw new ArgumentOutOfRangeException(nameof(Minimum), string.Format(Resource.Validation_Minimum_OutOfRange, Minimum));
         }
 
         if (Maximum < Minimum)
         {
-            throw new ArgumentOutOfRangeException(nameof(Maximum), $"The maximum ({Maximum}) is not valid when minimum is set to ({Minimum})");
+            throw new ArgumentOutOfRangeException(nameof(Maximum), string.Format(Resource.Validation_Maximum_OutOfRange, Maximum, Minimum));
         }
     }
 }

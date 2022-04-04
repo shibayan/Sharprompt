@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Sharprompt.Internal;
+using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
@@ -95,7 +96,7 @@ internal class ConfirmForm : FormBase<bool>
                 return true;
             }
 
-            SetError("Value is required");
+            SetError(Resource.Validation_Required);
         }
         else
         {
@@ -110,7 +111,7 @@ internal class ConfirmForm : FormBase<bool>
 
                     return true;
                 default:
-                    SetError("Value is invalid");
+                    SetError(Resource.Validation_Invalid);
                     break;
             }
         }

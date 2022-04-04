@@ -2,6 +2,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
+using Sharprompt.Strings;
+
 namespace Sharprompt;
 
 public static class Validators
@@ -12,12 +14,12 @@ public static class Validators
         {
             if (input is null)
             {
-                return new ValidationResult(errorMessage ?? "Value is required");
+                return new ValidationResult(errorMessage ?? Resource.Validation_Required);
             }
 
             if (input is string strValue && string.IsNullOrEmpty(strValue))
             {
-                return new ValidationResult(errorMessage ?? "Value is required");
+                return new ValidationResult(errorMessage ?? Resource.Validation_Required);
             }
 
             return ValidationResult.Success;
@@ -38,7 +40,7 @@ public static class Validators
                 return ValidationResult.Success;
             }
 
-            return new ValidationResult(errorMessage ?? "Value is too short");
+            return new ValidationResult(errorMessage ?? Resource.Validation_TooShort);
         };
     }
 
@@ -56,7 +58,7 @@ public static class Validators
                 return ValidationResult.Success;
             }
 
-            return new ValidationResult(errorMessage ?? "Value is too long");
+            return new ValidationResult(errorMessage ?? Resource.Validation_TooLong);
         };
     }
 
@@ -74,7 +76,7 @@ public static class Validators
                 return ValidationResult.Success;
             }
 
-            return new ValidationResult(errorMessage ?? "Value is not match pattern");
+            return new ValidationResult(errorMessage ?? Resource.Validation_NotMatch);
         };
     }
 }

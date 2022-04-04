@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 
 using Sharprompt.Internal;
+using Sharprompt.Strings;
 
 namespace Sharprompt;
 
@@ -36,7 +37,7 @@ public sealed class MemberItemsAttribute : Attribute, IItemsProvider
         {
             if (!typeof(IEnumerable<T>).IsAssignableFrom(propertyInfo.PropertyType))
             {
-                throw new ArgumentException($"{propertyInfo.PropertyType} is incompatible type with {typeof(IEnumerable<T>)}");
+                throw new ArgumentException(string.Format(Resource.Validation_Type_Incompatible, propertyInfo.PropertyType, typeof(IEnumerable<T>)));
             }
 
             return (IEnumerable<T>)propertyInfo.GetValue(null);
@@ -51,12 +52,12 @@ public sealed class MemberItemsAttribute : Attribute, IItemsProvider
 
             if (!typeof(IEnumerable<T>).IsAssignableFrom(methodInfo.ReturnType))
             {
-                throw new ArgumentException($"{methodInfo.ReturnType} is incompatible type with {typeof(IEnumerable<T>)}");
+                throw new ArgumentException(string.Format(Resource.Validation_Type_Incompatible, methodInfo.ReturnType, typeof(IEnumerable<T>)));
             }
 
             return (IEnumerable<T>)methodInfo.Invoke(null, null);
         }
 
-        throw new ArgumentException($"{_memberType} does not have a {_memberName} member");
+        throw new ArgumentException(string.Format(Resource.Validation_Type_MemberNotFound, _memberType, _memberName));
     }
 }
