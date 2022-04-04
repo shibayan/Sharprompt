@@ -35,7 +35,7 @@ internal class Paginator<T>
 
     public bool TryGetSelectedItem(out T selectedItem)
     {
-        if (_selectedIndex == -1)
+        if (_selectedIndex == -1 || FilteredItems.Length == 0)
         {
             selectedItem = default;
 
