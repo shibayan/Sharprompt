@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 
 using Sharprompt.Internal;
+using Sharprompt.Strings;
 
 namespace Sharprompt.Drivers;
 
@@ -11,7 +12,7 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
     {
         if (Console.IsInputRedirected || Console.IsOutputRedirected)
         {
-            throw new InvalidOperationException("Sharprompt requires an interactive environment.");
+            throw new InvalidOperationException(Resource.Message_NotSupportedEnvironment);
         }
 
         Console.TreatControlCAsInput = true;
