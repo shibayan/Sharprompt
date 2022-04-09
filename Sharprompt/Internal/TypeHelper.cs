@@ -13,10 +13,10 @@ internal static class TypeHelper
 
 internal static class TypeHelper<T>
 {
-    private static readonly Type _targetType = typeof(T);
-    private static readonly Type _underlyingType = Nullable.GetUnderlyingType(typeof(T));
+    private static readonly Type s_targetType = typeof(T);
+    private static readonly Type s_underlyingType = Nullable.GetUnderlyingType(typeof(T));
 
-    public static bool IsValueType => _targetType.IsValueType && _underlyingType is null;
+    public static bool IsValueType => s_targetType.IsValueType && s_underlyingType is null;
 
-    public static T ConvertTo(string value) => (T)TypeDescriptor.GetConverter(_underlyingType ?? _targetType).ConvertFromInvariantString(value);
+    public static T ConvertTo(string value) => (T)TypeDescriptor.GetConverter(s_underlyingType ?? s_targetType).ConvertFromInvariantString(value);
 }
