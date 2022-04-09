@@ -47,7 +47,7 @@ public sealed class MemberItemsAttribute : Attribute, IItemsProvider
         {
             if (methodInfo.GetParameters().Length != 0)
             {
-                throw new ArgumentException("Cannot specify a method with arguments");
+                throw new ArgumentException(Resource.Validation_Type_NotParameterlessMethod);
             }
 
             if (!typeof(IEnumerable<T>).IsAssignableFrom(methodInfo.ReturnType))

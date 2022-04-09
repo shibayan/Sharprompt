@@ -65,22 +65,29 @@ internal class ConfirmForm : FormBase<bool>
     {
         offscreenBuffer.WritePrompt(_options.Message);
 
+        var answerYes = char.ToLowerInvariant(Resource.ConfirmForm_Answer_Yes[0]);
+        var answerNo = char.ToLowerInvariant(Resource.ConfirmForm_Answer_No[0]);
+
         if (_options.DefaultValue.HasValue)
         {
-            offscreenBuffer.WriteHint(_options.DefaultValue.Value ? "(Y/n) " : "(y/N) ");
-        }
-        else
-        {
-            offscreenBuffer.WriteHint("(y/n) ");
+            if (_options.DefaultValue.Value)
+            {
+                answerYes = char.ToUpperInvariant(answerYes);
+            }
+            else
+            {
+                answerNo = char.ToUpperInvariant(answerNo);
+            }
         }
 
+        offscreenBuffer.WriteHint($"({answerYes}/{answerNo}) ");
         offscreenBuffer.WriteInput(_textInputBuffer);
     }
 
     protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, bool result)
     {
         offscreenBuffer.WriteDone(_options.Message);
-        offscreenBuffer.WriteAnswer(result ? "Yes" : "No");
+        offscreenBuffer.WriteAnswer(result ? Resource.ConfirmForm_Answer_Yes : Resource.ConfirmForm_Answer_No);
     }
 
     private bool HandleEnter(out bool result)
@@ -100,20 +107,23 @@ internal class ConfirmForm : FormBase<bool>
         }
         else
         {
-            switch (input.ToLowerInvariant())
+            if (input.Equals(Resource.ConfirmForm_Answer_Yes, StringComparison.OrdinalIgnoreCase) ||
+                input.Equals(Resource.ConfirmForm_Answer_Yes.Remove(1), StringComparison.OrdinalIgnoreCase))
             {
-                case "y" or "yes":
-                    result = true;
+                result = true;
 
-                    return true;
-                case "n" or "no":
-                    result = false;
-
-                    return true;
-                default:
-                    SetError(Resource.Validation_Invalid);
-                    break;
+                return true;
             }
+
+            if (input.Equals(Resource.ConfirmForm_Answer_No, StringComparison.OrdinalIgnoreCase) ||
+                input.Equals(Resource.ConfirmForm_Answer_No.Remove(1), StringComparison.OrdinalIgnoreCase))
+            {
+                result = false;
+
+                return true;
+            }
+
+            SetError(Resource.Validation_Invalid);
         }
 
         result = default;

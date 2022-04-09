@@ -40,7 +40,7 @@ public static class Validators
                 return ValidationResult.Success;
             }
 
-            return new ValidationResult(errorMessage ?? Resource.Validation_TooShort);
+            return new ValidationResult(errorMessage ?? Resource.Validation_MinLength);
         };
     }
 
@@ -58,7 +58,7 @@ public static class Validators
                 return ValidationResult.Success;
             }
 
-            return new ValidationResult(errorMessage ?? Resource.Validation_TooLong);
+            return new ValidationResult(errorMessage ?? Resource.Validation_MaxLength);
         };
     }
 
@@ -76,7 +76,7 @@ public static class Validators
                 return ValidationResult.Success;
             }
 
-            return new ValidationResult(errorMessage ?? Resource.Validation_NotMatch);
+            return new ValidationResult(errorMessage ?? Resource.Validation_RegularExpression);
         };
     }
 }

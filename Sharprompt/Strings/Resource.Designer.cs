@@ -61,11 +61,20 @@ namespace Sharprompt.Strings {
         }
         
         /// <summary>
-        ///   Hit &lt;space&gt; to select, &lt;ctrl+a&gt; to toggle all, &lt;ctrl+i&gt; to invert selection に類似しているローカライズされた文字列を検索します。
+        ///   No に類似しているローカライズされた文字列を検索します。
         /// </summary>
-        internal static string Message_MultiSelect_Hint {
+        internal static string ConfirmForm_Answer_No {
             get {
-                return ResourceManager.GetString("Message_MultiSelect_Hint", resourceCulture);
+                return ResourceManager.GetString("ConfirmForm_Answer_No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Yes に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string ConfirmForm_Answer_Yes {
+            get {
+                return ResourceManager.GetString("ConfirmForm_Answer_Yes", resourceCulture);
             }
         }
         
@@ -93,6 +102,15 @@ namespace Sharprompt.Strings {
         internal static string Message_PromptCanceled {
             get {
                 return ResourceManager.GetString("Message_PromptCanceled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Hit &lt;space&gt; to select, &lt;ctrl+a&gt; to toggle all, &lt;ctrl+i&gt; to invert selection に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MultiSelectForm_Message_Hint {
+            get {
+                return ResourceManager.GetString("MultiSelectForm_Message_Hint", resourceCulture);
             }
         }
         
@@ -133,6 +151,15 @@ namespace Sharprompt.Strings {
         }
         
         /// <summary>
+        ///   Value is too long に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string Validation_MaxLength {
+            get {
+                return ResourceManager.GetString("Validation_MaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   A minimum input of {0} items is required に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string Validation_Minimum_InputRequired {
@@ -160,11 +187,20 @@ namespace Sharprompt.Strings {
         }
         
         /// <summary>
+        ///   Value is too short に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string Validation_MinLength {
+            get {
+                return ResourceManager.GetString("Validation_MinLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Value is not match pattern に類似しているローカライズされた文字列を検索します。
         /// </summary>
-        internal static string Validation_NotMatch {
+        internal static string Validation_RegularExpression {
             get {
-                return ResourceManager.GetString("Validation_NotMatch", resourceCulture);
+                return ResourceManager.GetString("Validation_RegularExpression", resourceCulture);
             }
         }
         
@@ -178,24 +214,6 @@ namespace Sharprompt.Strings {
         }
         
         /// <summary>
-        ///   Value is too long に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string Validation_TooLong {
-            get {
-                return ResourceManager.GetString("Validation_TooLong", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Value is too short に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string Validation_TooShort {
-            get {
-                return ResourceManager.GetString("Validation_TooShort", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   {0} is incompatible type with {1} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string Validation_Type_Incompatible {
@@ -205,11 +223,20 @@ namespace Sharprompt.Strings {
         }
         
         /// <summary>
-        ///   {0} does not have a {1} member に類似しているローカライズされた文字列を検索します。
+        ///   {0} type does not have a {1} member に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string Validation_Type_MemberNotFound {
             get {
                 return ResourceManager.GetString("Validation_Type_MemberNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Cannot specify a method with arguments に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string Validation_Type_NotParameterlessMethod {
+            get {
+                return ResourceManager.GetString("Validation_Type_NotParameterlessMethod", resourceCulture);
             }
         }
     }

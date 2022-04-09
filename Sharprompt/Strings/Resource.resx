@@ -127,9 +127,9 @@
     <value>{0} is incompatible type with {1}</value>
   </data>
   <data name="Validation_Type_MemberNotFound" xml:space="preserve">
-    <value>{0} does not have a {1} member</value>
+    <value>{0} type does not have a {1} member</value>
   </data>
-  <data name="Message_MultiSelect_Hint" xml:space="preserve">
+  <data name="MultiSelectForm_Message_Hint" xml:space="preserve">
     <value>Hit &lt;space&gt; to select, &lt;ctrl+a&gt; to toggle all, &lt;ctrl+i&gt; to invert selection</value>
   </data>
   <data name="Message_Pagination" xml:space="preserve">
@@ -150,16 +150,16 @@
   <data name="Validation_Minimum_SelectionRequired" xml:space="preserve">
     <value>A minimum selection of {0} items is required</value>
   </data>
-  <data name="Validation_NotMatch" xml:space="preserve">
+  <data name="Validation_RegularExpression" xml:space="preserve">
     <value>Value is not match pattern</value>
   </data>
   <data name="Validation_Required" xml:space="preserve">
     <value>Value is required</value>
   </data>
-  <data name="Validation_TooLong" xml:space="preserve">
+  <data name="Validation_MaxLength" xml:space="preserve">
     <value>Value is too long</value>
   </data>
-  <data name="Validation_TooShort" xml:space="preserve">
+  <data name="Validation_MinLength" xml:space="preserve">
     <value>Value is too short</value>
   </data>
   <data name="Message_PromptCanceled" xml:space="preserve">
@@ -167,5 +167,14 @@
   </data>
   <data name="Message_NotSupportedEnvironment" xml:space="preserve">
     <value>Sharprompt requires an interactive environment.</value>
+  </data>
+  <data name="Validation_Type_NotParameterlessMethod" xml:space="preserve">
+    <value>Cannot specify a method with arguments</value>
+  </data>
+  <data name="ConfirmForm_Answer_Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="ConfirmForm_Answer_No" xml:space="preserve">
+    <value>No</value>
   </data>
 </root>

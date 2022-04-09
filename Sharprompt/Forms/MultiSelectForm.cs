@@ -137,7 +137,7 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>>
 
         if (string.IsNullOrEmpty(_paginator.FilterTerm))
         {
-            offscreenBuffer.WriteHint(Resource.Message_MultiSelect_Hint);
+            offscreenBuffer.WriteHint(Resource.MultiSelectForm_Message_Hint);
         }
 
         var subset = _paginator.ToSubset();
