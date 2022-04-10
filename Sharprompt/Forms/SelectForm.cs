@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using Sharprompt.Internal;
+using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
@@ -32,7 +33,7 @@ internal class SelectForm<T> : FormBase<T>
                 case ConsoleKey.Enter when _paginator.TryGetSelectedItem(out result):
                     return true;
                 case ConsoleKey.Enter:
-                    SetError("Value is required");
+                    SetError(Resource.Validation_Required);
                     break;
                 case ConsoleKey.UpArrow:
                     _paginator.PreviousItem();

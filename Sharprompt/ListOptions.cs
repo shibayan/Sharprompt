@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
+using Sharprompt.Strings;
+
 namespace Sharprompt;
 
 public class ListOptions<T>
@@ -22,12 +24,12 @@ public class ListOptions<T>
 
         if (Minimum < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(Minimum), $"The minimum ({Minimum}) is not valid");
+            throw new ArgumentOutOfRangeException(nameof(Minimum), string.Format(Resource.Validation_Minimum_OutOfRange, Minimum));
         }
 
         if (Maximum < Minimum)
         {
-            throw new ArgumentOutOfRangeException(nameof(Maximum), $"The maximum ({Maximum}) is not valid when minimum is set to ({Minimum})");
+            throw new ArgumentOutOfRangeException(nameof(Maximum), string.Format(Resource.Validation_Maximum_OutOfRange, Maximum, Minimum));
         }
     }
 }

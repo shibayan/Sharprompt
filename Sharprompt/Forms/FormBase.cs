@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 using Sharprompt.Drivers;
 using Sharprompt.Internal;
+using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
@@ -77,7 +78,7 @@ internal abstract class FormBase<T> : IDisposable
 
         if (Prompt.ThrowExceptionOnCancel)
         {
-            throw new PromptCanceledException("The prompt was canceled.", GetType().Name);
+            throw new PromptCanceledException(Resource.Message_PromptCanceled, GetType().Name);
         }
 
         Environment.Exit(1);

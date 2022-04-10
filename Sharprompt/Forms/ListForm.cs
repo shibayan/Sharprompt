@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Sharprompt.Internal;
+using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
@@ -105,14 +106,14 @@ internal class ListForm<T> : FormBase<IEnumerable<T>>
                     return true;
                 }
 
-                SetError($"A minimum input of {_options.Minimum} items is required");
+                SetError(string.Format(Resource.Validation_Minimum_InputRequired, _options.Minimum));
 
                 return false;
             }
 
             if (_inputItems.Count >= _options.Maximum)
             {
-                SetError($"A maximum input of {_options.Maximum} items is required");
+                SetError(string.Format(Resource.Validation_Maximum_InputRequired, _options.Maximum));
 
                 return false;
             }

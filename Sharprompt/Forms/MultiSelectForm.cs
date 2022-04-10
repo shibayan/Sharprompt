@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Sharprompt.Internal;
+using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
@@ -45,7 +46,7 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>>
                                      .ToArray();
                     return true;
                 case ConsoleKey.Enter:
-                    SetError($"A minimum selection of {_options.Minimum} items is required");
+                    SetError(string.Format(Resource.Validation_Minimum_SelectionRequired, _options.Minimum));
                     break;
                 case ConsoleKey.Spacebar when _paginator.TryGetSelectedItem(out var currentItem):
                     if (_selectedItems.Contains(currentItem))
@@ -56,7 +57,7 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>>
                     {
                         if (_selectedItems.Count >= _options.Maximum)
                         {
-                            SetError($"A maximum selection of {_options.Maximum} items is required");
+                            SetError(string.Format(Resource.Validation_Maximum_SelectionRequired, _options.Maximum));
                         }
                         else
                         {
@@ -136,7 +137,7 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>>
 
         if (string.IsNullOrEmpty(_paginator.FilterTerm))
         {
-            offscreenBuffer.WriteHint("Hit <space> to select, <ctrl+a> to toggle all, <ctrl+i> to invert selection");
+            offscreenBuffer.WriteHint(Resource.MultiSelectForm_Message_Hint);
         }
 
         var subset = _paginator.ToSubset();

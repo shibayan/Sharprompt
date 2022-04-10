@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using Sharprompt.Internal;
+using Sharprompt.Strings;
 
 namespace Sharprompt;
 
@@ -27,7 +28,7 @@ public class SelectOptions<T>
         }
 
         TextSelector ??= typeof(T).IsEnum ? EnumHelper<T>.GetDisplayName : x => x.ToString();
-        Pagination ??= (count, current, total) => $"({count} items, {current}/{total} pages)";
+        Pagination ??= (count, current, total) => string.Format(Resource.Message_Pagination, count, current, total);
 
         _ = Message ?? throw new ArgumentNullException(nameof(Message));
         _ = Items ?? throw new ArgumentNullException(nameof(Items));
