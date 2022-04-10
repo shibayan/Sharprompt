@@ -24,7 +24,7 @@ public sealed class MemberItemsAttribute : Attribute, IItemsProvider
     }
 
     private readonly string _memberName;
-    private readonly Type _memberType;
+    private readonly Type? _memberType;
 
     public IEnumerable<T> GetItems<T>(PropertyInfo targetPropertyInfo)
     {
@@ -40,7 +40,7 @@ public sealed class MemberItemsAttribute : Attribute, IItemsProvider
                 throw new ArgumentException(string.Format(Resource.Validation_Type_Incompatible, propertyInfo.PropertyType, typeof(IEnumerable<T>)));
             }
 
-            return (IEnumerable<T>)propertyInfo.GetValue(null);
+            return (IEnumerable<T>)propertyInfo.GetValue(null)!;
         }
 
         if (memberInfo is MethodInfo methodInfo)
@@ -55,7 +55,7 @@ public sealed class MemberItemsAttribute : Attribute, IItemsProvider
                 throw new ArgumentException(string.Format(Resource.Validation_Type_Incompatible, methodInfo.ReturnType, typeof(IEnumerable<T>)));
             }
 
-            return (IEnumerable<T>)methodInfo.Invoke(null, null);
+            return (IEnumerable<T>)methodInfo.Invoke(null, null)!;
         }
 
         throw new ArgumentException(string.Format(Resource.Validation_Type_MemberNotFound, _memberType, _memberName));

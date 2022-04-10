@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using Sharprompt.Internal;
@@ -18,7 +19,7 @@ internal class PasswordForm : FormBase<string>
 
     private readonly TextInputBuffer _textInputBuffer = new();
 
-    protected override bool TryGetResult(out string? result)
+    protected override bool TryGetResult([NotNullWhen(true)] out string? result)
     {
         do
         {

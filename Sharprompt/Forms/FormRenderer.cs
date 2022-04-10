@@ -14,7 +14,7 @@ internal class FormRenderer : IDisposable
 
     private readonly OffscreenBuffer _offscreenBuffer;
 
-    public string ErrorMessage { get; set; }
+    public string? ErrorMessage { get; set; }
 
     public void Dispose() => _offscreenBuffer.Dispose();
 

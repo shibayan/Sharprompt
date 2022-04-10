@@ -19,7 +19,7 @@ internal class OffscreenBuffer : IDisposable
     private readonly List<List<TextInfo>> _outputBuffer = new() { new List<TextInfo>() };
 
     private int _cursorBottom;
-    private Cursor _pushedCursor;
+    private Cursor? _pushedCursor;
 
     private int WrittenLineCount => _outputBuffer.Sum(x => (x.Sum(xs => xs.Width) - 1) / _consoleDriver.BufferWidth + 1) - 1;
 
@@ -109,8 +109,8 @@ internal class OffscreenBuffer : IDisposable
 
     private class Cursor
     {
-        public int Left { get; set; }
-        public int Top { get; set; }
+        public int Left { get; init; }
+        public int Top { get; init; }
     }
 
     private class TextInfo : IEquatable<TextInfo>
@@ -126,7 +126,7 @@ internal class OffscreenBuffer : IDisposable
         public ConsoleColor Color { get; }
         public int Width { get; }
 
-        public bool Equals(TextInfo other)
+        public bool Equals(TextInfo? other)
         {
             if (other is null)
             {
@@ -141,7 +141,7 @@ internal class OffscreenBuffer : IDisposable
             return Text == other.Text && Color == other.Color;
         }
 
-        public override bool Equals(object obj) => Equals(obj as TextInfo);
+        public override bool Equals(object? obj) => Equals(obj as TextInfo);
 
         public override int GetHashCode()
         {

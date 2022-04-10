@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using Sharprompt.Internal;
@@ -32,7 +33,7 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>>
     private readonly HashSet<T> _selectedItems = new();
     private readonly TextInputBuffer _filterBuffer = new();
 
-    protected override bool TryGetResult(out IEnumerable<T>? result)
+    protected override bool TryGetResult([NotNullWhen(true)] out IEnumerable<T>? result)
     {
         do
         {

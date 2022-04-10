@@ -4,7 +4,7 @@ namespace Sharprompt;
 
 public class ConfirmOptions
 {
-    public string Message { get; set; }
+    public string Message { get; set; } = null!;
 
     public bool? DefaultValue { get; set; }
 

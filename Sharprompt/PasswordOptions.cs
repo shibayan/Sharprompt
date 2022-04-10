@@ -6,13 +6,13 @@ namespace Sharprompt;
 
 public class PasswordOptions
 {
-    public string Message { get; set; }
+    public string Message { get; set; } = null!;
 
-    public string Placeholder { get; set; }
+    public string? Placeholder { get; set; }
 
     public string PasswordChar { get; set; } = "*";
 
-    public IList<Func<object, ValidationResult>> Validators { get; } = new List<Func<object, ValidationResult>>();
+    public IList<Func<object?, ValidationResult>> Validators { get; } = new List<Func<object?, ValidationResult>>();
 
     internal void EnsureOptions()
     {

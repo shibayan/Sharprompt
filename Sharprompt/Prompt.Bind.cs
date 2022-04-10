@@ -122,6 +122,6 @@ public static partial class Prompt
         var method = typeof(Prompt).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)
                                    .MakeGenericMethod(genericType ?? propertyMetadata.Type);
 
-        return method.Invoke(null, new object[] { propertyMetadata });
+        return method.Invoke(null, new object[] { propertyMetadata })!;
     }
 }

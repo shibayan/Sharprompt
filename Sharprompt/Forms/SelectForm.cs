@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 using Sharprompt.Internal;
 using Sharprompt.Strings;
@@ -22,7 +23,7 @@ internal class SelectForm<T> : FormBase<T>
 
     private readonly TextInputBuffer _filterBuffer = new();
 
-    protected override bool TryGetResult(out T result)
+    protected override bool TryGetResult([NotNullWhen(true)] out T? result)
     {
         do
         {

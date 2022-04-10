@@ -31,7 +31,7 @@ internal static class EnumHelper<T>
         };
     }
 
-    public static string GetDisplayName(T value)
+    public static string? GetDisplayName(T value)
     {
         return s_metadataCache[value]?.DisplayName ?? value.ToString();
     }
@@ -45,7 +45,7 @@ internal static class EnumHelper<T>
 
     private class EnumMetadata
     {
-        public string DisplayName { get; set; }
-        public int? Order { get; set; }
+        public string? DisplayName { get; init; }
+        public int? Order { get; init; }
     }
 }

@@ -80,7 +80,6 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
 
     public bool CursorVisible
     {
-        get => Console.CursorVisible;
         set => Console.CursorVisible = value;
     }
 
@@ -92,7 +91,7 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
 
     public int BufferHeight => Console.BufferHeight;
 
-    public Action CancellationCallback { get; set; }
+    public Action CancellationCallback { get; set; } = null!;
 
     #endregion
 }

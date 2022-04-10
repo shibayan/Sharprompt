@@ -12,7 +12,7 @@ internal interface IConsoleDriver : IDisposable
     void WriteLine();
     void SetCursorPosition(int left, int top);
     bool KeyAvailable { get; }
-    bool CursorVisible { get; set; }
+    bool CursorVisible { set; }
     int CursorLeft { get; }
     int CursorTop { get; }
     int BufferWidth { get; }

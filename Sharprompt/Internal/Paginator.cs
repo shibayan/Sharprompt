@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Sharprompt.Internal;
@@ -21,7 +22,7 @@ internal class Paginator<T>
 
     private int _selectedIndex = -1;
 
-    public T[] FilteredItems { get; private set; }
+    public T[] FilteredItems { get; private set; } = Array.Empty<T>();
 
     public int PageCount { get; private set; }
 
@@ -33,7 +34,7 @@ internal class Paginator<T>
 
     public string FilterTerm { get; private set; } = "";
 
-    public bool TryGetSelectedItem(out T selectedItem)
+    public bool TryGetSelectedItem([NotNullWhen(true)] out T? selectedItem)
     {
         if (_selectedIndex == -1 || FilteredItems.Length == 0)
         {
@@ -42,7 +43,7 @@ internal class Paginator<T>
             return false;
         }
 
-        selectedItem = FilteredItems[(_pageSize * SelectedPage) + _selectedIndex];
+        selectedItem = FilteredItems[(_pageSize * SelectedPage) + _selectedIndex]!;
 
         return true;
     }

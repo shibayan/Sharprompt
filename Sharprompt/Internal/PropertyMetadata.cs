@@ -30,21 +30,21 @@ internal class PropertyMetadata
         Validators = propertyInfo.GetCustomAttributes<ValidationAttribute>(true)
                                  .Select(x => new ValidationAttributeAdapter(x).GetValidator(propertyInfo.Name, model))
                                  .ToArray();
-        ItemsProvider = (IItemsProvider)propertyInfo.GetCustomAttribute<InlineItemsAttribute>(true) ?? propertyInfo.GetCustomAttribute<MemberItemsAttribute>(true);
+        ItemsProvider = (IItemsProvider?)propertyInfo.GetCustomAttribute<InlineItemsAttribute>(true) ?? propertyInfo.GetCustomAttribute<MemberItemsAttribute>(true);
     }
 
     public PropertyInfo PropertyInfo { get; }
     public Type Type { get; }
-    public Type ElementType { get; set; }
+    public Type? ElementType { get; set; }
     public bool IsNullable { get; set; }
     public bool IsCollection { get; }
     public AnnotationsDataType? DataType { get; }
-    public string Message { get; }
-    public string Placeholder { get; set; }
+    public string? Message { get; }
+    public string? Placeholder { get; set; }
     public int? Order { get; }
-    public object DefaultValue { get; }
-    public IReadOnlyList<Func<object, ValidationResult>> Validators { get; }
-    public IItemsProvider ItemsProvider { get; set; }
+    public object? DefaultValue { get; }
+    public IReadOnlyList<Func<object?, ValidationResult>> Validators { get; }
+    public IItemsProvider? ItemsProvider { get; set; }
 
     public FormType DetermineFormType()
     {
@@ -85,7 +85,7 @@ internal class PropertyMetadata
 
         private readonly ValidationAttribute _validationAttribute;
 
-        public Func<object, ValidationResult> GetValidator(string propertyName, object model)
+        public Func<object?, ValidationResult> GetValidator(string propertyName, object model)
         {
             var validationContext = new ValidationContext(model)
             {
@@ -93,7 +93,7 @@ internal class PropertyMetadata
                 MemberName = propertyName
             };
 
-            return input => _validationAttribute.GetValidationResult(input, validationContext);
+            return input => _validationAttribute.GetValidationResult(input, validationContext)!;
         }
     }
 }
