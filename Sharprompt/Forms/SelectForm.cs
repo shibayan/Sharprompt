@@ -7,7 +7,7 @@ using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
-internal class SelectForm<T> : FormBase<T>
+internal class SelectForm<T> : FormBase<T> where T : notnull
 {
     public SelectForm(SelectOptions<T> options)
     {

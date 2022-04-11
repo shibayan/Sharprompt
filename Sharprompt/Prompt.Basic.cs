@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 using Sharprompt.Forms;
 using Sharprompt.Internal;
@@ -90,14 +91,14 @@ public static partial class Prompt
         });
     }
 
-    public static T Select<T>(SelectOptions<T> options)
+    public static T Select<T>(SelectOptions<T> options) where T : notnull
     {
         using var form = new SelectForm<T>(options);
 
         return form.Start();
     }
 
-    public static T Select<T>(Action<SelectOptions<T>> configure)
+    public static T Select<T>(Action<SelectOptions<T>> configure) where T : notnull
     {
         var options = new SelectOptions<T>();
 
@@ -106,26 +107,26 @@ public static partial class Prompt
         return Select(options);
     }
 
-    public static T Select<T>(string message, IEnumerable<T>? items = default, int? pageSize = default, object? defaultValue = default, Func<T, string>? textSelector = default)
+    public static T Select<T>(string message, IEnumerable<T>? items = default, int pageSize = int.MaxValue, T? defaultValue = default, Func<T, string>? textSelector = default) where T : notnull
     {
         return Select<T>(options =>
         {
             options.Message = message;
-            options.Items = items;
+            options.Items = items!;
             options.DefaultValue = defaultValue;
             options.PageSize = pageSize;
             options.TextSelector = textSelector;
         });
     }
 
-    public static IEnumerable<T> MultiSelect<T>(MultiSelectOptions<T> options)
+    public static IEnumerable<T> MultiSelect<T>(MultiSelectOptions<T> options) where T : notnull
     {
         using var form = new MultiSelectForm<T>(options);
 
         return form.Start();
     }
 
-    public static IEnumerable<T> MultiSelect<T>(Action<MultiSelectOptions<T>> configure)
+    public static IEnumerable<T> MultiSelect<T>(Action<MultiSelectOptions<T>> configure) where T : notnull
     {
         var options = new MultiSelectOptions<T>();
 
@@ -134,13 +135,13 @@ public static partial class Prompt
         return MultiSelect(options);
     }
 
-    public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T>? items = null, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T>? defaultValues = default, Func<T, string>? textSelector = default)
+    public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T>? items = null, int pageSize = int.MaxValue, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T>? defaultValues = default, Func<T, string>? textSelector = default) where T : notnull
     {
         return MultiSelect<T>(options =>
         {
             options.Message = message;
-            options.Items = items;
-            options.DefaultValues = defaultValues;
+            options.Items = items!;
+            options.DefaultValues = defaultValues ?? Enumerable.Empty<T>();
             options.PageSize = pageSize;
             options.Minimum = minimum;
             options.Maximum = maximum;
@@ -148,14 +149,14 @@ public static partial class Prompt
         });
     }
 
-    public static IEnumerable<T> List<T>(ListOptions<T> options)
+    public static IEnumerable<T> List<T>(ListOptions<T> options) where T : notnull
     {
         using var form = new ListForm<T>(options);
 
         return form.Start();
     }
 
-    public static IEnumerable<T> List<T>(Action<ListOptions<T>> configure)
+    public static IEnumerable<T> List<T>(Action<ListOptions<T>> configure) where T : notnull
     {
         var options = new ListOptions<T>();
 
@@ -164,7 +165,7 @@ public static partial class Prompt
         return List(options);
     }
 
-    public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = int.MaxValue, IList<Func<object?, ValidationResult>>? validators = default)
+    public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = int.MaxValue, IList<Func<object?, ValidationResult>>? validators = default) where T : notnull
     {
         return List<T>(options =>
         {

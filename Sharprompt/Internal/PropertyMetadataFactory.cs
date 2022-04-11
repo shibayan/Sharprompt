@@ -6,7 +6,7 @@ namespace Sharprompt.Internal;
 
 internal static class PropertyMetadataFactory
 {
-    public static IReadOnlyList<PropertyMetadata> Create<T>(T model)
+    public static IReadOnlyList<PropertyMetadata> Create<T>(T model) where T : notnull
     {
         return typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                         .Select(x => new PropertyMetadata(model, x))

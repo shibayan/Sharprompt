@@ -30,6 +30,11 @@ public sealed class MemberItemsAttribute : Attribute, IItemsProvider
     {
         var targetType = _memberType ?? targetPropertyInfo.DeclaringType;
 
+        if (targetType is null)
+        {
+            throw new ArgumentException();
+        }
+
         var memberInfo = targetType.GetMember(_memberName, BindingFlags.Public | BindingFlags.Static)
                                    .FirstOrDefault();
 

@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 using Sharprompt.Strings;
 
 namespace Sharprompt;
 
-public class ListOptions<T>
+public class ListOptions<T> where T : notnull
 {
     public string Message { get; set; } = null!;
 
-    public IEnumerable<T>? DefaultValues { get; set; }
+    public IEnumerable<T> DefaultValues { get; set; } = Enumerable.Empty<T>();
 
     public int Minimum { get; set; } = 1;
 

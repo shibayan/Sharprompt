@@ -8,7 +8,7 @@ using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
-internal class ListForm<T> : FormBase<IEnumerable<T>>
+internal class ListForm<T> : FormBase<IEnumerable<T>> where T : notnull
 {
     public ListForm(ListOptions<T> options)
     {
@@ -16,7 +16,7 @@ internal class ListForm<T> : FormBase<IEnumerable<T>>
 
         _options = options;
 
-        _inputItems.AddRange(options.DefaultValues ?? Enumerable.Empty<T>());
+        _inputItems.AddRange(options.DefaultValues);
     }
 
     private readonly ListOptions<T> _options;

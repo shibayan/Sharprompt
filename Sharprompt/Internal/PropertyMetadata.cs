@@ -23,14 +23,16 @@ internal class PropertyMetadata
         IsNullable = TypeHelper.IsNullable(propertyInfo.PropertyType);
         IsCollection = TypeHelper.IsCollection(propertyInfo.PropertyType);
         DataType = dataTypeAttribute?.DataType;
-        Message = displayAttribute?.GetName() ?? displayAttribute?.GetDescription();
+        Message = displayAttribute?.GetName() ?? displayAttribute?.GetDescription() ?? propertyInfo.Name;
         Placeholder = displayAttribute?.GetPrompt();
         Order = displayAttribute?.GetOrder();
         DefaultValue = propertyInfo.GetValue(model);
         Validators = propertyInfo.GetCustomAttributes<ValidationAttribute>(true)
                                  .Select(x => new ValidationAttributeAdapter(x).GetValidator(propertyInfo.Name, model))
                                  .ToArray();
-        ItemsProvider = (IItemsProvider?)propertyInfo.GetCustomAttribute<InlineItemsAttribute>(true) ?? propertyInfo.GetCustomAttribute<MemberItemsAttribute>(true);
+        ItemsProvider = (IItemsProvider?)propertyInfo.GetCustomAttribute<InlineItemsAttribute>(true) ??
+                        propertyInfo.GetCustomAttribute<MemberItemsAttribute>(true) ??
+                        NullItemsProvider.Instance;
     }
 
     public PropertyInfo PropertyInfo { get; }
@@ -39,12 +41,12 @@ internal class PropertyMetadata
     public bool IsNullable { get; set; }
     public bool IsCollection { get; }
     public AnnotationsDataType? DataType { get; }
-    public string? Message { get; }
+    public string Message { get; }
     public string? Placeholder { get; set; }
     public int? Order { get; }
     public object? DefaultValue { get; }
     public IReadOnlyList<Func<object?, ValidationResult>> Validators { get; }
-    public IItemsProvider? ItemsProvider { get; set; }
+    public IItemsProvider ItemsProvider { get; set; }
 
     public FormType DetermineFormType()
     {
@@ -58,17 +60,17 @@ internal class PropertyMetadata
             return FormType.Confirm;
         }
 
-        if (!IsCollection && (Type.IsEnum || ItemsProvider is not null))
+        if (!IsCollection && (Type.IsEnum || ItemsProvider is NullItemsProvider))
         {
             return FormType.Select;
         }
 
-        if (IsCollection && (ElementType.IsEnum || ItemsProvider is not null))
+        if (IsCollection && (ElementType is not null && ElementType.IsEnum || ItemsProvider is NullItemsProvider))
         {
             return FormType.MultiSelect;
         }
 
-        if (IsCollection && ItemsProvider is null)
+        if (IsCollection && ItemsProvider is not NullItemsProvider)
         {
             return FormType.List;
         }

@@ -8,7 +8,7 @@ using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
-internal class MultiSelectForm<T> : FormBase<IEnumerable<T>>
+internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
 {
     public MultiSelectForm(MultiSelectOptions<T> options)
     {
@@ -18,12 +18,9 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>>
 
         _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Empty, options.TextSelector);
 
-        if (options.DefaultValues is not null)
+        foreach (var defaultValue in options.DefaultValues)
         {
-            foreach (var defaultValue in options.DefaultValues)
-            {
-                _selectedItems.Add(defaultValue);
-            }
+            _selectedItems.Add(defaultValue);
         }
     }
 

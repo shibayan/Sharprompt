@@ -5,12 +5,12 @@ using System.Linq;
 
 namespace Sharprompt.Internal;
 
-internal class Paginator<T>
+internal class Paginator<T> where T : notnull
 {
-    public Paginator(IEnumerable<T> items, int? pageSize, Optional<T> defaultValue, Func<T, string> textSelector)
+    public Paginator(IEnumerable<T> items, int pageSize, Optional<T> defaultValue, Func<T, string> textSelector)
     {
         _items = items.ToArray();
-        _pageSize = pageSize ?? _items.Length;
+        _pageSize = Math.Min(pageSize, _items.Length);
         _textSelector = textSelector;
 
         InitializeDefaults(defaultValue);
@@ -43,7 +43,7 @@ internal class Paginator<T>
             return false;
         }
 
-        selectedItem = FilteredItems[(_pageSize * SelectedPage) + _selectedIndex]!;
+        selectedItem = FilteredItems[(_pageSize * SelectedPage) + _selectedIndex];
 
         return true;
     }
