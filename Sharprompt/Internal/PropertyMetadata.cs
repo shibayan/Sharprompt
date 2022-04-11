@@ -60,17 +60,17 @@ internal class PropertyMetadata
             return FormType.Confirm;
         }
 
-        if (!IsCollection && (Type.IsEnum || ItemsProvider is NullItemsProvider))
+        if (!IsCollection && (Type.IsEnum || ItemsProvider is not NullItemsProvider))
         {
             return FormType.Select;
         }
 
-        if (IsCollection && (ElementType is not null && ElementType.IsEnum || ItemsProvider is NullItemsProvider))
+        if (IsCollection && (ElementType is not null && ElementType.IsEnum || ItemsProvider is not NullItemsProvider))
         {
             return FormType.MultiSelect;
         }
 
-        if (IsCollection && ItemsProvider is not NullItemsProvider)
+        if (IsCollection && ItemsProvider is NullItemsProvider)
         {
             return FormType.List;
         }
