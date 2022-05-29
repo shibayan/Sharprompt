@@ -2,177 +2,71 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-using Sharprompt.Forms;
-using Sharprompt.Internal;
+using Sharprompt.Prompts;
 
 namespace Sharprompt;
 
 public static partial class Prompt
 {
-    public static T Input<T>(InputOptions<T> options)
-    {
-        using var form = new InputForm<T>(options);
+    public static IPrompt PromptRealisation { get; set; } = new DefaultPrompt();
 
-        return form.Start();
-    }
+    public static T Input<T>(InputOptions<T> options)
+        => PromptRealisation.Input(options);
 
     public static T Input<T>(Action<InputOptions<T>> configure)
-    {
-        var options = new InputOptions<T>();
+        => PromptRealisation.Input(configure);
 
-        configure(options);
-
-        return Input(options);
-    }
-
-    public static T Input<T>(string message, object defaultValue = default, string placeholder = default, IList<Func<object, ValidationResult>> validators = default)
-    {
-        return Input<T>(options =>
-        {
-            options.Message = message;
-            options.Placeholder = placeholder;
-            options.DefaultValue = defaultValue;
-
-            options.Validators.Merge(validators);
-        });
-    }
+    public static T Input<T>(string message, object defaultValue = default,
+        string placeholder = default, IList<Func<object, ValidationResult>> validators = default)
+        => PromptRealisation.Input<T>(message, defaultValue, placeholder, validators);
 
     public static string Password(PasswordOptions options)
-    {
-        using var form = new PasswordForm(options);
-
-        return form.Start();
-    }
+        => PromptRealisation.Password(options);
 
     public static string Password(Action<PasswordOptions> configure)
-    {
-        var options = new PasswordOptions();
+        => PromptRealisation.Password(configure);
 
-        configure(options);
-
-        return Password(options);
-    }
-
-    public static string Password(string message, string passwordChar = "*", string placeholder = default, IList<Func<object, ValidationResult>> validators = default)
-    {
-        return Password(options =>
-        {
-            options.Message = message;
-            options.Placeholder = placeholder;
-            options.PasswordChar = passwordChar;
-
-            options.Validators.Merge(validators);
-        });
-    }
+    public static string Password(string message, string passwordChar = "*",
+        string placeholder = default, IList<Func<object, ValidationResult>> validators = default)
+        => PromptRealisation.Password(message, passwordChar, placeholder, validators);
 
     public static bool Confirm(ConfirmOptions options)
-    {
-        using var form = new ConfirmForm(options);
-
-        return form.Start();
-    }
+        => PromptRealisation.Confirm(options);
 
     public static bool Confirm(Action<ConfirmOptions> configure)
-    {
-        var options = new ConfirmOptions();
-
-        configure(options);
-
-        return Confirm(options);
-    }
+        => PromptRealisation.Confirm(configure);
 
     public static bool Confirm(string message, bool? defaultValue = default)
-    {
-        return Confirm(options =>
-        {
-            options.Message = message;
-            options.DefaultValue = defaultValue;
-        });
-    }
+        => PromptRealisation.Confirm(message, defaultValue);
 
     public static T Select<T>(SelectOptions<T> options)
-    {
-        using var form = new SelectForm<T>(options);
-
-        return form.Start();
-    }
+        => PromptRealisation.Select(options);
 
     public static T Select<T>(Action<SelectOptions<T>> configure)
-    {
-        var options = new SelectOptions<T>();
+        => PromptRealisation.Select(configure);
 
-        configure(options);
-
-        return Select(options);
-    }
-
-    public static T Select<T>(string message, IEnumerable<T> items = default, int? pageSize = default, object defaultValue = default, Func<T, string> textSelector = default)
-    {
-        return Select<T>(options =>
-        {
-            options.Message = message;
-            options.Items = items;
-            options.DefaultValue = defaultValue;
-            options.PageSize = pageSize;
-            options.TextSelector = textSelector;
-        });
-    }
+    public static T Select<T>(string message, IEnumerable<T> items = default,
+        int? pageSize = default, object defaultValue = default, Func<T, string> textSelector = default)
+        => PromptRealisation.Select(message, items, pageSize, defaultValue, textSelector);
 
     public static IEnumerable<T> MultiSelect<T>(MultiSelectOptions<T> options)
-    {
-        using var form = new MultiSelectForm<T>(options);
-
-        return form.Start();
-    }
+        => PromptRealisation.MultiSelect(options);
 
     public static IEnumerable<T> MultiSelect<T>(Action<MultiSelectOptions<T>> configure)
-    {
-        var options = new MultiSelectOptions<T>();
+        => PromptRealisation.MultiSelect(configure);
 
-        configure(options);
-
-        return MultiSelect(options);
-    }
-
-    public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items = null, int? pageSize = default, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = default, Func<T, string> textSelector = default)
-    {
-        return MultiSelect<T>(options =>
-        {
-            options.Message = message;
-            options.Items = items;
-            options.DefaultValues = defaultValues;
-            options.PageSize = pageSize;
-            options.Minimum = minimum;
-            options.Maximum = maximum;
-            options.TextSelector = textSelector;
-        });
-    }
+    public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T> items = null, int? pageSize = default,
+        int minimum = 1, int maximum = int.MaxValue, IEnumerable<T> defaultValues = default,
+        Func<T, string> textSelector = default)
+        => PromptRealisation.MultiSelect(message, items, pageSize, minimum, maximum, defaultValues, textSelector);
 
     public static IEnumerable<T> List<T>(ListOptions<T> options)
-    {
-        using var form = new ListForm<T>(options);
-
-        return form.Start();
-    }
+        => PromptRealisation.List(options);
 
     public static IEnumerable<T> List<T>(Action<ListOptions<T>> configure)
-    {
-        var options = new ListOptions<T>();
+        => PromptRealisation.List(configure);
 
-        configure(options);
-
-        return List(options);
-    }
-
-    public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = int.MaxValue, IList<Func<object, ValidationResult>> validators = default)
-    {
-        return List<T>(options =>
-        {
-            options.Message = message;
-            options.Minimum = minimum;
-            options.Maximum = maximum;
-
-            options.Validators.Merge(validators);
-        });
-    }
+    public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = int.MaxValue,
+        IList<Func<object, ValidationResult>> validators = default)
+        => PromptRealisation.List<T>(message, minimum, maximum, validators);
 }

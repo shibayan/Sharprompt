@@ -1,18 +1,20 @@
 ﻿using System;
 using System.Globalization;
 
-using Sharprompt.Strings;
-
 namespace Sharprompt;
 
 public static partial class Prompt
 {
-    public static bool ThrowExceptionOnCancel { get; set; } = false;
+    public static bool ThrowExceptionOnCancel
+    {
+        get => PromptRealisation.ThrowExceptionOnCancel;
+        set => PromptRealisation.ThrowExceptionOnCancel = value;
+    }
 
     public static CultureInfo Culture
     {
-        get => Resource.Culture;
-        set => Resource.Culture = value;
+        get => PromptRealisation.Culture;
+        set => PromptRealisation.Culture = value;
     }
 
     public static class ColorSchema
