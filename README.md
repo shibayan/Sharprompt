@@ -222,6 +222,23 @@ var city = Prompt.Select<string>(o => o.WithMessage("Select your city")
                                        .WithDefaultValue("Seattle"));
 ```
 
+### Unit-testing 
+
+`Prompt` class have `IPrompt` realisation you can mock (Example uses Moq library):
+
+```cs
+var mock = new Mock<IPrompt>();
+
+mock.Setup(p => p.Input<string>("What's your name?", 
+    null, null, null)).Returns("Joe");
+        
+Prompt.PromptRealisation = mock.Object;
+
+// Method now returnes our defined value above:
+var value = Prompt.Input<string>("What is you name?")
+Console.Log(value == "Joe") // true
+```
+
 ## Supported platforms
 
 - Windows
