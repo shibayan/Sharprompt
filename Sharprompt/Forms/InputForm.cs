@@ -51,6 +51,8 @@ internal class InputForm<T> : FormBase<T>
                     break;
                 case ConsoleKey.LeftArrow:
                 case ConsoleKey.RightArrow:
+                case ConsoleKey.Home:
+                case ConsoleKey.End:
                 case ConsoleKey.Backspace:
                 case ConsoleKey.Delete:
                     ConsoleDriver.Beep();
