@@ -63,6 +63,16 @@ internal class TextInputBuffer
         }
     }
 
+    public void MoveToStart()
+    {
+        _position = 0;
+    }
+
+    public void MoveToEnd()
+    {
+        _position = _inputBuffer.Length;
+    }
+
     public string ToBackwardString() => _inputBuffer.ToString(0, _position);
 
     public string ToForwardString() => _inputBuffer.ToString(_position, _inputBuffer.Length - _position);

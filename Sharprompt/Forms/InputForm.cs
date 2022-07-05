@@ -37,6 +37,12 @@ internal class InputForm<T> : FormBase<T>
                 case ConsoleKey.RightArrow when !_textInputBuffer.IsEnd:
                     _textInputBuffer.MoveForward();
                     break;
+                case ConsoleKey.Home when !_textInputBuffer.IsStart:
+                    _textInputBuffer.MoveToStart();
+                    break;
+                case ConsoleKey.End when !_textInputBuffer.IsEnd:
+                    _textInputBuffer.MoveToEnd();
+                    break;
                 case ConsoleKey.Backspace when !_textInputBuffer.IsStart:
                     _textInputBuffer.Backspace();
                     break;
