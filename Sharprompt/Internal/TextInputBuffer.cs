@@ -41,6 +41,42 @@ internal class TextInputBuffer
         _inputBuffer.Remove(_position, count);
     }
 
+    public void BackspaceWord()
+    {
+        var count = 0;
+
+        while (_position > 0 && char.IsWhiteSpace(_inputBuffer[_position - 1]))
+        {
+            _position--;
+            count++;
+        }
+
+        while (_position > 0 && !char.IsWhiteSpace(_inputBuffer[_position - 1]))
+        {
+            _position--;
+            count++;
+        }
+
+        _inputBuffer.Remove(_position, count);
+    }
+
+    public void DeleteWord()
+    {
+        var count = 0;
+
+        while (_position + count < _inputBuffer.Length && !char.IsWhiteSpace(_inputBuffer[_position + count]))
+        {
+            count++;
+        }
+
+        while (_position + count < _inputBuffer.Length && char.IsWhiteSpace(_inputBuffer[_position + count]))
+        {
+            count++;
+        }
+
+        _inputBuffer.Remove(_position, count);
+    }
+
     public void Clear()
     {
         _position = 0;

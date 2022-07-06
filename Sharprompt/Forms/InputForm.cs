@@ -50,6 +50,12 @@ internal class InputForm<T> : FormBase<T>
                 case ConsoleKey.End when !_textInputBuffer.IsEnd:
                     _textInputBuffer.MoveToEnd();
                     break;
+                case ConsoleKey.Backspace when controlPressed && !_textInputBuffer.IsStart:
+                    _textInputBuffer.BackspaceWord();
+                    break;
+                case ConsoleKey.Delete when controlPressed && !_textInputBuffer.IsEnd:
+                    _textInputBuffer.DeleteWord();
+                    break;
                 case ConsoleKey.Backspace when !_textInputBuffer.IsStart:
                     _textInputBuffer.Backspace();
                     break;
