@@ -26,11 +26,18 @@ internal class InputForm<T> : FormBase<T>
         do
         {
             var keyInfo = ConsoleDriver.ReadKey();
+            var controlPressed = keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control);
 
             switch (keyInfo.Key)
             {
                 case ConsoleKey.Enter:
                     return HandleEnter(out result);
+                case ConsoleKey.LeftArrow when controlPressed && !_textInputBuffer.IsStart:
+                    _textInputBuffer.MoveToPreviousWord();
+                    break;
+                case ConsoleKey.RightArrow when controlPressed && !_textInputBuffer.IsEnd:
+                    _textInputBuffer.MoveToNextWord();
+                    break;
                 case ConsoleKey.LeftArrow when !_textInputBuffer.IsStart:
                     _textInputBuffer.MoveBackward();
                     break;

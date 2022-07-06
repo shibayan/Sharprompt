@@ -63,6 +63,32 @@ internal class TextInputBuffer
         }
     }
 
+    public void MoveToPreviousWord()
+    {
+        while (_position > 0 && char.IsWhiteSpace(_inputBuffer[_position - 1]))
+        {
+            _position--;
+        }
+
+        while (_position > 0 && !char.IsWhiteSpace(_inputBuffer[_position - 1]))
+        {
+            _position--;
+        }
+    }
+
+    public void MoveToNextWord()
+    {
+        while (_position < _inputBuffer.Length && !char.IsWhiteSpace(_inputBuffer[_position]))
+        {
+            _position++;
+        }
+
+        while (_position < _inputBuffer.Length && char.IsWhiteSpace(_inputBuffer[_position]))
+        {
+            _position++;
+        }
+    }
+
     public void MoveToStart() => _position = 0;
 
     public void MoveToEnd() => _position = _inputBuffer.Length;

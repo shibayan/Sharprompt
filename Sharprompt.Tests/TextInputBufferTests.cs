@@ -66,10 +66,7 @@ public class TextInputBufferTests
             textInputBuffer.Insert(c);
         }
 
-        while (!textInputBuffer.IsStart)
-        {
-            textInputBuffer.MoveBackward();
-        }
+        textInputBuffer.MoveToStart();
 
         textInputBuffer.Delete();
 
@@ -114,12 +111,101 @@ public class TextInputBufferTests
             textInputBuffer.Insert(c);
         }
 
-        while (!textInputBuffer.IsStart)
-        {
-            textInputBuffer.MoveBackward();
-        }
+        textInputBuffer.MoveToStart();
 
         textInputBuffer.MoveForward();
+
+        Assert.Equal(backward, textInputBuffer.ToBackwardString());
+        Assert.Equal(forward, textInputBuffer.ToForwardString());
+    }
+
+    [Theory]
+    [InlineData("_abc", "", "abc")]
+    [InlineData("a_bc", "", "abc")]
+    [InlineData("abc_", "", "abc")]
+    [InlineData("_あいう", "", "あいう")]
+    [InlineData("あ_いう", "", "あいう")]
+    [InlineData("あいう_", "", "あいう")]
+    [InlineData("_𩸽𠈻𠮷", "", "𩸽𠈻𠮷")]
+    [InlineData("𩸽_𠈻𠮷", "", "𩸽𠈻𠮷")]
+    [InlineData("𩸽𠈻𠮷_", "", "𩸽𠈻𠮷")]
+    [InlineData("_🍣🍖🥂", "", "🍣🍖🥂")]
+    [InlineData("🍣_🍖🥂", "", "🍣🍖🥂")]
+    [InlineData("🍣🍖🥂_", "", "🍣🍖🥂")]
+    [InlineData("_aあ𩸽🍣", "", "aあ𩸽🍣")]
+    [InlineData("a_あ𩸽🍣", "", "aあ𩸽🍣")]
+    [InlineData("aあ_𩸽🍣", "", "aあ𩸽🍣")]
+    [InlineData("aあ𩸽_🍣", "", "aあ𩸽🍣")]
+    [InlineData("aあ𩸽🍣_", "", "aあ𩸽🍣")]
+    [InlineData("_ abc def ", "", " abc def ")]
+    [InlineData(" _abc def ", "", " abc def ")]
+    [InlineData(" a_bc def ", " ", "abc def ")]
+    [InlineData(" abc_ def ", " ", "abc def ")]
+    [InlineData(" abc _def ", " ", "abc def ")]
+    [InlineData(" abc d_ef ", " abc ", "def ")]
+    [InlineData(" abc def_ ", " abc ", "def ")]
+    [InlineData(" abc def _", " abc ", "def ")]
+    public void MoveToPreviousWord(string value, string backward, string forward)
+    {
+        var textInputBuffer = new TextInputBuffer();
+        var cursor = value.IndexOf('_');
+        foreach (var c in value[(cursor + 1)..])
+        {
+            textInputBuffer.Insert(c);
+        }
+        textInputBuffer.MoveToStart();
+        foreach (var c in value[..cursor])
+        {
+            textInputBuffer.Insert(c);
+        }
+
+        textInputBuffer.MoveToPreviousWord();
+
+        Assert.Equal(backward, textInputBuffer.ToBackwardString());
+        Assert.Equal(forward, textInputBuffer.ToForwardString());
+    }
+
+    [Theory]
+    [InlineData("_abc", "abc", "")]
+    [InlineData("a_bc", "abc", "")]
+    [InlineData("abc_", "abc", "")]
+    [InlineData("_あいう", "あいう", "")]
+    [InlineData("あ_いう", "あいう", "")]
+    [InlineData("あいう_", "あいう", "")]
+    [InlineData("_𩸽𠈻𠮷", "𩸽𠈻𠮷", "")]
+    [InlineData("𩸽_𠈻𠮷", "𩸽𠈻𠮷", "")]
+    [InlineData("𩸽𠈻𠮷_", "𩸽𠈻𠮷", "")]
+    [InlineData("_🍣🍖🥂", "🍣🍖🥂", "")]
+    [InlineData("🍣_🍖🥂", "🍣🍖🥂", "")]
+    [InlineData("🍣🍖🥂_", "🍣🍖🥂", "")]
+    [InlineData("_aあ𩸽🍣", "aあ𩸽🍣", "")]
+    [InlineData("a_あ𩸽🍣", "aあ𩸽🍣", "")]
+    [InlineData("aあ_𩸽🍣", "aあ𩸽🍣", "")]
+    [InlineData("aあ𩸽_🍣", "aあ𩸽🍣", "")]
+    [InlineData("aあ𩸽🍣_", "aあ𩸽🍣", "")]
+    [InlineData("_ abc def ", " ", "abc def ")]
+    [InlineData(" _abc def ", " abc ", "def ")]
+    [InlineData(" a_bc def ", " abc ", "def ")]
+    [InlineData(" abc_ def ", " abc ", "def ")]
+    [InlineData(" abc _def ", " abc def ", "")]
+    [InlineData(" abc d_ef ", " abc def ", "")]
+    [InlineData(" abc def_ ", " abc def ", "")]
+    [InlineData(" abc def _", " abc def ", "")]
+    public void MoveToNextWord(string value, string backward, string forward)
+    {
+        var textInputBuffer = new TextInputBuffer();
+        var cursor = value.IndexOf('_');
+        foreach (var c in value[(cursor + 1)..])
+        {
+            textInputBuffer.Insert(c);
+        }
+        textInputBuffer.MoveToStart();
+        foreach (var c in value[..cursor])
+        {
+            textInputBuffer.Insert(c);
+        }
+
+        textInputBuffer.MoveToNextWord();
 
         Assert.Equal(backward, textInputBuffer.ToBackwardString());
         Assert.Equal(forward, textInputBuffer.ToForwardString());
