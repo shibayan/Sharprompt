@@ -9,7 +9,7 @@ internal class Paginator<T>
     public Paginator(IEnumerable<T> items, int? pageSize, Optional<T> defaultValue, Func<T, string> textSelector)
     {
         _items = items.ToArray();
-        _pageSize = pageSize ?? _items.Length;
+        _pageSize = pageSize ?? Math.Min(_items.Length, Console.BufferHeight-5);
         _textSelector = textSelector;
 
         InitializeDefaults(defaultValue);
