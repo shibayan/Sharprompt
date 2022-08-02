@@ -41,6 +41,42 @@ internal class TextInputBuffer
         _inputBuffer.Remove(_position, count);
     }
 
+    public void BackspaceWord()
+    {
+        var count = 0;
+
+        while (_position > 0 && char.IsWhiteSpace(_inputBuffer[_position - 1]))
+        {
+            _position--;
+            count++;
+        }
+
+        while (_position > 0 && !char.IsWhiteSpace(_inputBuffer[_position - 1]))
+        {
+            _position--;
+            count++;
+        }
+
+        _inputBuffer.Remove(_position, count);
+    }
+
+    public void DeleteWord()
+    {
+        var count = 0;
+
+        while (_position + count < _inputBuffer.Length && !char.IsWhiteSpace(_inputBuffer[_position + count]))
+        {
+            count++;
+        }
+
+        while (_position + count < _inputBuffer.Length && char.IsWhiteSpace(_inputBuffer[_position + count]))
+        {
+            count++;
+        }
+
+        _inputBuffer.Remove(_position, count);
+    }
+
     public void Clear()
     {
         _position = 0;
@@ -62,6 +98,36 @@ internal class TextInputBuffer
             _position++;
         }
     }
+
+    public void MoveToPreviousWord()
+    {
+        while (_position > 0 && char.IsWhiteSpace(_inputBuffer[_position - 1]))
+        {
+            _position--;
+        }
+
+        while (_position > 0 && !char.IsWhiteSpace(_inputBuffer[_position - 1]))
+        {
+            _position--;
+        }
+    }
+
+    public void MoveToNextWord()
+    {
+        while (_position < _inputBuffer.Length && !char.IsWhiteSpace(_inputBuffer[_position]))
+        {
+            _position++;
+        }
+
+        while (_position < _inputBuffer.Length && char.IsWhiteSpace(_inputBuffer[_position]))
+        {
+            _position++;
+        }
+    }
+
+    public void MoveToStart() => _position = 0;
+
+    public void MoveToEnd() => _position = _inputBuffer.Length;
 
     public string ToBackwardString() => _inputBuffer.ToString(0, _position);
 

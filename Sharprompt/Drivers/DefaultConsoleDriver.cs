@@ -15,8 +15,6 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
             throw new InvalidOperationException(Resource.Message_NotSupportedEnvironment);
         }
 
-        Console.TreatControlCAsInput = true;
-
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             var hConsole = NativeMethods.GetStdHandle(NativeMethods.STD_OUTPUT_HANDLE);
@@ -29,6 +27,15 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
             NativeMethods.SetConsoleMode(hConsole, mode | NativeMethods.ENABLE_VIRTUAL_TERMINAL_PROCESSING);
         }
     }
+
+    public DefaultConsoleDriver()
+    {
+        _previousTreatControlCAsInput = Console.TreatControlCAsInput;
+
+        Console.TreatControlCAsInput = true;
+    }
+
+    private readonly bool _previousTreatControlCAsInput;
 
     #region IDisposable
 
@@ -44,6 +51,8 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
     {
         Console.CursorVisible = true;
         Console.ResetColor();
+
+        Console.TreatControlCAsInput = _previousTreatControlCAsInput;
     }
 
     public void ClearLine(int top)
