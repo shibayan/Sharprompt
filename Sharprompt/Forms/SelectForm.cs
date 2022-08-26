@@ -14,7 +14,10 @@ internal class SelectForm<T> : FormBase<T>
 
         _options = options;
 
-        _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector);
+        var maxPageSize = ConsoleDriver.WindowHeight - 2;
+        var pageSize = Math.Min(options.PageSize ?? maxPageSize, maxPageSize);
+
+        _paginator = new Paginator<T>(options.Items, pageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector);
     }
 
     private readonly SelectOptions<T> _options;

@@ -17,5 +17,7 @@ internal interface IConsoleDriver : IDisposable
     int CursorTop { get; }
     int BufferWidth { get; }
     int BufferHeight { get; }
+    int WindowWidth { get; }
+    int WindowHeight { get; }
     Action CancellationCallback { get; set; }
 }

@@ -103,6 +103,10 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
 
     public int BufferHeight => Console.BufferHeight;
 
+    public int WindowWidth => Console.WindowWidth;
+
+    public int WindowHeight => Console.WindowHeight;
+
     public Action CancellationCallback { get; set; }
 
     #endregion
