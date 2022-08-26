@@ -277,14 +277,14 @@ public class PropertyMetadataTests
         [BindIgnore]
         public int IntValue { get; set; }
 
-        public string StringValue { get; set; }
+        public string StringValue { get; set; } = null!;
     }
 
     public class ReadOnlyModel
     {
         public int IntValue { get; }
 
-        public string StringValue { get; set; }
+        public string StringValue { get; set; } = null!;
     }
 
     public class MemberItemsModel

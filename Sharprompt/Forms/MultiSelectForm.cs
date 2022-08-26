@@ -17,7 +17,7 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
         _options = options;
 
         var maxPageSize = ConsoleDriver.WindowHeight - 2;
-        var pageSize = Math.Min(options.PageSize ?? maxPageSize, maxPageSize);
+        var pageSize = Math.Min(options.PageSize, maxPageSize);
 
         _paginator = new Paginator<T>(options.Items, pageSize, Optional<T>.Empty, options.TextSelector);
 
