@@ -45,6 +45,7 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
 
     #region IConsoleDriver
 
+    // ReSharper disable once LocalizableElement
     public void Beep() => Console.Write("\a");
 
     public void Reset()
@@ -59,6 +60,7 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
     {
         SetCursorPosition(0, top);
 
+        // ReSharper disable once LocalizableElement
         Console.Write("\x1b[2K");
     }
 

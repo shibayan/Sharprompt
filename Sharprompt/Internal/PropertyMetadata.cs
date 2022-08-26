@@ -31,7 +31,7 @@ internal class PropertyMetadata
                                  .Select(x => new ValidationAttributeAdapter(x).GetValidator(propertyInfo.Name, model))
                                  .ToArray();
         ItemsProvider = (IItemsProvider)propertyInfo.GetCustomAttribute<InlineItemsAttribute>(true) ?? propertyInfo.GetCustomAttribute<MemberItemsAttribute>(true);
-        BindIgnore = propertyInfo.GetCustomAttribute<BindIgnoreAttribute>() != null;
+        BindIgnore = propertyInfo.GetCustomAttribute<BindIgnoreAttribute>() is not null;
     }
 
     public PropertyInfo PropertyInfo { get; }
