@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
 using Sharprompt.Internal;
@@ -32,7 +33,14 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
     {
         _previousTreatControlCAsInput = Console.TreatControlCAsInput;
 
-        Console.TreatControlCAsInput = true;
+        try
+        {
+            Console.TreatControlCAsInput = true;
+        }
+        catch (IOException)
+        {
+            throw new InvalidOperationException(Resource.Message_NotSupportedEnvironment);
+        }
     }
 
     private readonly bool _previousTreatControlCAsInput;
