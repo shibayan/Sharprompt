@@ -5,6 +5,12 @@ namespace Sharprompt.Example.Models;
 
 public class MyFormModel
 {
+    [Display(Name = "Id")]
+    [BindIgnore]
+    public int Id { get; set; }
+
+    public string ReadOnly { get; }
+
     [Display(Name = "What's your name?", Prompt = "Required", Order = 1)]
     [Required]
     public string Name { get; set; } = null!;

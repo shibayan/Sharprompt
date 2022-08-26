@@ -177,6 +177,24 @@ public class PropertyMetadataTests
     }
 
     [Fact]
+    public void BindIgnore()
+    {
+        var metadata = PropertyMetadataFactory.Create(new BindIgnoreModel());
+
+        Assert.NotNull(metadata);
+        Assert.Equal(1, metadata.Count);
+    }
+
+    [Fact]
+    public void ReadOnly()
+    {
+        var metadata = PropertyMetadataFactory.Create(new ReadOnlyModel());
+
+        Assert.NotNull(metadata);
+        Assert.Equal(1, metadata.Count);
+    }
+
+    [Fact]
     public void MemberItems()
     {
         var metadata = PropertyMetadataFactory.Create(new MemberItemsModel());
@@ -252,6 +270,21 @@ public class PropertyMetadataTests
 
         [InlineItems(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)]
         public IEnumerable<int> IntArray { get; set; } = null!;
+    }
+
+    public class BindIgnoreModel
+    {
+        [BindIgnore]
+        public int IntValue { get; set; }
+
+        public string StringValue { get; set; }
+    }
+
+    public class ReadOnlyModel
+    {
+        public int IntValue { get; }
+
+        public string StringValue { get; set; }
     }
 
     public class MemberItemsModel

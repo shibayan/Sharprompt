@@ -16,7 +16,10 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
 
         _options = options;
 
-        _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Empty, options.TextSelector);
+        var maxPageSize = ConsoleDriver.WindowHeight - 2;
+        var pageSize = Math.Min(options.PageSize ?? maxPageSize, maxPageSize);
+
+        _paginator = new Paginator<T>(options.Items, pageSize, Optional<T>.Empty, options.TextSelector);
 
         foreach (var defaultValue in options.DefaultValues)
         {
@@ -148,14 +151,7 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
 
             if (_paginator.TryGetSelectedItem(out var selectedItem) && EqualityComparer<T>.Default.Equals(item, selectedItem))
             {
-                if (_selectedItems.Contains(item))
-                {
-                    offscreenBuffer.WriteSelect($"{Prompt.Symbols.Selector} {Prompt.Symbols.Selected} {value}");
-                }
-                else
-                {
-                    offscreenBuffer.WriteSelect($"{Prompt.Symbols.Selector} {Prompt.Symbols.NotSelect} {value}");
-                }
+                offscreenBuffer.WriteSelect($"{Prompt.Symbols.Selector} {(_selectedItems.Contains(item) ? Prompt.Symbols.Selected : Prompt.Symbols.NotSelect)} {value}");
             }
             else
             {
@@ -170,7 +166,7 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
             }
         }
 
-        if (_paginator.PageCount > 1 && _options.Pagination != null)
+        if (_paginator.PageCount > 1 && _options.Pagination is not null)
         {
             offscreenBuffer.WriteLine();
             offscreenBuffer.WriteHint(_options.Pagination(_paginator.TotalCount, _paginator.SelectedPage + 1, _paginator.PageCount));
