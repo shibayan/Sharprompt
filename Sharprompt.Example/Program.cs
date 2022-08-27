@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Text;
+using System.Text.Json;
 
 using Sharprompt.Example.Models;
 
 namespace Sharprompt.Example;
 
+// ReSharper disable LocalizableElement
 class Program
 {
     static void Main(string[] args)
@@ -65,7 +67,7 @@ class Program
     private static void RunPasswordSample()
     {
         var secret = Prompt.Password("Type new password", placeholder: "At least 8 characters", validators: new[] { Validators.Required(), Validators.MinLength(8) });
-        Console.WriteLine("Password OK");
+        Console.WriteLine($"Password OK, {secret}");
     }
 
     private static void RunSelectSample()
@@ -101,6 +103,6 @@ class Program
     private static void RunBindSample()
     {
         var model = Prompt.Bind<MyFormModel>();
-        Console.WriteLine("Forms OK");
+        Console.WriteLine($"Forms OK, {JsonSerializer.Serialize(model)}");
     }
 }

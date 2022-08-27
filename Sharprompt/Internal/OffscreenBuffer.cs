@@ -113,7 +113,7 @@ internal class OffscreenBuffer : IDisposable
         public int Top { get; set; }
     }
 
-    private class TextInfo : IEquatable<TextInfo>
+    private readonly struct TextInfo
     {
         public TextInfo(string text, ConsoleColor color)
         {
@@ -125,30 +125,5 @@ internal class OffscreenBuffer : IDisposable
         public string Text { get; }
         public ConsoleColor Color { get; }
         public int Width { get; }
-
-        public bool Equals(TextInfo other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            return Text == other.Text && Color == other.Color;
-        }
-
-        public override bool Equals(object obj) => Equals(obj as TextInfo);
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (Text.GetHashCode() * 397) ^ (int)Color;
-            }
-        }
     }
 }

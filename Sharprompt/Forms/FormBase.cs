@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 using Sharprompt.Drivers;
 using Sharprompt.Internal;
@@ -57,16 +58,14 @@ internal abstract class FormBase<T> : IDisposable
 
     protected bool TryValidate(object input, IList<Func<object, ValidationResult>> validators)
     {
-        foreach (var validator in validators)
+        var result = validators.Select(x => x(input))
+                               .FirstOrDefault(x => x != ValidationResult.Success);
+
+        if (result is not null)
         {
-            var result = validator(input);
+            SetError(result);
 
-            if (result != ValidationResult.Success)
-            {
-                SetError(result);
-
-                return false;
-            }
+            return false;
         }
 
         return true;
