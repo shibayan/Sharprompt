@@ -2,12 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Sharprompt.Internal;
 using Sharprompt.Strings;
 
 namespace Sharprompt;
 
 public class MultiSelectOptions<T> where T : notnull
 {
+    public MultiSelectOptions()
+    {
+        if (typeof(T).IsAssignableTo(typeof(Enum)))
+        {
+            Items = EnumHelper<T>.GetValues();
+        }
+    }
+
     public string Message { get; set; } = null!;
 
     public IEnumerable<T> Items { get; set; } = null!;

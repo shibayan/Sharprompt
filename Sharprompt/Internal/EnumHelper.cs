@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Sharprompt.Internal;
 
-internal static class EnumHelper<TEnum> where TEnum : Enum
+internal static class EnumHelper<TEnum> where TEnum : notnull
 {
     static EnumHelper()
     {
@@ -22,7 +22,7 @@ internal static class EnumHelper<TEnum> where TEnum : Enum
 
     private static EnumMetadata GetEnumMetadata(TEnum value)
     {
-        var displayAttribute = typeof(TEnum).GetField(value.ToString())?.GetCustomAttribute<DisplayAttribute>();
+        var displayAttribute = typeof(TEnum).GetField(value.ToString()!)?.GetCustomAttribute<DisplayAttribute>();
 
         return new EnumMetadata
         {

@@ -1,12 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using Sharprompt.Internal;
 using Sharprompt.Strings;
 
 namespace Sharprompt;
 
 public class SelectOptions<T> where T : notnull
 {
+    public SelectOptions()
+    {
+        if (typeof(T).IsAssignableTo(typeof(Enum)))
+        {
+            Items = EnumHelper<T>.GetValues();
+        }
+    }
+
     public string Message { get; set; } = null!;
 
     public IEnumerable<T> Items { get; set; } = null!;

@@ -112,10 +112,19 @@ public static partial class Prompt
         return Select<T>(options =>
         {
             options.Message = message;
-            options.Items = items!;
+
+            if (items is not null)
+            {
+                options.Items = items;
+            }
+
             options.DefaultValue = defaultValue;
             options.PageSize = pageSize;
-            options.TextSelector = textSelector;
+
+            if (textSelector is not null)
+            {
+                options.TextSelector = textSelector;
+            }
         });
     }
 
@@ -140,12 +149,21 @@ public static partial class Prompt
         return MultiSelect<T>(options =>
         {
             options.Message = message;
-            options.Items = items!;
+
+            if (items is not null)
+            {
+                options.Items = items;
+            }
+
             options.DefaultValues = defaultValues ?? Enumerable.Empty<T>();
             options.PageSize = pageSize;
             options.Minimum = minimum;
             options.Maximum = maximum;
-            options.TextSelector = textSelector;
+
+            if (textSelector is not null)
+            {
+                options.TextSelector = textSelector;
+            }
         });
     }
 

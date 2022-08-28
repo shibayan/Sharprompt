@@ -9,7 +9,7 @@ public class MyFormModel
     [BindIgnore]
     public int Id { get; set; }
 
-    public string ReadOnly { get; }
+    public string ReadOnly { get; } = null!;
 
     [Display(Name = "What's your name?", Prompt = "Required", Order = 1)]
     [Required]
