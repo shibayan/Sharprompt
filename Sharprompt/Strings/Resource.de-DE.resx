@@ -139,10 +139,10 @@
     <value>Wert ist ungültig</value>
   </data>
   <data name="Validation_Maximum_InputRequired" xml:space="preserve">
-    <value>Es werden maximal {0} Einträge benötigt</value>
+    <value>Es sind maximal {0} Einträge erlaubt</value>
   </data>
   <data name="Validation_Maximum_SelectionRequired" xml:space="preserve">
-    <value>Es werden maximal {0} ausgewählte Einträge benötigt</value>
+    <value>Es sind maximal {0} ausgewählte Einträge erlaubt</value>
   </data>
   <data name="Validation_Minimum_InputRequired" xml:space="preserve">
     <value>Es werden minimal {0} Einträge benötigt</value>
