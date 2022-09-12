@@ -127,10 +127,10 @@
     <value>Typ {0} ist nicht kompatibel mit Typ {1}</value>
   </data>
   <data name="Validation_Type_MemberNotFound" xml:space="preserve">
-    <value>Typ {0} besitzt keine {1} Eigenschaft</value>
+    <value>Typ {0} besitzt keine Eigenschaft {1}</value>
   </data>
   <data name="MultiSelectForm_Message_Hint" xml:space="preserve">
-    <value>Drücke &lt;Leertaste&gt; zum Auswählen, &lt;Strg+A&gt; um alle auszuwählen, &lt;Strg+I&gt; um die Auswwahl umzukehren</value>
+    <value>Drücke &lt;Leertaste&gt; zum Auswählen, &lt;Strg+A&gt; um alle auszuwählen, &lt;Strg+I&gt; um die Auswahl umzukehren</value>
   </data>
   <data name="Message_Pagination" xml:space="preserve">
     <value>({0} Einträge, {1}/{2} Seiten)</value>
