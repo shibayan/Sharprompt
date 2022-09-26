@@ -14,7 +14,10 @@ internal class SelectForm<T> : FormBase<T>
 
         _options = options;
 
-        _paginator = new Paginator<T>(options.Items, options.PageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector);
+        var maxPageSize = ConsoleDriver.WindowHeight - 2;
+        var pageSize = Math.Min(options.PageSize ?? maxPageSize, maxPageSize);
+
+        _paginator = new Paginator<T>(options.Items, pageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector);
     }
 
     private readonly SelectOptions<T> _options;
@@ -97,7 +100,7 @@ internal class SelectForm<T> : FormBase<T>
             }
         }
 
-        if (_paginator.PageCount > 1 && _options.Pagination != null)
+        if (_paginator.PageCount > 1 && _options.Pagination is not null)
         {
             offscreenBuffer.WriteLine();
             offscreenBuffer.WriteHint(_options.Pagination(_paginator.TotalCount, _paginator.SelectedPage + 1, _paginator.PageCount));

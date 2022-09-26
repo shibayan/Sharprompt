@@ -31,17 +31,11 @@ internal static class EnumHelper<T>
         };
     }
 
-    public static string GetDisplayName(T value)
-    {
-        return s_metadataCache[value]?.DisplayName ?? value.ToString();
-    }
+    public static string GetDisplayName(T value) => s_metadataCache[value]?.DisplayName ?? value.ToString();
 
-    public static IEnumerable<T> GetValues()
-    {
-        return s_metadataCache.OrderBy(x => x.Value.Order)
-                     .Select(x => x.Key)
-                     .ToArray();
-    }
+    public static IEnumerable<T> GetValues() => s_metadataCache.OrderBy(x => x.Value.Order)
+                                                               .Select(x => x.Key)
+                                                               .ToArray();
 
     private class EnumMetadata
     {

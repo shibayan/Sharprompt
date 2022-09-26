@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
 using Sharprompt.Internal;
@@ -32,7 +33,14 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
     {
         _previousTreatControlCAsInput = Console.TreatControlCAsInput;
 
-        Console.TreatControlCAsInput = true;
+        try
+        {
+            Console.TreatControlCAsInput = true;
+        }
+        catch (IOException)
+        {
+            throw new InvalidOperationException(Resource.Message_NotSupportedEnvironment);
+        }
     }
 
     private readonly bool _previousTreatControlCAsInput;
@@ -45,6 +53,7 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
 
     #region IConsoleDriver
 
+    // ReSharper disable once LocalizableElement
     public void Beep() => Console.Write("\a");
 
     public void Reset()
@@ -59,6 +68,7 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
     {
         SetCursorPosition(0, top);
 
+        // ReSharper disable once LocalizableElement
         Console.Write("\x1b[2K");
     }
 
@@ -100,6 +110,10 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
     public int BufferWidth => Console.BufferWidth;
 
     public int BufferHeight => Console.BufferHeight;
+
+    public int WindowWidth => Console.WindowWidth;
+
+    public int WindowHeight => Console.WindowHeight;
 
     public Action CancellationCallback { get; set; }
 

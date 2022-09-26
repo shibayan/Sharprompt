@@ -31,6 +31,7 @@ internal class PropertyMetadata
                                  .Select(x => new ValidationAttributeAdapter(x).GetValidator(propertyInfo.Name, model))
                                  .ToArray();
         ItemsProvider = (IItemsProvider)propertyInfo.GetCustomAttribute<InlineItemsAttribute>(true) ?? propertyInfo.GetCustomAttribute<MemberItemsAttribute>(true);
+        BindIgnore = propertyInfo.GetCustomAttribute<BindIgnoreAttribute>() is not null;
     }
 
     public PropertyInfo PropertyInfo { get; }
@@ -45,6 +46,7 @@ internal class PropertyMetadata
     public object DefaultValue { get; }
     public IReadOnlyList<Func<object, ValidationResult>> Validators { get; }
     public IItemsProvider ItemsProvider { get; set; }
+    public bool BindIgnore { get; set; }
 
     public FormType DetermineFormType()
     {

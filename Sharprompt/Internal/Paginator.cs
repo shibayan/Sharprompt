@@ -6,10 +6,10 @@ namespace Sharprompt.Internal;
 
 internal class Paginator<T>
 {
-    public Paginator(IEnumerable<T> items, int? pageSize, Optional<T> defaultValue, Func<T, string> textSelector)
+    public Paginator(IEnumerable<T> items, int pageSize, Optional<T> defaultValue, Func<T, string> textSelector)
     {
         _items = items.ToArray();
-        _pageSize = pageSize ?? _items.Length;
+        _pageSize = Math.Min(pageSize, _items.Length);
         _textSelector = textSelector;
 
         InitializeDefaults(defaultValue);
