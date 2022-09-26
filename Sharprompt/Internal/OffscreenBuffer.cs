@@ -79,7 +79,18 @@ internal class OffscreenBuffer : IDisposable
             var physicalLeft = _pushedCursor.Left % _consoleDriver.BufferWidth;
             var physicalTop = _pushedCursor.Top + (_pushedCursor.Left / _consoleDriver.BufferWidth);
 
-            _consoleDriver.SetCursorPosition(physicalLeft, _cursorBottom - WrittenLineCount + physicalTop);
+            var consoleTop = _cursorBottom - WrittenLineCount + physicalTop;
+            if (_pushedCursor.Left > 0 && physicalLeft == 0)
+            {
+                _consoleDriver.WriteLine();
+                if (consoleTop == _consoleDriver.BufferHeight)
+                {
+                    _cursorBottom--;
+                    consoleTop--;
+                }
+            }
+
+            _consoleDriver.SetCursorPosition(physicalLeft, consoleTop);
         }
     }
 
