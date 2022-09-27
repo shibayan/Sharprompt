@@ -14,12 +14,17 @@ internal class InputForm<T> : FormBase<T>
         _options = options;
 
         _defaultValue = Optional<T>.Create(options.DefaultValue);
+
+        _navi = InputHistory.Shared.CreateHandler(this);
     }
 
     private readonly InputOptions<T> _options;
     private readonly Optional<T> _defaultValue;
 
     private readonly TextInputBuffer _textInputBuffer = new();
+    private InputHistory.Handler<T> _navi;
+
+    internal TextInputBuffer GetInput() => _textInputBuffer;
 
     protected override bool TryGetResult(out T result)
     {
@@ -70,6 +75,12 @@ internal class InputForm<T> : FormBase<T>
                 case ConsoleKey.Delete:
                     ConsoleDriver.Beep();
                     break;
+                case ConsoleKey.UpArrow:
+                    _navi.HistoryNext();
+                    break;
+                case ConsoleKey.DownArrow:
+                    _navi.HistoryPrevious();
+                    break;
                 default:
                     if (!char.IsControl(keyInfo.KeyChar))
                     {
@@ -116,6 +127,7 @@ internal class InputForm<T> : FormBase<T>
     private bool HandleEnter(out T result)
     {
         var input = _textInputBuffer.ToString();
+        _navi.AddHistory(input);
 
         try
         {
