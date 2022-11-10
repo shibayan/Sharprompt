@@ -21,7 +21,7 @@ public class ListOptions<T> where T : notnull
 
     internal void EnsureOptions()
     {
-        _ = Message ?? throw new ArgumentNullException(nameof(Message));
+        ArgumentNullException.ThrowIfNull(Message);
 
         if (Minimum < 0)
         {

@@ -16,7 +16,7 @@ public class PasswordOptions
 
     internal void EnsureOptions()
     {
-        _ = Message ?? throw new ArgumentNullException(nameof(Message));
-        _ = PasswordChar ?? throw new ArgumentNullException(nameof(PasswordChar));
+        ArgumentNullException.ThrowIfNull(Message);
+        ArgumentNullException.ThrowIfNull(PasswordChar);
     }
 }

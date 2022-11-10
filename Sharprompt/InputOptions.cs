@@ -16,6 +16,6 @@ public class InputOptions<T>
 
     internal void EnsureOptions()
     {
-        _ = Message ?? throw new ArgumentNullException(nameof(Message));
+        ArgumentNullException.ThrowIfNull(Message);
     }
 }

@@ -117,7 +117,9 @@ internal class OffscreenBuffer : IDisposable
     {
         public TextInfo(string text, ConsoleColor color)
         {
-            Text = text ?? throw new ArgumentNullException(nameof(text));
+            ArgumentNullException.ThrowIfNull(text);
+
+            Text = text;
             Color = color;
             Width = text.GetWidth();
         }
