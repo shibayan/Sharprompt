@@ -31,11 +31,11 @@ internal static class EnumHelper<TEnum> where TEnum : notnull
         };
     }
 
-    public static string? GetDisplayName(TEnum value) => s_metadataCache[value].DisplayName ?? value.ToString();
+    public static string GetDisplayName(TEnum value) => s_metadataCache[value].DisplayName ?? value.ToString()!;
 
     public static IEnumerable<TEnum> GetValues() => s_metadataCache.OrderBy(x => x.Value.Order)
-                                                               .Select(x => x.Key)
-                                                               .ToArray();
+                                                                   .Select(x => x.Key)
+                                                                   .ToArray();
 
     private class EnumMetadata
     {
