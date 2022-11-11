@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using Sharprompt.Drivers;
@@ -44,7 +45,7 @@ internal abstract class FormBase<T> : IDisposable
         }
     }
 
-    protected abstract bool TryGetResult(out T result);
+    protected abstract bool TryGetResult([NotNullWhen(true)] out T? result);
 
     protected abstract void InputTemplate(OffscreenBuffer offscreenBuffer);
 
@@ -54,9 +55,9 @@ internal abstract class FormBase<T> : IDisposable
 
     protected void SetError(Exception exception) => SetError(exception.Message);
 
-    protected void SetError(ValidationResult validationResult) => SetError(validationResult.ErrorMessage);
+    protected void SetError(ValidationResult validationResult) => SetError(validationResult.ErrorMessage!);
 
-    protected bool TryValidate(object input, IList<Func<object, ValidationResult>> validators)
+    protected bool TryValidate([NotNullWhen(true)] object? input, IList<Func<object?, ValidationResult>> validators)
     {
         var result = validators.Select(x => x(input))
                                .FirstOrDefault(x => x != ValidationResult.Success);

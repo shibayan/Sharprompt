@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 using Sharprompt.Forms;
@@ -9,21 +10,21 @@ namespace Sharprompt;
 
 public static partial class Prompt
 {
-    public static T Bind<T>() where T : new()
+    public static T Bind<T>() where T : notnull, new()
     {
         var model = new T();
 
         return Bind(model);
     }
 
-    public static T Bind<T>(T model)
+    public static T Bind<T>(T model) where T : notnull
     {
         StartBind(model);
 
         return model;
     }
 
-    private static void StartBind<T>(T model)
+    private static void StartBind<T>(T model) where T : notnull
     {
         var propertyMetadatas = PropertyMetadataFactory.Create(model);
 
@@ -71,12 +72,12 @@ public static partial class Prompt
 
     private static object MakeList(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeListCore), propertyMetadata, propertyMetadata.ElementType);
 
-    private static IEnumerable<T> MakeListCore<T>(PropertyMetadata propertyMetadata)
+    private static IEnumerable<T> MakeListCore<T>(PropertyMetadata propertyMetadata) where T : notnull
     {
         return List<T>(options =>
         {
             options.Message = propertyMetadata.Message;
-            options.DefaultValues = (IEnumerable<T>)propertyMetadata.DefaultValue;
+            options.DefaultValues = (IEnumerable<T>?)propertyMetadata.DefaultValue ?? Enumerable.Empty<T>();
 
             options.Validators.Merge(propertyMetadata.Validators);
         });
@@ -84,13 +85,13 @@ public static partial class Prompt
 
     private static object MakeMultiSelect(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeMultiSelectCore), propertyMetadata, propertyMetadata.ElementType);
 
-    private static IEnumerable<T> MakeMultiSelectCore<T>(PropertyMetadata propertyMetadata)
+    private static IEnumerable<T> MakeMultiSelectCore<T>(PropertyMetadata propertyMetadata) where T : notnull
     {
         return MultiSelect<T>(options =>
         {
             options.Message = propertyMetadata.Message;
-            options.Items = propertyMetadata.ItemsProvider?.GetItems<T>(propertyMetadata.PropertyInfo);
-            options.DefaultValues = (IEnumerable<T>)propertyMetadata.DefaultValue;
+            options.Items = propertyMetadata.ItemsProvider.GetItems<T>(propertyMetadata.PropertyInfo);
+            options.DefaultValues = (IEnumerable<T>?)propertyMetadata.DefaultValue ?? Enumerable.Empty<T>();
         });
     }
 
@@ -107,21 +108,21 @@ public static partial class Prompt
 
     private static object MakeSelect(PropertyMetadata propertyMetadata) => InvokeMethod(nameof(MakeSelectCore), propertyMetadata);
 
-    private static T MakeSelectCore<T>(PropertyMetadata propertyMetadata)
+    private static T MakeSelectCore<T>(PropertyMetadata propertyMetadata) where T : notnull
     {
         return Select<T>(options =>
         {
             options.Message = propertyMetadata.Message;
-            options.Items = propertyMetadata.ItemsProvider?.GetItems<T>(propertyMetadata.PropertyInfo);
-            options.DefaultValue = propertyMetadata.DefaultValue;
+            options.Items = propertyMetadata.ItemsProvider.GetItems<T>(propertyMetadata.PropertyInfo);
+            options.DefaultValue = (T?)propertyMetadata.DefaultValue;
         });
     }
 
-    private static object InvokeMethod(string name, PropertyMetadata propertyMetadata, Type genericType = default)
+    private static object InvokeMethod(string name, PropertyMetadata propertyMetadata, Type? genericType = default)
     {
-        var method = typeof(Prompt).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)
+        var method = typeof(Prompt).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)!
                                    .MakeGenericMethod(genericType ?? propertyMetadata.Type);
 
-        return method.Invoke(null, new object[] { propertyMetadata });
+        return method.Invoke(null, new object[] { propertyMetadata })!;
     }
 }

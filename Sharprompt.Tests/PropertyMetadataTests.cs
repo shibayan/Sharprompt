@@ -213,12 +213,12 @@ public class PropertyMetadataTests
     {
         [Display(Name = "Input Value", Prompt = "Required Value")]
         [Required]
-        public string Value { get; set; }
+        public string Value { get; set; } = null!;
     }
 
     public class ComplexModel
     {
-        public string Value1 { get; set; }
+        public string Value1 { get; set; } = null!;
         public int Value2 { get; set; }
         public bool Value3 { get; set; }
     }
@@ -226,7 +226,7 @@ public class PropertyMetadataTests
     public class ComplexWithOrderModel
     {
         [Display(Order = 3)]
-        public string Value1 { get; set; }
+        public string Value1 { get; set; } = null!;
 
         [Display(Order = 1)]
         public int Value2 { get; set; }
@@ -237,9 +237,9 @@ public class PropertyMetadataTests
 
     public class CollectionModel
     {
-        public IEnumerable<string> StrArray { get; set; }
+        public IEnumerable<string> StrArray { get; set; } = null!;
 
-        public IReadOnlyList<int> IntArray { get; set; }
+        public IReadOnlyList<int> IntArray { get; set; } = null!;
     }
 
     public class NullableModel
@@ -253,7 +253,7 @@ public class PropertyMetadataTests
     {
         public EnumValue Enum1 { get; set; }
         public EnumValue? Enum2 { get; set; }
-        public IEnumerable<EnumValue> Enum3 { get; set; }
+        public IEnumerable<EnumValue> Enum3 { get; set; } = null!;
     }
 
     public enum EnumValue
@@ -269,7 +269,7 @@ public class PropertyMetadataTests
         public int IntValue { get; set; }
 
         [InlineItems(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)]
-        public IEnumerable<int> IntArray { get; set; }
+        public IEnumerable<int> IntArray { get; set; } = null!;
     }
 
     public class BindIgnoreModel
@@ -277,14 +277,14 @@ public class PropertyMetadataTests
         [BindIgnore]
         public int IntValue { get; set; }
 
-        public string StringValue { get; set; }
+        public string StringValue { get; set; } = null!;
     }
 
     public class ReadOnlyModel
     {
         public int IntValue { get; }
 
-        public string StringValue { get; set; }
+        public string StringValue { get; set; } = null!;
     }
 
     public class MemberItemsModel

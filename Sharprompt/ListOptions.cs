@@ -1,26 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 using Sharprompt.Strings;
 
 namespace Sharprompt;
 
-public class ListOptions<T>
+public class ListOptions<T> where T : notnull
 {
-    public string Message { get; set; }
+    public string Message { get; set; } = null!;
 
-    public IEnumerable<T> DefaultValues { get; set; }
+    public IEnumerable<T> DefaultValues { get; set; } = Enumerable.Empty<T>();
 
     public int Minimum { get; set; } = 1;
 
     public int Maximum { get; set; } = int.MaxValue;
 
-    public IList<Func<object, ValidationResult>> Validators { get; } = new List<Func<object, ValidationResult>>();
+    public IList<Func<object?, ValidationResult>> Validators { get; } = new List<Func<object?, ValidationResult>>();
 
     internal void EnsureOptions()
     {
-        _ = Message ?? throw new ArgumentNullException(nameof(Message));
+        ArgumentNullException.ThrowIfNull(Message);
 
         if (Minimum < 0)
         {

@@ -19,7 +19,7 @@ internal class OffscreenBuffer : IDisposable
     private readonly List<List<TextInfo>> _outputBuffer = new() { new List<TextInfo>() };
 
     private int _cursorBottom;
-    private Cursor _pushedCursor;
+    private Cursor? _pushedCursor;
 
     private int WrittenLineCount => _outputBuffer.Sum(x => (x.Sum(xs => xs.Width) - 1) / _consoleDriver.BufferWidth + 1) - 1;
 
@@ -120,15 +120,17 @@ internal class OffscreenBuffer : IDisposable
 
     private class Cursor
     {
-        public int Left { get; set; }
-        public int Top { get; set; }
+        public int Left { get; init; }
+        public int Top { get; init; }
     }
 
     private readonly struct TextInfo
     {
         public TextInfo(string text, ConsoleColor color)
         {
-            Text = text ?? throw new ArgumentNullException(nameof(text));
+            ArgumentNullException.ThrowIfNull(text);
+
+            Text = text;
             Color = color;
             Width = text.GetWidth();
         }

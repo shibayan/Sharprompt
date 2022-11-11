@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using Sharprompt.Internal;
@@ -7,7 +8,7 @@ using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
-internal class ListForm<T> : FormBase<IEnumerable<T>>
+internal class ListForm<T> : FormBase<IEnumerable<T>> where T : notnull
 {
     public ListForm(ListOptions<T> options)
     {
@@ -15,7 +16,7 @@ internal class ListForm<T> : FormBase<IEnumerable<T>>
 
         _options = options;
 
-        _inputItems.AddRange(options.DefaultValues ?? Enumerable.Empty<T>());
+        _inputItems.AddRange(options.DefaultValues);
     }
 
     private readonly ListOptions<T> _options;
@@ -23,7 +24,7 @@ internal class ListForm<T> : FormBase<IEnumerable<T>>
     private readonly List<T> _inputItems = new();
     private readonly TextInputBuffer _textInputBuffer = new();
 
-    protected override bool TryGetResult(out IEnumerable<T> result)
+    protected override bool TryGetResult([NotNullWhen(true)] out IEnumerable<T>? result)
     {
         do
         {
@@ -91,7 +92,7 @@ internal class ListForm<T> : FormBase<IEnumerable<T>>
         offscreenBuffer.WriteAnswer(string.Join(", ", result));
     }
 
-    private bool HandleEnter(out IEnumerable<T> result)
+    private bool HandleEnter(out IEnumerable<T>? result)
     {
         var input = _textInputBuffer.ToString();
 

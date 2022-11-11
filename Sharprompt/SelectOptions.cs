@@ -6,31 +6,33 @@ using Sharprompt.Strings;
 
 namespace Sharprompt;
 
-public class SelectOptions<T>
+public class SelectOptions<T> where T : notnull
 {
-    public string Message { get; set; }
-
-    public IEnumerable<T> Items { get; set; }
-
-    public object DefaultValue { get; set; }
-
-    public int? PageSize { get; set; }
-
-    public Func<T, string> TextSelector { get; set; }
-
-    public Func<int, int, int, string> Pagination { get; set; }
-
-    internal void EnsureOptions()
+    public SelectOptions()
     {
-        if (Items is null && typeof(T).IsEnum)
+        if (typeof(T).IsAssignableTo(typeof(Enum)))
         {
             Items = EnumHelper<T>.GetValues();
         }
+    }
 
-        TextSelector ??= typeof(T).IsEnum ? EnumHelper<T>.GetDisplayName : x => x.ToString();
-        Pagination ??= (count, current, total) => string.Format(Resource.Message_Pagination, count, current, total);
+    public string Message { get; set; } = null!;
 
-        _ = Message ?? throw new ArgumentNullException(nameof(Message));
-        _ = Items ?? throw new ArgumentNullException(nameof(Items));
+    public IEnumerable<T> Items { get; set; } = null!;
+
+    public T? DefaultValue { get; set; }
+
+    public int PageSize { get; set; } = int.MaxValue;
+
+    public Func<T, string> TextSelector { get; set; } = x => x.ToString()!;
+
+    public Func<int, int, int, string> Pagination { get; set; } = (count, current, total) => string.Format(Resource.Message_Pagination, count, current, total);
+
+    internal void EnsureOptions()
+    {
+        ArgumentNullException.ThrowIfNull(Message);
+        ArgumentNullException.ThrowIfNull(Items);
+        ArgumentNullException.ThrowIfNull(TextSelector);
+        ArgumentNullException.ThrowIfNull(Pagination);
     }
 }

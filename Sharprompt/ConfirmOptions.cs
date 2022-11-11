@@ -4,12 +4,12 @@ namespace Sharprompt;
 
 public class ConfirmOptions
 {
-    public string Message { get; set; }
+    public string Message { get; set; } = null!;
 
     public bool? DefaultValue { get; set; }
 
     internal void EnsureOptions()
     {
-        _ = Message ?? throw new ArgumentNullException(nameof(Message));
+        ArgumentNullException.ThrowIfNull(Message);
     }
 }

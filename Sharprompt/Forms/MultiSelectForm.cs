@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using Sharprompt.Internal;
@@ -7,7 +8,7 @@ using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
-internal class MultiSelectForm<T> : FormBase<IEnumerable<T>>
+internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
 {
     public MultiSelectForm(MultiSelectOptions<T> options)
     {
@@ -16,16 +17,13 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>>
         _options = options;
 
         var maxPageSize = ConsoleDriver.WindowHeight - 2;
-        var pageSize = Math.Min(options.PageSize ?? maxPageSize, maxPageSize);
+        var pageSize = Math.Min(options.PageSize, maxPageSize);
 
         _paginator = new Paginator<T>(options.Items, pageSize, Optional<T>.Empty, options.TextSelector);
 
-        if (options.DefaultValues is not null)
+        foreach (var defaultValue in options.DefaultValues)
         {
-            foreach (var defaultValue in options.DefaultValues)
-            {
-                _selectedItems.Add(defaultValue);
-            }
+            _selectedItems.Add(defaultValue);
         }
     }
 
@@ -35,7 +33,7 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>>
     private readonly HashSet<T> _selectedItems = new();
     private readonly TextInputBuffer _filterBuffer = new();
 
-    protected override bool TryGetResult(out IEnumerable<T> result)
+    protected override bool TryGetResult([NotNullWhen(true)] out IEnumerable<T>? result)
     {
         do
         {

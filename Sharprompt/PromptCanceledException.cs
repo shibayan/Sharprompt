@@ -31,5 +31,5 @@ public class PromptCanceledException : Exception
     {
     }
 
-    public string PromptType { get; }
+    public string? PromptType { get; }
 }

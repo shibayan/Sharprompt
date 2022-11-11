@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 using Sharprompt.Internal;
 using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
-internal class SelectForm<T> : FormBase<T>
+internal class SelectForm<T> : FormBase<T> where T : notnull
 {
     public SelectForm(SelectOptions<T> options)
     {
@@ -15,7 +16,7 @@ internal class SelectForm<T> : FormBase<T>
         _options = options;
 
         var maxPageSize = ConsoleDriver.WindowHeight - 2;
-        var pageSize = Math.Min(options.PageSize ?? maxPageSize, maxPageSize);
+        var pageSize = Math.Min(options.PageSize, maxPageSize);
 
         _paginator = new Paginator<T>(options.Items, pageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector);
     }
@@ -25,7 +26,7 @@ internal class SelectForm<T> : FormBase<T>
 
     private readonly TextInputBuffer _filterBuffer = new();
 
-    protected override bool TryGetResult(out T result)
+    protected override bool TryGetResult([NotNullWhen(true)] out T? result)
     {
         do
         {
