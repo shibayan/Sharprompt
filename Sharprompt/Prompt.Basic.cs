@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 
 using Sharprompt.Forms;
 using Sharprompt.Internal;
@@ -155,7 +154,11 @@ public static partial class Prompt
                 options.Items = items;
             }
 
-            options.DefaultValues = defaultValues ?? Enumerable.Empty<T>();
+            if (defaultValues is not null)
+            {
+                options.DefaultValues = defaultValues;
+            }
+
             options.PageSize = pageSize;
             options.Minimum = minimum;
             options.Maximum = maximum;

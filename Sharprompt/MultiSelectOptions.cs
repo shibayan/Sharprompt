@@ -14,6 +14,7 @@ public class MultiSelectOptions<T> where T : notnull
         if (typeof(T).IsAssignableTo(typeof(Enum)))
         {
             Items = EnumHelper<T>.GetValues();
+            TextSelector = EnumHelper<T>.GetDisplayName;
         }
     }
 
