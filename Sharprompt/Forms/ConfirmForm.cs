@@ -108,7 +108,7 @@ internal class ConfirmForm : FormBase<bool>
         else
         {
             if (input.Equals(Resource.ConfirmForm_Answer_Yes, StringComparison.OrdinalIgnoreCase) ||
-                input.Equals(Resource.ConfirmForm_Answer_Yes.Remove(1), StringComparison.OrdinalIgnoreCase))
+                input.Equals(Resource.ConfirmForm_Answer_Yes[..1], StringComparison.OrdinalIgnoreCase))
             {
                 result = true;
 
@@ -116,7 +116,7 @@ internal class ConfirmForm : FormBase<bool>
             }
 
             if (input.Equals(Resource.ConfirmForm_Answer_No, StringComparison.OrdinalIgnoreCase) ||
-                input.Equals(Resource.ConfirmForm_Answer_No.Remove(1), StringComparison.OrdinalIgnoreCase))
+                input.Equals(Resource.ConfirmForm_Answer_No[..1], StringComparison.OrdinalIgnoreCase))
             {
                 result = false;
 
