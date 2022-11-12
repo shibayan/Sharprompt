@@ -78,7 +78,7 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
 
         if (keyInfo.Key == ConsoleKey.C && keyInfo.Modifiers == ConsoleModifiers.Control)
         {
-            CancellationCallback?.Invoke();
+            CancellationCallback.Invoke();
         }
 
         return keyInfo;
@@ -114,7 +114,7 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
 
     public int WindowHeight => Console.WindowHeight;
 
-    public Action CancellationCallback { get; set; } = null!;
+    public Action CancellationCallback { get; set; } = () => { };
 
     #endregion
 }

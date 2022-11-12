@@ -25,7 +25,7 @@ public static partial class Prompt
         return Input(options);
     }
 
-    public static T Input<T>(string message, object? defaultValue = default, string? placeholder = default, IList<Func<object?, ValidationResult>>? validators = default)
+    public static T Input<T>(string message, object? defaultValue = default, string? placeholder = default, IList<Func<object?, ValidationResult?>>? validators = default)
     {
         return Input<T>(options =>
         {
@@ -53,7 +53,7 @@ public static partial class Prompt
         return Password(options);
     }
 
-    public static string Password(string message, string passwordChar = "*", string? placeholder = default, IList<Func<object?, ValidationResult>>? validators = default)
+    public static string Password(string message, string passwordChar = "*", string? placeholder = default, IList<Func<object?, ValidationResult?>>? validators = default)
     {
         return Password(options =>
         {
@@ -186,7 +186,7 @@ public static partial class Prompt
         return List(options);
     }
 
-    public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = int.MaxValue, IList<Func<object?, ValidationResult>>? validators = default) where T : notnull
+    public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = int.MaxValue, IList<Func<object?, ValidationResult?>>? validators = default) where T : notnull
     {
         return List<T>(options =>
         {

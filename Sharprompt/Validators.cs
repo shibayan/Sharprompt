@@ -8,7 +8,7 @@ namespace Sharprompt;
 
 public static class Validators
 {
-    public static Func<object?, ValidationResult> Required(string? errorMessage = default)
+    public static Func<object?, ValidationResult?> Required(string? errorMessage = default)
     {
         return input =>
         {
@@ -22,58 +22,58 @@ public static class Validators
                 return new ValidationResult(errorMessage ?? Resource.Validation_Required);
             }
 
-            return ValidationResult.Success!;
+            return ValidationResult.Success;
         };
     }
 
-    public static Func<object?, ValidationResult> MinLength(int length, string? errorMessage = default)
+    public static Func<object?, ValidationResult?> MinLength(int length, string? errorMessage = default)
     {
         return input =>
         {
             if (input is not string strValue)
             {
-                return ValidationResult.Success!;
+                return ValidationResult.Success;
             }
 
             if (strValue.Length >= length)
             {
-                return ValidationResult.Success!;
+                return ValidationResult.Success;
             }
 
             return new ValidationResult(errorMessage ?? Resource.Validation_MinLength);
         };
     }
 
-    public static Func<object?, ValidationResult> MaxLength(int length, string? errorMessage = default)
+    public static Func<object?, ValidationResult?> MaxLength(int length, string? errorMessage = default)
     {
         return input =>
         {
             if (input is not string strValue)
             {
-                return ValidationResult.Success!;
+                return ValidationResult.Success;
             }
 
             if (strValue.Length <= length)
             {
-                return ValidationResult.Success!;
+                return ValidationResult.Success;
             }
 
             return new ValidationResult(errorMessage ?? Resource.Validation_MaxLength);
         };
     }
 
-    public static Func<object?, ValidationResult> RegularExpression(string pattern, string? errorMessage = default)
+    public static Func<object?, ValidationResult?> RegularExpression(string pattern, string? errorMessage = default)
     {
         return input =>
         {
             if (input is not string strValue)
             {
-                return ValidationResult.Success!;
+                return ValidationResult.Success;
             }
 
             if (Regex.IsMatch(strValue, pattern))
             {
-                return ValidationResult.Success!;
+                return ValidationResult.Success;
             }
 
             return new ValidationResult(errorMessage ?? Resource.Validation_RegularExpression);

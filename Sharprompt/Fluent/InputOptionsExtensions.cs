@@ -26,7 +26,7 @@ public static class InputOptionsExtensions
         return options;
     }
 
-    public static InputOptions<T> AddValidators<T>(this InputOptions<T> options, params Func<object?, ValidationResult>[] validators)
+    public static InputOptions<T> AddValidators<T>(this InputOptions<T> options, params Func<object?, ValidationResult?>[] validators)
     {
         foreach (var validator in validators)
         {
