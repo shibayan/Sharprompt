@@ -101,7 +101,7 @@ internal class SelectForm<T> : FormBase<T> where T : notnull
             }
         }
 
-        if (_paginator.PageCount > 1 && _options.Pagination is not null)
+        if (_paginator.PageCount > 1)
         {
             offscreenBuffer.WriteLine();
             offscreenBuffer.WriteHint(_options.Pagination(_paginator.TotalCount, _paginator.SelectedPage + 1, _paginator.PageCount));

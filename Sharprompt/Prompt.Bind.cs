@@ -40,7 +40,7 @@ public static partial class Prompt
                 FormType.MultiSelect => MakeMultiSelect(propertyMetadata),
                 FormType.Password => MakePassword(propertyMetadata),
                 FormType.Select => MakeSelect(propertyMetadata),
-                _ => null
+                _ => throw new ArgumentOutOfRangeException()
             };
 
             propertyMetadata.PropertyInfo.SetValue(model, result);
