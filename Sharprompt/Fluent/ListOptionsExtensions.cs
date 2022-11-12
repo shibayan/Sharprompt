@@ -34,7 +34,7 @@ public static class ListOptionsExtensions
         return options;
     }
 
-    public static ListOptions<T> AddValidators<T>(this ListOptions<T> options, params Func<object?, ValidationResult>[] validators) where T : notnull
+    public static ListOptions<T> AddValidators<T>(this ListOptions<T> options, params Func<object?, ValidationResult?>[] validators) where T : notnull
     {
         foreach (var validator in validators)
         {

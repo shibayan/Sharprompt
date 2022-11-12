@@ -57,7 +57,7 @@ internal abstract class FormBase<T> : IDisposable
 
     protected void SetError(ValidationResult validationResult) => SetError(validationResult.ErrorMessage!);
 
-    protected bool TryValidate([NotNullWhen(true)] object? input, IList<Func<object?, ValidationResult>> validators)
+    protected bool TryValidate([NotNullWhen(true)] object? input, IList<Func<object?, ValidationResult?>> validators)
     {
         var result = validators.Select(x => x(input))
                                .FirstOrDefault(x => x != ValidationResult.Success);

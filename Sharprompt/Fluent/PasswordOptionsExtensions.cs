@@ -26,7 +26,7 @@ public static class PasswordOptionsExtensions
         return options;
     }
 
-    public static PasswordOptions AddValidators(this PasswordOptions options, params Func<object?, ValidationResult>[] validators)
+    public static PasswordOptions AddValidators(this PasswordOptions options, params Func<object?, ValidationResult?>[] validators)
     {
         foreach (var validator in validators)
         {

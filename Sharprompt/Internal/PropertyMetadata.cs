@@ -46,7 +46,7 @@ internal class PropertyMetadata
     public string? Placeholder { get; set; }
     public int? Order { get; }
     public object? DefaultValue { get; }
-    public IReadOnlyList<Func<object?, ValidationResult>> Validators { get; }
+    public IReadOnlyList<Func<object?, ValidationResult?>> Validators { get; }
     public IItemsProvider ItemsProvider { get; set; }
     public bool BindIgnore { get; set; }
 
@@ -89,7 +89,7 @@ internal class PropertyMetadata
 
         private readonly ValidationAttribute _validationAttribute;
 
-        public Func<object?, ValidationResult> GetValidator(string propertyName, object model)
+        public Func<object?, ValidationResult?> GetValidator(string propertyName, object model)
         {
             var validationContext = new ValidationContext(model)
             {
@@ -97,7 +97,7 @@ internal class PropertyMetadata
                 MemberName = propertyName
             };
 
-            return input => _validationAttribute.GetValidationResult(input, validationContext)!;
+            return input => _validationAttribute.GetValidationResult(input, validationContext);
         }
     }
 }
