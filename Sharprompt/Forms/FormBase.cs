@@ -60,12 +60,9 @@ internal abstract class FormBase<T> : IDisposable
                 return HandleEnter(out result);
             }
 
-            if (KeyHandlerMaps.TryGetValue(keyInfo.Key, out var keyHandler))
+            if (KeyHandlerMaps.TryGetValue(keyInfo.Key, out var keyHandler) && keyHandler(keyInfo))
             {
-                if (keyHandler(keyInfo))
-                {
-                    continue;
-                }
+                continue;
             }
 
             if (!char.IsControl(keyInfo.KeyChar))
