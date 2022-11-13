@@ -5,7 +5,7 @@ using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
-internal class ConfirmForm : FormBase<bool>
+internal class ConfirmForm : TextFormBase<bool>
 {
     public ConfirmForm(ConfirmOptions options)
     {
@@ -15,51 +15,6 @@ internal class ConfirmForm : FormBase<bool>
     }
 
     private readonly ConfirmOptions _options;
-
-    private readonly TextInputBuffer _textInputBuffer = new();
-
-    protected override bool TryGetResult(out bool result)
-    {
-        do
-        {
-            var keyInfo = ConsoleDriver.ReadKey();
-
-            switch (keyInfo.Key)
-            {
-                case ConsoleKey.Enter:
-                    return HandleEnter(out result);
-                case ConsoleKey.LeftArrow when !_textInputBuffer.IsStart:
-                    _textInputBuffer.MoveBackward();
-                    break;
-                case ConsoleKey.RightArrow when !_textInputBuffer.IsEnd:
-                    _textInputBuffer.MoveForward();
-                    break;
-                case ConsoleKey.Backspace when !_textInputBuffer.IsStart:
-                    _textInputBuffer.Backspace();
-                    break;
-                case ConsoleKey.Delete when !_textInputBuffer.IsEnd:
-                    _textInputBuffer.Delete();
-                    break;
-                case ConsoleKey.LeftArrow:
-                case ConsoleKey.RightArrow:
-                case ConsoleKey.Backspace:
-                case ConsoleKey.Delete:
-                    ConsoleDriver.Beep();
-                    break;
-                default:
-                    if (!char.IsControl(keyInfo.KeyChar))
-                    {
-                        _textInputBuffer.Insert(keyInfo.KeyChar);
-                    }
-                    break;
-            }
-
-        } while (ConsoleDriver.KeyAvailable);
-
-        result = default;
-
-        return false;
-    }
 
     protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
     {
@@ -81,7 +36,7 @@ internal class ConfirmForm : FormBase<bool>
         }
 
         offscreenBuffer.WriteHint($"({answerYes}/{answerNo}) ");
-        offscreenBuffer.WriteInput(_textInputBuffer);
+        offscreenBuffer.WriteInput(InputBuffer);
     }
 
     protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, bool result)
@@ -90,9 +45,9 @@ internal class ConfirmForm : FormBase<bool>
         offscreenBuffer.WriteAnswer(result ? Resource.ConfirmForm_Answer_Yes : Resource.ConfirmForm_Answer_No);
     }
 
-    private bool HandleEnter(out bool result)
+    protected override bool HandleEnter(out bool result)
     {
-        var input = _textInputBuffer.ToString();
+        var input = InputBuffer.ToString();
 
         if (string.IsNullOrEmpty(input))
         {
@@ -122,6 +77,8 @@ internal class ConfirmForm : FormBase<bool>
 
                 return true;
             }
+
+            InputBuffer.Clear();
 
             SetError(Resource.Validation_Invalid);
         }

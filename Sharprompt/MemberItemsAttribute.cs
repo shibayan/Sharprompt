@@ -26,7 +26,7 @@ public sealed class MemberItemsAttribute : Attribute, IItemsProvider
     private readonly string _memberName;
     private readonly Type? _memberType;
 
-    public IEnumerable<T> GetItems<T>(PropertyInfo targetPropertyInfo)
+    public IEnumerable<T> GetItems<T>(PropertyInfo targetPropertyInfo) where T : notnull
     {
         var targetType = _memberType ?? targetPropertyInfo.DeclaringType;
 

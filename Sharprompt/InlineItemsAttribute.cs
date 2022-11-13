@@ -17,5 +17,5 @@ public sealed class InlineItemsAttribute : Attribute, IItemsProvider
 
     private readonly object[] _items;
 
-    public IEnumerable<T> GetItems<T>(PropertyInfo targetPropertyInfo) => _items.Cast<T>();
+    public IEnumerable<T> GetItems<T>(PropertyInfo targetPropertyInfo) where T : notnull => _items.Cast<T>();
 }

@@ -19,62 +19,19 @@ internal class SelectForm<T> : FormBase<T> where T : notnull
         var pageSize = Math.Min(options.PageSize, maxPageSize);
 
         _paginator = new Paginator<T>(options.Items, pageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector);
+
+        KeyHandlerMaps = new()
+        {
+            [ConsoleKey.UpArrow] = HandleUpArrow,
+            [ConsoleKey.DownArrow] = HandleDownArrow,
+            [ConsoleKey.LeftArrow] = HandleLeftArrow,
+            [ConsoleKey.RightArrow] = HandleRightArrow,
+            [ConsoleKey.Backspace] = HandleBackspace
+        };
     }
 
     private readonly SelectOptions<T> _options;
     private readonly Paginator<T> _paginator;
-
-    private readonly TextInputBuffer _filterBuffer = new();
-
-    protected override bool TryGetResult([NotNullWhen(true)] out T? result)
-    {
-        do
-        {
-            var keyInfo = ConsoleDriver.ReadKey();
-
-            switch (keyInfo.Key)
-            {
-                case ConsoleKey.Enter when _paginator.TryGetSelectedItem(out result):
-                    return true;
-                case ConsoleKey.Enter:
-                    SetError(Resource.Validation_Required);
-                    break;
-                case ConsoleKey.UpArrow:
-                    _paginator.PreviousItem();
-                    break;
-                case ConsoleKey.DownArrow:
-                    _paginator.NextItem();
-                    break;
-                case ConsoleKey.LeftArrow:
-                    _paginator.PreviousPage();
-                    break;
-                case ConsoleKey.RightArrow:
-                    _paginator.NextPage();
-                    break;
-                case ConsoleKey.Backspace when !_filterBuffer.IsStart:
-                    _filterBuffer.Backspace();
-
-                    _paginator.UpdateFilter(_filterBuffer.ToString());
-                    break;
-                case ConsoleKey.Backspace:
-                    ConsoleDriver.Beep();
-                    break;
-                default:
-                    if (!char.IsControl(keyInfo.KeyChar))
-                    {
-                        _filterBuffer.Insert(keyInfo.KeyChar);
-
-                        _paginator.UpdateFilter(_filterBuffer.ToString());
-                    }
-                    break;
-            }
-
-        } while (ConsoleDriver.KeyAvailable);
-
-        result = default;
-
-        return false;
-    }
 
     protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
     {
@@ -112,5 +69,67 @@ internal class SelectForm<T> : FormBase<T> where T : notnull
     {
         offscreenBuffer.WriteDone(_options.Message);
         offscreenBuffer.WriteAnswer(_options.TextSelector(result));
+    }
+
+    protected override bool HandleEnter([NotNullWhen(true)] out T? result)
+    {
+        if (_paginator.TryGetSelectedItem(out result))
+        {
+            return true;
+        }
+
+        SetError(Resource.Validation_Required);
+
+        return false;
+    }
+
+    protected override bool HandleTextInput(ConsoleKeyInfo keyInfo)
+    {
+        base.HandleTextInput(keyInfo);
+
+        _paginator.UpdateFilter(InputBuffer.ToString());
+
+        return true;
+    }
+
+    private bool HandleUpArrow(ConsoleKeyInfo keyInfo)
+    {
+        _paginator.PreviousItem();
+
+        return true;
+    }
+
+    private bool HandleDownArrow(ConsoleKeyInfo keyInfo)
+    {
+        _paginator.NextItem();
+
+        return true;
+    }
+
+    private bool HandleLeftArrow(ConsoleKeyInfo keyInfo)
+    {
+        _paginator.PreviousPage();
+
+        return true;
+    }
+
+    private bool HandleRightArrow(ConsoleKeyInfo keyInfo)
+    {
+        _paginator.NextPage();
+
+        return true;
+    }
+
+    private bool HandleBackspace(ConsoleKeyInfo keyInfo)
+    {
+        if (InputBuffer.IsStart)
+        {
+            return false;
+        }
+
+        InputBuffer.Backspace();
+        _paginator.UpdateFilter(InputBuffer.ToString());
+
+        return true;
     }
 }
