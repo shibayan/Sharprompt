@@ -114,7 +114,7 @@ public static partial class Prompt
         {
             options.Message = propertyMetadata.Message;
             options.Items = propertyMetadata.ItemsProvider.GetItems<T>(propertyMetadata.PropertyInfo);
-            options.DefaultValue = (T?)propertyMetadata.DefaultValue;
+            options.DefaultValue = propertyMetadata.DefaultValue;
         });
     }
 

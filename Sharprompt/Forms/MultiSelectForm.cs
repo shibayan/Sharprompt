@@ -25,109 +25,24 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
         {
             _selectedItems.Add(defaultValue);
         }
+
+        KeyHandlerMaps = new()
+        {
+            [ConsoleKey.Spacebar] = HandleSpacebar,
+            [ConsoleKey.UpArrow] = HandleUpArrow,
+            [ConsoleKey.DownArrow] = HandleDownArrow,
+            [ConsoleKey.LeftArrow] = HandleLeftArrow,
+            [ConsoleKey.RightArrow] = HandleRightArrow,
+            [ConsoleKey.Backspace] = HandleBackspace,
+            [ConsoleKey.A] = HandleAWithControl,
+            [ConsoleKey.I] = HandleIWithControl,
+        };
     }
 
     private readonly MultiSelectOptions<T> _options;
     private readonly Paginator<T> _paginator;
 
     private readonly HashSet<T> _selectedItems = new();
-    private readonly TextInputBuffer _filterBuffer = new();
-
-    protected override bool TryGetResult([NotNullWhen(true)] out IEnumerable<T>? result)
-    {
-        do
-        {
-            var keyInfo = ConsoleDriver.ReadKey();
-
-            switch (keyInfo.Key)
-            {
-                case ConsoleKey.Enter when _selectedItems.Count >= _options.Minimum:
-                    result = _options.Items
-                                     .Where(x => _selectedItems.Contains(x))
-                                     .ToArray();
-                    return true;
-                case ConsoleKey.Enter:
-                    SetError(string.Format(Resource.Validation_Minimum_SelectionRequired, _options.Minimum));
-                    break;
-                case ConsoleKey.Spacebar when _paginator.TryGetSelectedItem(out var currentItem):
-                    if (_selectedItems.Contains(currentItem))
-                    {
-                        _selectedItems.Remove(currentItem);
-                    }
-                    else
-                    {
-                        if (_selectedItems.Count >= _options.Maximum)
-                        {
-                            SetError(string.Format(Resource.Validation_Maximum_SelectionRequired, _options.Maximum));
-                        }
-                        else
-                        {
-                            _selectedItems.Add(currentItem);
-                        }
-                    }
-
-                    break;
-                case ConsoleKey.UpArrow:
-                    _paginator.PreviousItem();
-                    break;
-                case ConsoleKey.DownArrow:
-                    _paginator.NextItem();
-                    break;
-                case ConsoleKey.LeftArrow:
-                    _paginator.PreviousPage();
-                    break;
-                case ConsoleKey.RightArrow:
-                    _paginator.NextPage();
-                    break;
-                case ConsoleKey.Backspace when !_filterBuffer.IsStart:
-                    _filterBuffer.Backspace();
-
-                    _paginator.UpdateFilter(_filterBuffer.ToString());
-                    break;
-                case ConsoleKey.Backspace:
-                    ConsoleDriver.Beep();
-                    break;
-                case ConsoleKey.A when keyInfo.Modifiers == ConsoleModifiers.Control:
-                    if (_selectedItems.Count == _paginator.TotalCount)
-                    {
-                        _selectedItems.Clear();
-                    }
-                    else
-                    {
-                        foreach (var item in _paginator.FilteredItems)
-                        {
-                            _selectedItems.Add(item);
-                        }
-                    }
-                    break;
-                case ConsoleKey.I when keyInfo.Modifiers == ConsoleModifiers.Control:
-                {
-                    var invertedItems = _paginator.FilteredItems.Except(_selectedItems).ToArray();
-
-                    _selectedItems.Clear();
-
-                    foreach (var item in invertedItems)
-                    {
-                        _selectedItems.Add(item);
-                    }
-                }
-                break;
-                default:
-                    if (!char.IsControl(keyInfo.KeyChar))
-                    {
-                        _filterBuffer.Insert(keyInfo.KeyChar);
-
-                        _paginator.UpdateFilter(_filterBuffer.ToString());
-                    }
-                    break;
-            }
-
-        } while (ConsoleDriver.KeyAvailable);
-
-        result = default;
-
-        return false;
-    }
 
     protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
     {
@@ -177,5 +92,140 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
     {
         offscreenBuffer.WriteDone(_options.Message);
         offscreenBuffer.WriteAnswer(string.Join(", ", result.Select(_options.TextSelector)));
+    }
+
+    protected override bool HandleEnter([NotNullWhen(true)] out IEnumerable<T>? result)
+    {
+        if (_selectedItems.Count >= _options.Minimum)
+        {
+            result = _options.Items
+                             .Where(x => _selectedItems.Contains(x))
+                             .ToArray();
+
+            return true;
+        }
+
+        SetError(string.Format(Resource.Validation_Minimum_SelectionRequired, _options.Minimum));
+
+        result = default;
+
+        return false;
+    }
+
+    protected override bool HandleTextInput(ConsoleKeyInfo keyInfo)
+    {
+        base.HandleTextInput(keyInfo);
+
+        _paginator.UpdateFilter(InputBuffer.ToString());
+
+        return true;
+    }
+
+    private bool HandleSpacebar(ConsoleKeyInfo keyInfo)
+    {
+        if (!_paginator.TryGetSelectedItem(out var currentItem))
+        {
+            return false;
+        }
+
+        if (_selectedItems.Contains(currentItem))
+        {
+            _selectedItems.Remove(currentItem);
+        }
+        else
+        {
+            if (_selectedItems.Count >= _options.Maximum)
+            {
+                SetError(string.Format(Resource.Validation_Maximum_SelectionRequired, _options.Maximum));
+            }
+            else
+            {
+                _selectedItems.Add(currentItem);
+            }
+        }
+
+        return true;
+    }
+
+    private bool HandleUpArrow(ConsoleKeyInfo keyInfo)
+    {
+        _paginator.PreviousItem();
+
+        return true;
+    }
+
+    private bool HandleDownArrow(ConsoleKeyInfo keyInfo)
+    {
+        _paginator.NextItem();
+
+        return true;
+    }
+
+    private bool HandleLeftArrow(ConsoleKeyInfo keyInfo)
+    {
+        _paginator.PreviousPage();
+
+        return true;
+    }
+
+    private bool HandleRightArrow(ConsoleKeyInfo keyInfo)
+    {
+        _paginator.NextPage();
+
+        return true;
+    }
+
+    private bool HandleBackspace(ConsoleKeyInfo keyInfo)
+    {
+        if (InputBuffer.IsStart)
+        {
+            return false;
+        }
+
+        InputBuffer.Backspace();
+        _paginator.UpdateFilter(InputBuffer.ToString());
+
+        return true;
+    }
+
+    private bool HandleAWithControl(ConsoleKeyInfo keyInfo)
+    {
+        if (keyInfo.Modifiers != ConsoleModifiers.Control)
+        {
+            return false;
+        }
+
+        if (_selectedItems.Count == _paginator.TotalCount)
+        {
+            _selectedItems.Clear();
+        }
+        else
+        {
+            foreach (var item in _paginator.FilteredItems)
+            {
+                _selectedItems.Add(item);
+            }
+        }
+
+        return true;
+    }
+
+    private bool HandleIWithControl(ConsoleKeyInfo keyInfo)
+    {
+        if (keyInfo.Modifiers != ConsoleModifiers.Control)
+        {
+            return false;
+        }
+
+        var invertedItems = _paginator.FilteredItems.Except(_selectedItems).ToArray();
+
+        _selectedItems.Clear();
+
+        foreach (var item in invertedItems)
+        {
+            _selectedItems.Add(item);
+        }
+
+        return true;
     }
 }

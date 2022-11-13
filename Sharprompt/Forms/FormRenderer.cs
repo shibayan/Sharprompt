@@ -36,7 +36,7 @@ internal class FormRenderer : IDisposable
         }
     }
 
-    public void Render<TModel>(Action<OffscreenBuffer, TModel> template, TModel result)
+    public void Render<T>(Action<OffscreenBuffer, T> template, T result)
     {
         using (_offscreenBuffer.BeginRender())
         {

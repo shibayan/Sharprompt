@@ -21,7 +21,7 @@ public class SelectOptions<T> where T : notnull
 
     public IEnumerable<T> Items { get; set; } = null!;
 
-    public T? DefaultValue { get; set; }
+    public object? DefaultValue { get; set; }
 
     public int PageSize { get; set; } = int.MaxValue;
 

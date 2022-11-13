@@ -106,7 +106,7 @@ public static partial class Prompt
         return Select(options);
     }
 
-    public static T Select<T>(string message, IEnumerable<T>? items = default, int pageSize = int.MaxValue, T? defaultValue = default, Func<T, string>? textSelector = default) where T : notnull
+    public static T Select<T>(string message, IEnumerable<T>? items = default, int pageSize = int.MaxValue, object? defaultValue = default, Func<T, string>? textSelector = default) where T : notnull
     {
         return Select<T>(options =>
         {

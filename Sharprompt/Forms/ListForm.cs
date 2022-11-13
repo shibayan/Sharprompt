@@ -8,7 +8,7 @@ using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
-internal class ListForm<T> : FormBase<IEnumerable<T>> where T : notnull
+internal class ListForm<T> : TextFormBase<IEnumerable<T>> where T : notnull
 {
     public ListForm(ListOptions<T> options)
     {
@@ -22,62 +22,12 @@ internal class ListForm<T> : FormBase<IEnumerable<T>> where T : notnull
     private readonly ListOptions<T> _options;
 
     private readonly List<T> _inputItems = new();
-    private readonly TextInputBuffer _textInputBuffer = new();
-
-    protected override bool TryGetResult([NotNullWhen(true)] out IEnumerable<T>? result)
-    {
-        do
-        {
-            var keyInfo = ConsoleDriver.ReadKey();
-
-            switch (keyInfo.Key)
-            {
-                case ConsoleKey.Enter:
-                    return HandleEnter(out result);
-                case ConsoleKey.LeftArrow when !_textInputBuffer.IsStart:
-                    _textInputBuffer.MoveBackward();
-                    break;
-                case ConsoleKey.RightArrow when !_textInputBuffer.IsEnd:
-                    _textInputBuffer.MoveForward();
-                    break;
-                case ConsoleKey.Backspace when !_textInputBuffer.IsStart:
-                    _textInputBuffer.Backspace();
-                    break;
-                case ConsoleKey.Delete when !_textInputBuffer.IsEnd:
-                    _textInputBuffer.Delete();
-                    break;
-                case ConsoleKey.Delete when keyInfo.Modifiers == ConsoleModifiers.Control:
-                    if (_inputItems.Any())
-                    {
-                        _inputItems.RemoveAt(_inputItems.Count - 1);
-                    }
-                    break;
-                case ConsoleKey.LeftArrow:
-                case ConsoleKey.RightArrow:
-                case ConsoleKey.Backspace:
-                case ConsoleKey.Delete:
-                    ConsoleDriver.Beep();
-                    break;
-                default:
-                    if (!char.IsControl(keyInfo.KeyChar))
-                    {
-                        _textInputBuffer.Insert(keyInfo.KeyChar);
-                    }
-                    break;
-            }
-
-        } while (ConsoleDriver.KeyAvailable);
-
-        result = default;
-
-        return false;
-    }
 
     protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
     {
         offscreenBuffer.WritePrompt(_options.Message);
 
-        offscreenBuffer.WriteInput(_textInputBuffer);
+        offscreenBuffer.WriteInput(InputBuffer);
 
         foreach (var inputItem in _inputItems)
         {
@@ -92,9 +42,9 @@ internal class ListForm<T> : FormBase<IEnumerable<T>> where T : notnull
         offscreenBuffer.WriteAnswer(string.Join(", ", result));
     }
 
-    private bool HandleEnter(out IEnumerable<T>? result)
+    protected override bool HandleEnter([NotNullWhen(true)] out IEnumerable<T>? result)
     {
-        var input = _textInputBuffer.ToString();
+        var input = InputBuffer.ToString();
 
         try
         {
@@ -126,7 +76,7 @@ internal class ListForm<T> : FormBase<IEnumerable<T>> where T : notnull
                 return false;
             }
 
-            _textInputBuffer.Clear();
+            InputBuffer.Clear();
 
             _inputItems.Add(inputValue);
         }
@@ -138,5 +88,17 @@ internal class ListForm<T> : FormBase<IEnumerable<T>> where T : notnull
         result = default;
 
         return false;
+    }
+
+    protected override bool HandleDelete(ConsoleKeyInfo keyInfo)
+    {
+        if (keyInfo.Modifiers == ConsoleModifiers.Control && _inputItems.Any())
+        {
+            _inputItems.RemoveAt(_inputItems.Count - 1);
+
+            return true;
+        }
+
+        return base.HandleDelete(keyInfo);
     }
 }

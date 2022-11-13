@@ -15,14 +15,13 @@ internal class PropertyMetadata
     public PropertyMetadata(object model, PropertyInfo propertyInfo)
     {
         var displayAttribute = propertyInfo.GetCustomAttribute<DisplayAttribute>();
-        var dataTypeAttribute = propertyInfo.GetCustomAttribute<DataTypeAttribute>();
 
         PropertyInfo = propertyInfo;
         Type = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
         ElementType = TypeHelper.IsCollection(propertyInfo.PropertyType) ? propertyInfo.PropertyType.GetGenericArguments()[0] : null;
         IsNullable = TypeHelper.IsNullable(propertyInfo.PropertyType);
         IsCollection = TypeHelper.IsCollection(propertyInfo.PropertyType);
-        DataType = dataTypeAttribute?.DataType;
+        DataType = propertyInfo.GetCustomAttribute<DataTypeAttribute>()?.DataType;
         Message = displayAttribute?.GetName() ?? displayAttribute?.GetDescription() ?? propertyInfo.Name;
         Placeholder = displayAttribute?.GetPrompt();
         Order = displayAttribute?.GetOrder();
@@ -30,9 +29,7 @@ internal class PropertyMetadata
         Validators = propertyInfo.GetCustomAttributes<ValidationAttribute>(true)
                                  .Select(x => new ValidationAttributeAdapter(x).GetValidator(propertyInfo.Name, model))
                                  .ToArray();
-        ItemsProvider = (IItemsProvider?)propertyInfo.GetCustomAttribute<InlineItemsAttribute>(true) ??
-                        propertyInfo.GetCustomAttribute<MemberItemsAttribute>(true) ??
-                        NullItemsProvider.Instance;
+        ItemsProvider = GetItemsProvider(propertyInfo);
         BindIgnore = propertyInfo.GetCustomAttribute<BindIgnoreAttribute>() is not null;
     }
 
@@ -47,7 +44,7 @@ internal class PropertyMetadata
     public int? Order { get; }
     public object? DefaultValue { get; }
     public IReadOnlyList<Func<object?, ValidationResult?>> Validators { get; }
-    public IItemsProvider ItemsProvider { get; set; }
+    public IItemsProvider ItemsProvider { get; }
     public bool BindIgnore { get; set; }
 
     public FormType DetermineFormType()
@@ -62,12 +59,12 @@ internal class PropertyMetadata
             return FormType.Confirm;
         }
 
-        if (!IsCollection && (Type.IsEnum || ItemsProvider is not NullItemsProvider))
+        if (!IsCollection && ItemsProvider is not NullItemsProvider)
         {
             return FormType.Select;
         }
 
-        if (IsCollection && (ElementType is not null && ElementType.IsEnum || ItemsProvider is not NullItemsProvider))
+        if (IsCollection && ItemsProvider is not NullItemsProvider)
         {
             return FormType.MultiSelect;
         }
@@ -78,6 +75,24 @@ internal class PropertyMetadata
         }
 
         return FormType.Input;
+    }
+
+    private IItemsProvider GetItemsProvider(PropertyInfo propertyInfo)
+    {
+        var itemsProvider = (IItemsProvider?)propertyInfo.GetCustomAttribute<InlineItemsAttribute>(true) ??
+                            propertyInfo.GetCustomAttribute<MemberItemsAttribute>(true);
+
+        if (itemsProvider is not null)
+        {
+            return itemsProvider;
+        }
+
+        if (Type.IsEnum || (ElementType is not null && ElementType.IsEnum))
+        {
+            return new EnumItemsProvider();
+        }
+
+        return NullItemsProvider.Instance;
     }
 
     private class ValidationAttributeAdapter
