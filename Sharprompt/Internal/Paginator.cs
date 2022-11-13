@@ -36,6 +36,13 @@ internal class Paginator<T> where T : notnull
 
     public bool TryGetSelectedItem([NotNullWhen(true)] out T? selectedItem)
     {
+        if (FilteredItems.Length == 1)
+        {
+            selectedItem = FilteredItems[0];
+
+            return true;
+        }
+
         if (_selectedIndex == -1 || FilteredItems.Length == 0)
         {
             selectedItem = default;
