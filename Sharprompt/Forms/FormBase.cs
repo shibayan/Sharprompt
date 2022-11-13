@@ -14,21 +14,22 @@ internal abstract class FormBase<T> : IDisposable
 {
     protected FormBase()
     {
-        ConsoleDriver = new DefaultConsoleDriver
+        _consoleDriver = new DefaultConsoleDriver
         {
             CancellationCallback = CancellationHandler
         };
 
-        _formRenderer = new FormRenderer(ConsoleDriver);
+        _formRenderer = new FormRenderer(_consoleDriver);
     }
 
+    private readonly IConsoleDriver _consoleDriver;
     private readonly FormRenderer _formRenderer;
-
-    protected IConsoleDriver ConsoleDriver { get; }
 
     protected TextInputBuffer InputBuffer { get; } = new();
 
     protected Dictionary<ConsoleKey, Func<ConsoleKeyInfo, bool>> KeyHandlerMaps { get; set; } = new();
+
+    protected int Height => _consoleDriver.WindowHeight;
 
     public void Dispose() => _formRenderer.Dispose();
 
@@ -53,7 +54,7 @@ internal abstract class FormBase<T> : IDisposable
     {
         do
         {
-            var keyInfo = ConsoleDriver.ReadKey();
+            var keyInfo = _consoleDriver.ReadKey();
 
             if (keyInfo.Key == ConsoleKey.Enter)
             {
@@ -71,10 +72,10 @@ internal abstract class FormBase<T> : IDisposable
             }
             else
             {
-                ConsoleDriver.Beep();
+                _consoleDriver.Beep();
             }
 
-        } while (ConsoleDriver.KeyAvailable);
+        } while (_consoleDriver.KeyAvailable);
 
         result = default;
 
