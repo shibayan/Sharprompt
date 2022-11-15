@@ -13,17 +13,17 @@ public class PaginatorTests
     {
         var paginator = new Paginator<int>(Enumerable.Range(0, 20), 5, Optional<int>.Empty, x => x.ToString());
 
-        var subset1 = paginator.ToSubset();
+        var currentItems1 = paginator.CurrentItems;
 
-        Assert.Equal(5, subset1.Count);
-        Assert.Equal(new[] { 0, 1, 2, 3, 4 }, subset1);
+        Assert.Equal(5, currentItems1.Length);
+        Assert.Equal(new[] { 0, 1, 2, 3, 4 }, currentItems1.ToArray());
 
         paginator.NextPage();
 
-        var subset2 = paginator.ToSubset();
+        var currentItems2 = paginator.CurrentItems;
 
-        Assert.Equal(5, subset2.Count);
-        Assert.Equal(new[] { 5, 6, 7, 8, 9 }, subset2);
+        Assert.Equal(5, currentItems2.Length);
+        Assert.Equal(new[] { 5, 6, 7, 8, 9 }, currentItems2.ToArray());
     }
 
     [Fact]
@@ -33,10 +33,10 @@ public class PaginatorTests
 
         paginator.UpdateFilter("0");
 
-        var subset = paginator.ToSubset();
+        var currentItems = paginator.CurrentItems;
 
-        Assert.Equal(2, subset.Count);
-        Assert.Equal(new[] { 0, 10 }, subset);
+        Assert.Equal(2, currentItems.Length);
+        Assert.Equal(new[] { 0, 10 }, currentItems.ToArray());
     }
 
     [Fact]
@@ -46,9 +46,9 @@ public class PaginatorTests
 
         paginator.UpdateFilter("x");
 
-        var subset = paginator.ToSubset();
+        var subset = paginator.CurrentItems;
 
-        Assert.Empty(subset);
+        Assert.True(subset.IsEmpty);
     }
 
     [Fact]

@@ -50,38 +50,6 @@ internal abstract class FormBase<T> : IDisposable
         }
     }
 
-    protected bool TryGetResult([NotNullWhen(true)] out T? result)
-    {
-        do
-        {
-            var keyInfo = _consoleDriver.ReadKey();
-
-            if (keyInfo.Key == ConsoleKey.Enter)
-            {
-                return HandleEnter(out result);
-            }
-
-            if (KeyHandlerMaps.TryGetValue(keyInfo.Key, out var keyHandler) && keyHandler(keyInfo))
-            {
-                continue;
-            }
-
-            if (!char.IsControl(keyInfo.KeyChar))
-            {
-                HandleTextInput(keyInfo);
-            }
-            else
-            {
-                _consoleDriver.Beep();
-            }
-
-        } while (_consoleDriver.KeyAvailable);
-
-        result = default;
-
-        return false;
-    }
-
     protected abstract void InputTemplate(OffscreenBuffer offscreenBuffer);
 
     protected abstract void FinishTemplate(OffscreenBuffer offscreenBuffer, T result);
@@ -114,6 +82,38 @@ internal abstract class FormBase<T> : IDisposable
         }
 
         return true;
+    }
+
+    private bool TryGetResult([NotNullWhen(true)] out T? result)
+    {
+        do
+        {
+            var keyInfo = _consoleDriver.ReadKey();
+
+            if (keyInfo.Key == ConsoleKey.Enter)
+            {
+                return HandleEnter(out result);
+            }
+
+            if (KeyHandlerMaps.TryGetValue(keyInfo.Key, out var keyHandler) && keyHandler(keyInfo))
+            {
+                continue;
+            }
+
+            if (!char.IsControl(keyInfo.KeyChar))
+            {
+                HandleTextInput(keyInfo);
+            }
+            else
+            {
+                _consoleDriver.Beep();
+            }
+
+        } while (_consoleDriver.KeyAvailable);
+
+        result = default;
+
+        return false;
     }
 
     private void CancellationHandler()

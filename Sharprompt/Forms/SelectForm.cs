@@ -32,13 +32,11 @@ internal class SelectForm<T> : FormBase<T> where T : notnull
     protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
     {
         offscreenBuffer.WritePrompt(_options.Message);
-        offscreenBuffer.Write(_paginator.FilterTerm);
+        offscreenBuffer.Write(_paginator.FilterKeyword);
 
         offscreenBuffer.PushCursor();
 
-        var subset = _paginator.ToSubset();
-
-        foreach (var item in subset)
+        foreach (var item in _paginator.CurrentItems)
         {
             var value = _options.TextSelector(item);
 
@@ -57,7 +55,7 @@ internal class SelectForm<T> : FormBase<T> where T : notnull
         if (_paginator.PageCount > 1)
         {
             offscreenBuffer.WriteLine();
-            offscreenBuffer.WriteHint(_options.Pagination(_paginator.TotalCount, _paginator.SelectedPage + 1, _paginator.PageCount));
+            offscreenBuffer.WriteHint(_options.Pagination(_paginator.TotalCount, _paginator.CurrentPage + 1, _paginator.PageCount));
         }
     }
 

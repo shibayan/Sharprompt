@@ -9,8 +9,6 @@ public static partial class Prompt
 {
     public static bool ThrowExceptionOnCancel { get; set; } = false;
 
-    public static bool ClearInputOnValidationError { get; set; } = false;
-
     public static CultureInfo Culture
     {
         get => Resource.Culture;
