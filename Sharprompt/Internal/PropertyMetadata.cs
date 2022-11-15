@@ -30,7 +30,6 @@ internal class PropertyMetadata
                                  .Select(x => new ValidationAttributeAdapter(x).GetValidator(propertyInfo.Name, model))
                                  .ToArray();
         ItemsProvider = GetItemsProvider(propertyInfo);
-        BindIgnore = propertyInfo.GetCustomAttribute<BindIgnoreAttribute>() is not null;
     }
 
     public PropertyInfo PropertyInfo { get; }
@@ -45,7 +44,6 @@ internal class PropertyMetadata
     public object? DefaultValue { get; }
     public IReadOnlyList<Func<object?, ValidationResult?>> Validators { get; }
     public IItemsProvider ItemsProvider { get; }
-    public bool BindIgnore { get; set; }
 
     public FormType DetermineFormType()
     {
@@ -59,22 +57,12 @@ internal class PropertyMetadata
             return FormType.Confirm;
         }
 
-        if (!IsCollection && ItemsProvider is not NullItemsProvider)
+        if (ItemsProvider is not NullItemsProvider)
         {
-            return FormType.Select;
+            return IsCollection ? FormType.MultiSelect : FormType.Select;
         }
 
-        if (IsCollection && ItemsProvider is not NullItemsProvider)
-        {
-            return FormType.MultiSelect;
-        }
-
-        if (IsCollection && ItemsProvider is NullItemsProvider)
-        {
-            return FormType.List;
-        }
-
-        return FormType.Input;
+        return IsCollection ? FormType.List : FormType.Input;
     }
 
     private IItemsProvider GetItemsProvider(PropertyInfo propertyInfo)

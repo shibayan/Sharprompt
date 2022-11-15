@@ -56,7 +56,7 @@ internal class InputForm<T> : TextFormBase<T>
         {
             if (string.IsNullOrEmpty(input))
             {
-                if (TypeHelper<T>.IsValueType && !_defaultValue.HasValue)
+                if (!TypeHelper<T>.IsNullable && !_defaultValue.HasValue)
                 {
                     SetError(Resource.Validation_Required);
 
