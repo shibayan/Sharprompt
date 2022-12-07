@@ -11,7 +11,7 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
     public Paginator(IEnumerable<T> items, int pageSize, Optional<T> defaultValue, Func<T, string> textSelector)
     {
         _items = items.ToArray();
-        _pageSize = Math.Min(pageSize, _items.Length);
+        _pageSize = pageSize <= 0 ? _items.Length : Math.Min(pageSize, _items.Length);
         _textSelector = textSelector;
 
         InitializeDefaults(defaultValue);
