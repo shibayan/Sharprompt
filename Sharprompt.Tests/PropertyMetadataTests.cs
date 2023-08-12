@@ -182,7 +182,7 @@ public class PropertyMetadataTests
         var metadata = PropertyMetadataFactory.Create(new BindIgnoreModel());
 
         Assert.NotNull(metadata);
-        Assert.Equal(1, metadata.Count);
+        Assert.Single(metadata);
     }
 
     [Fact]
@@ -191,7 +191,7 @@ public class PropertyMetadataTests
         var metadata = PropertyMetadataFactory.Create(new ReadOnlyModel());
 
         Assert.NotNull(metadata);
-        Assert.Equal(1, metadata.Count);
+        Assert.Single(metadata);
     }
 
     [Fact]
