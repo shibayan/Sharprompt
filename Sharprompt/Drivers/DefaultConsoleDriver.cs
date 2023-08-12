@@ -76,7 +76,7 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
     {
         var keyInfo = Console.ReadKey(true);
 
-        if (keyInfo.Key == ConsoleKey.C && keyInfo.Modifiers == ConsoleModifiers.Control)
+        if (keyInfo is { Key: ConsoleKey.C, Modifiers: ConsoleModifiers.Control })
         {
             CancellationCallback.Invoke();
         }

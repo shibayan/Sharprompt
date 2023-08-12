@@ -31,6 +31,8 @@ internal class SelectForm<T> : FormBase<T> where T : notnull
 
     protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
     {
+        _paginator.UpdatePageSize(Math.Min(_options.PageSize, Height - 2));
+
         offscreenBuffer.WritePrompt(_options.Message);
         offscreenBuffer.Write(_paginator.FilterKeyword);
 

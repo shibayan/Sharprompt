@@ -74,24 +74,28 @@ internal class OffscreenBuffer : IDisposable
 
         _cursorBottom = _consoleDriver.CursorTop;
 
-        if (_pushedCursor is not null)
+        if (_pushedCursor is null)
         {
-            var physicalLeft = _pushedCursor.Left % _consoleDriver.BufferWidth;
-            var physicalTop = _pushedCursor.Top + (_pushedCursor.Left / _consoleDriver.BufferWidth);
-
-            var consoleTop = _cursorBottom - WrittenLineCount + physicalTop;
-            if (_pushedCursor.Left > 0 && physicalLeft == 0)
-            {
-                _consoleDriver.WriteLine();
-                if (consoleTop == _consoleDriver.BufferHeight)
-                {
-                    _cursorBottom--;
-                    consoleTop--;
-                }
-            }
-
-            _consoleDriver.SetCursorPosition(physicalLeft, consoleTop);
+            return;
         }
+
+        var physicalLeft = _pushedCursor.Left % _consoleDriver.BufferWidth;
+        var physicalTop = _pushedCursor.Top + (_pushedCursor.Left / _consoleDriver.BufferWidth);
+
+        var consoleTop = _cursorBottom - WrittenLineCount + physicalTop;
+
+        if (_pushedCursor.Left > 0 && physicalLeft == 0)
+        {
+            _consoleDriver.WriteLine();
+
+            if (consoleTop == _consoleDriver.BufferHeight)
+            {
+                _cursorBottom--;
+                consoleTop--;
+            }
+        }
+
+        _consoleDriver.SetCursorPosition(physicalLeft, consoleTop);
     }
 
     public void ClearConsole(int cursorBottom, int writtenLineCount)
