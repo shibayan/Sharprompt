@@ -29,6 +29,8 @@ internal abstract class FormBase<T> : IDisposable
 
     protected Dictionary<ConsoleKey, Func<ConsoleKeyInfo, bool>> KeyHandlerMaps { get; set; } = new();
 
+    protected int Width => _consoleDriver.WindowWidth;
+
     protected int Height => _consoleDriver.WindowHeight;
 
     public void Dispose() => _formRenderer.Dispose();

@@ -18,9 +18,9 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
     }
 
     private readonly T[] _items;
-    private readonly int _pageSize;
     private readonly Func<T, string> _textSelector;
 
+    private int _pageSize;
     private T[] _filteredItems = Array.Empty<T>();
     private int _selectedIndex = -1;
 
@@ -94,9 +94,22 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
         FilterKeyword = keyword;
 
         _selectedIndex = -1;
-        CurrentPage = 0;
 
         UpdateFilteredItems();
+    }
+
+    public void UpdatePageSize(int newPageSize)
+    {
+        if (_pageSize == newPageSize)
+        {
+            return;
+        }
+
+        TryGetSelectedItem(out var selectedItem);
+
+        _pageSize = newPageSize <= 0 ? _items.Length : Math.Min(newPageSize, _items.Length);
+
+        InitializeDefaults(Optional<T>.Create(selectedItem));
     }
 
     public IEnumerator<T> GetEnumerator() => (IEnumerator<T>)_filteredItems.GetEnumerator();
@@ -109,6 +122,11 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
                                .ToArray();
 
         PageCount = (_filteredItems.Length - 1) / _pageSize + 1;
+
+        if (CurrentPage >= PageCount)
+        {
+            CurrentPage = 0;
+        }
     }
 
     private void InitializeDefaults(Optional<T> defaultValue)

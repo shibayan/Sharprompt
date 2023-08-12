@@ -17,7 +17,7 @@ public class PropertyMetadataTests
         var metadata = PropertyMetadataFactory.Create(new BasicModel());
 
         Assert.NotNull(metadata);
-        Assert.Equal(1, metadata.Count);
+        Assert.Single(metadata);
 
         Assert.Equal(typeof(string), metadata[0].Type);
         Assert.Equal(FormType.Input, metadata[0].DetermineFormType());
@@ -27,7 +27,7 @@ public class PropertyMetadataTests
         Assert.False(metadata[0].IsCollection);
         Assert.Null(metadata[0].DefaultValue);
         Assert.Null(metadata[0].Order);
-        Assert.Equal(1, metadata[0].Validators.Count);
+        Assert.Single(metadata[0].Validators);
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class PropertyMetadataTests
         var metadata = PropertyMetadataFactory.Create(new BasicModel { Value = "sample" });
 
         Assert.NotNull(metadata);
-        Assert.Equal(1, metadata.Count);
+        Assert.Single(metadata);
 
         Assert.Equal(typeof(string), metadata[0].Type);
         Assert.Equal("sample", metadata[0].DefaultValue);

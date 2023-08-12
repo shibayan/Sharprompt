@@ -10,8 +10,8 @@ internal class RenderScope : IDisposable
     {
         _offscreenBuffer = offscreenBuffer;
         _consoleDriver = consoleDriver;
-        _cursorBottom = cursorBottom;
-        _writtenLineCount = writtenLineCount;
+        _cursorBottom = Math.Min(cursorBottom, _consoleDriver.WindowHeight - 1);
+        _writtenLineCount = Math.Min(writtenLineCount, _consoleDriver.WindowHeight - 1);
 
         _offscreenBuffer.ClearBuffer();
     }
