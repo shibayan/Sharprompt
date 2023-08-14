@@ -26,13 +26,15 @@ internal class FormRenderer : IDisposable
         {
             template(_offscreenBuffer);
 
-            if (!string.IsNullOrEmpty(ErrorMessage))
+            if (string.IsNullOrEmpty(ErrorMessage))
             {
-                _offscreenBuffer.WriteLine();
-                _offscreenBuffer.WriteError(ErrorMessage);
-
-                ErrorMessage = null;
+                return;
             }
+
+            _offscreenBuffer.WriteLine();
+            _offscreenBuffer.WriteError(ErrorMessage);
+
+            ErrorMessage = null;
         }
     }
 

@@ -29,6 +29,8 @@ public class SelectOptions<T> where T : notnull
 
     public Func<int, int, int, string> Pagination { get; set; } = (count, current, total) => string.Format(Resource.Message_Pagination, count, current, total);
 
+    public bool LoopingSelection { get; set; } = true;
+
     internal void EnsureOptions()
     {
         ArgumentNullException.ThrowIfNull(Message);

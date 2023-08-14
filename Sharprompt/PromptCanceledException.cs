@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Runtime.Serialization;
 
 namespace Sharprompt;
 
-[Serializable]
 public class PromptCanceledException : Exception
 {
     public PromptCanceledException()
@@ -24,11 +22,6 @@ public class PromptCanceledException : Exception
         : base(message)
     {
         PromptType = promptType;
-    }
-
-    protected PromptCanceledException(SerializationInfo info, StreamingContext context)
-        : base(info, context)
-    {
     }
 
     public string? PromptType { get; }
