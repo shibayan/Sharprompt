@@ -36,6 +36,8 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
 
     public string FilterKeyword { get; private set; } = "";
 
+    public bool LoopingSelection { get; set; }
+
     public bool TryGetSelectedItem([NotNullWhen(true)] out T? selectedItem)
     {
         if (_filteredItems.Length == 1)
@@ -59,12 +61,36 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
 
     public void NextItem()
     {
-        _selectedIndex = _selectedIndex >= Count - 1 ? 0 : _selectedIndex + 1;
+        if (_selectedIndex >= Count - 1)
+        {
+            if (!LoopingSelection)
+            {
+                NextPage();
+            }
+
+            _selectedIndex = 0;
+        }
+        else
+        {
+            _selectedIndex += 1;
+        }
     }
 
     public void PreviousItem()
     {
-        _selectedIndex = _selectedIndex <= 0 ? Count - 1 : _selectedIndex - 1;
+        if (_selectedIndex <= 0)
+        {
+            if (!LoopingSelection)
+            {
+                PreviousPage();
+            }
+
+            _selectedIndex = Count - 1;
+        }
+        else
+        {
+            _selectedIndex -= 1;
+        }
     }
 
     public void NextPage()

@@ -15,7 +15,10 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
         options.EnsureOptions();
 
         _options = options;
-        _paginator = new Paginator<T>(options.Items, Math.Min(options.PageSize, Height - 2), Optional<T>.Empty, options.TextSelector);
+        _paginator = new Paginator<T>(options.Items, Math.Min(options.PageSize, Height - 2), Optional<T>.Empty, options.TextSelector)
+        {
+            LoopingSelection = options.LoopingSelection
+        };
 
         foreach (var defaultValue in options.DefaultValues)
         {
