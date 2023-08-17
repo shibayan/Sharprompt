@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 
@@ -72,7 +73,7 @@ class Program
 
     private static void RunSelectSample()
     {
-        var city = Prompt.Select("Select your city", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3);
+        var city = Prompt.Select("Select your country", new[] { RegionInfo.CurrentRegion.DisplayName, "United States of America", "England", "日本", "Singapura", "香港" }, defaultValue: RegionInfo.CurrentRegion.DisplayName, pageSize: 3);
         Console.WriteLine($"Hello, {city}!");
     }
 
