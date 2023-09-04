@@ -46,11 +46,7 @@ internal class OffscreenBuffer : IDisposable
             return;
         }
 
-        _pushedCursor = new Cursor
-        {
-            Left = _outputBuffer.Last().Sum(x => x.Width),
-            Top = _outputBuffer.Count - 1
-        };
+        _pushedCursor = new Cursor(_outputBuffer.Last().Sum(x => x.Width), _outputBuffer.Count - 1);
     }
 
     public IDisposable BeginRender() => new RenderScope(this, _consoleDriver, _cursorBottom, WrittenLineCount);
@@ -122,11 +118,7 @@ internal class OffscreenBuffer : IDisposable
         _consoleDriver.WriteLine();
     }
 
-    private class Cursor
-    {
-        public int Left { get; init; }
-        public int Top { get; init; }
-    }
+    private record Cursor(int Left, int Top);
 
     private readonly struct TextInfo
     {

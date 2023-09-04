@@ -24,11 +24,7 @@ internal static class EnumHelper<TEnum> where TEnum : notnull
     {
         var displayAttribute = typeof(TEnum).GetField(value.ToString()!)?.GetCustomAttribute<DisplayAttribute>();
 
-        return new EnumMetadata
-        {
-            DisplayName = displayAttribute?.GetName(),
-            Order = displayAttribute?.GetOrder()
-        };
+        return new EnumMetadata(displayAttribute?.GetName(), displayAttribute?.GetOrder());
     }
 
     public static string GetDisplayName(TEnum value) => s_metadataCache[value].DisplayName ?? value.ToString()!;
@@ -37,9 +33,5 @@ internal static class EnumHelper<TEnum> where TEnum : notnull
                                                                    .Select(x => x.Key)
                                                                    .ToArray();
 
-    private class EnumMetadata
-    {
-        public string? DisplayName { get; init; }
-        public int? Order { get; init; }
-    }
+    private record EnumMetadata(string? DisplayName, int? Order);
 }
