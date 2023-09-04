@@ -10,7 +10,11 @@ internal static class EnumHelper<TEnum> where TEnum : notnull
 {
     static EnumHelper()
     {
+#if NET7_0_OR_GREATER
+        var values = (TEnum[])Enum.GetValuesAsUnderlyingType(typeof(TEnum));
+#else
         var values = (TEnum[])Enum.GetValues(typeof(TEnum));
+#endif
 
         foreach (var value in values)
         {

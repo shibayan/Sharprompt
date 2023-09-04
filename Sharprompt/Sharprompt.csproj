@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -11,7 +11,7 @@
     <PackageId>Sharprompt</PackageId>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>https://github.com/shibayan/Sharprompt/releases</PackageReleaseNotes>
+    <PackageReleaseNotes>https://github.com/shibayan/Sharprompt/releases/tag/v$(Version)</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>cli;command-line;console;interactive;prompt;terminal</PackageTags>
     <RepositoryUrl>https://github.com/shibayan/Sharprompt</RepositoryUrl>
