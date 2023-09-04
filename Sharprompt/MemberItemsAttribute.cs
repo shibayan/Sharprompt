@@ -13,13 +13,16 @@ public sealed class MemberItemsAttribute : Attribute, IItemsProvider
 {
     public MemberItemsAttribute(string memberName)
     {
+        ArgumentNullException.ThrowIfNull(memberName);
+
         _memberName = memberName;
-        _memberType = null;
     }
 
     public MemberItemsAttribute(string memberName, Type memberType)
+        : this(memberName)
     {
-        _memberName = memberName;
+        ArgumentNullException.ThrowIfNull(memberType);
+
         _memberType = memberType;
     }
 
@@ -32,7 +35,7 @@ public sealed class MemberItemsAttribute : Attribute, IItemsProvider
 
         if (targetType is null)
         {
-            throw new ArgumentException();
+            throw new ArgumentException(string.Format(Resource.Validation_Type_MemberNotFound, _memberType, _memberName));
         }
 
         var memberInfo = targetType.GetMember(_memberName, BindingFlags.Public | BindingFlags.Static)

@@ -12,6 +12,8 @@ public sealed class InlineItemsAttribute : Attribute, IItemsProvider
 {
     public InlineItemsAttribute(params object[] items)
     {
+        ArgumentNullException.ThrowIfNull(items);
+
         _items = items;
     }
 

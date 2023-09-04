@@ -364,17 +364,5 @@ internal static class EastAsianWidth
         new(1048576, 65533, true)
     };
 
-    private readonly struct EastAsianWidthRange
-    {
-        public EastAsianWidthRange(uint start, ushort count, bool ambiguous)
-        {
-            Start = start;
-            Count = count;
-            Ambiguous = ambiguous;
-        }
-
-        public uint Start { get; }
-        public ushort Count { get; }
-        public bool Ambiguous { get; }
-    }
+    public readonly record struct EastAsianWidthRange(uint Start, ushort Count, bool Ambiguous);
 }
