@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 
@@ -79,6 +80,7 @@ class Program
     private static void RunMultiSelectSample()
     {
         var options = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3, defaultValues: new[] { "Tokyo" });
+
         Console.WriteLine($"You picked {string.Join(", ", options)}");
     }
 

@@ -8,17 +8,19 @@ namespace Sharprompt.Internal;
 
 internal class Paginator<T> : IEnumerable<T> where T : notnull
 {
-    public Paginator(IEnumerable<T> items, int pageSize, Optional<T> defaultValue, Func<T, string> textSelector)
+    public Paginator(IEnumerable<T> items, int pageSize, Optional<T> defaultValue, Func<T, string> textSelector, Func<T, string, bool> textInputFilter)
     {
         _items = items.ToArray();
         _pageSize = pageSize <= 0 ? _items.Length : Math.Min(pageSize, _items.Length);
         _textSelector = textSelector;
+        _filterFunc = textInputFilter;
 
         InitializeDefaults(defaultValue);
     }
 
     private readonly T[] _items;
     private readonly Func<T, string> _textSelector;
+    private readonly Func<T, string, bool> _filterFunc;
 
     private int _pageSize;
     private T[] _filteredItems = Array.Empty<T>();
@@ -144,8 +146,8 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
 
     private void UpdateFilteredItems()
     {
-        _filteredItems = _items.Where(x => _textSelector(x).IndexOf(FilterKeyword, StringComparison.OrdinalIgnoreCase) != -1)
-                               .ToArray();
+        _filteredItems = _items.Where(x => _filterFunc(x, FilterKeyword))
+            .ToArray();
 
         PageCount = (_filteredItems.Length - 1) / _pageSize + 1;
 

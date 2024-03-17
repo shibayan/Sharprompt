@@ -32,6 +32,8 @@ public class MultiSelectOptions<T> where T : notnull
 
     public Func<T, string> TextSelector { get; set; } = x => x.ToString()!;
 
+    public Func<T, string, bool> TextInputFilter { get; set; } = (item, keyword) => item.ToString().Contains(keyword, StringComparison.OrdinalIgnoreCase);
+
     public Func<int, int, int, string> Pagination { get; set; } = (count, current, total) => string.Format(Resource.Message_Pagination, count, current, total);
 
     public bool LoopingSelection { get; set; } = true;
