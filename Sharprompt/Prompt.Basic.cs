@@ -106,7 +106,7 @@ public static partial class Prompt
         return Select(options);
     }
 
-    public static T Select<T>(string message, IEnumerable<T>? items = default, int pageSize = int.MaxValue, object? defaultValue = default, Func<T, string>? textSelector = default) where T : notnull
+    public static T Select<T>(string message, IEnumerable<T>? items = default, int pageSize = int.MaxValue, object? defaultValue = default, Func<T, string>? textSelector = default, Func<T, string, bool>? textInputFilter = default) where T : notnull
     {
         return Select<T>(options =>
         {
@@ -123,6 +123,11 @@ public static partial class Prompt
             if (textSelector is not null)
             {
                 options.TextSelector = textSelector;
+            }
+
+            if (textInputFilter is not null)
+            {
+                options.TextInputFilter = textInputFilter;
             }
         });
     }
@@ -143,7 +148,9 @@ public static partial class Prompt
         return MultiSelect(options);
     }
 
-    public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T>? items = null, int pageSize = int.MaxValue, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T>? defaultValues = default, Func<T, string>? textSelector = default) where T : notnull
+    public static IEnumerable<T> MultiSelect<T>(string message,
+        IEnumerable<T>? items = null, int pageSize = int.MaxValue, int minimum = 1, int maximum = int.MaxValue,
+        IEnumerable<T>? defaultValues = default, Func<T, string>? textSelector = default, Func<T, string, bool>? textInputFilter = default) where T : notnull
     {
         return MultiSelect<T>(options =>
         {
@@ -166,6 +173,11 @@ public static partial class Prompt
             if (textSelector is not null)
             {
                 options.TextSelector = textSelector;
+            }
+
+            if (textInputFilter is not null)
+            {
+                options.TextInputFilter = textInputFilter;
             }
         });
     }
