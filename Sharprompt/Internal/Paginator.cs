@@ -138,7 +138,7 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
         InitializeDefaults(Optional<T>.Create(selectedItem));
     }
 
-    public IEnumerator<T> GetEnumerator() => (IEnumerator<T>)_filteredItems.GetEnumerator();
+    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_filteredItems).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
