@@ -41,7 +41,7 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
     private readonly MultiSelectOptions<T> _options;
     private readonly Paginator<T> _paginator;
 
-    private readonly HashSet<T> _selectedItems = new();
+    private readonly HashSet<T> _selectedItems = [];
 
     protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
     {

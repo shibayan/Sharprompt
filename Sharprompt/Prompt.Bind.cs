@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 using Sharprompt.Forms;
@@ -77,7 +76,7 @@ public static partial class Prompt
         return List<T>(options =>
         {
             options.Message = propertyMetadata.Message;
-            options.DefaultValues = (IEnumerable<T>?)propertyMetadata.DefaultValue ?? Enumerable.Empty<T>();
+            options.DefaultValues = (IEnumerable<T>?)propertyMetadata.DefaultValue ?? [];
 
             options.Validators.Merge(propertyMetadata.Validators);
         });
@@ -91,7 +90,7 @@ public static partial class Prompt
         {
             options.Message = propertyMetadata.Message;
             options.Items = propertyMetadata.ItemsProvider.GetItems<T>(propertyMetadata.PropertyInfo);
-            options.DefaultValues = (IEnumerable<T>?)propertyMetadata.DefaultValue ?? Enumerable.Empty<T>();
+            options.DefaultValues = (IEnumerable<T>?)propertyMetadata.DefaultValue ?? [];
         });
     }
 
@@ -123,6 +122,6 @@ public static partial class Prompt
         var method = typeof(Prompt).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)!
                                    .MakeGenericMethod(genericType ?? propertyMetadata.Type);
 
-        return method.Invoke(null, new object[] { propertyMetadata })!;
+        return method.Invoke(null, [propertyMetadata])!;
     }
 }

@@ -8,9 +8,9 @@ internal readonly struct Optional<T>
         Value = value;
     }
 
-    public bool HasValue { get; }
+    public bool HasValue { get; } = false;
 
-    public T Value { get; }
+    public T Value { get; } = default!;
 
     public static readonly Optional<T> Empty = new();
 

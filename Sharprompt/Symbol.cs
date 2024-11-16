@@ -3,18 +3,9 @@ using System.Runtime.InteropServices;
 
 namespace Sharprompt;
 
-public class Symbol
+public class Symbol(string value, string fallbackValue)
 {
-    public Symbol(string value, string fallbackValue)
-    {
-        _value = value;
-        _fallbackValue = fallbackValue;
-    }
-
-    private readonly string _value;
-    private readonly string _fallbackValue;
-
-    public override string ToString() => IsUnicodeSupported ? _value : _fallbackValue;
+    public override string ToString() => IsUnicodeSupported ? value : fallbackValue;
 
     public static implicit operator string(Symbol symbol) => symbol.ToString();
 

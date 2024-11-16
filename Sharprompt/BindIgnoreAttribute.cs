@@ -3,6 +3,4 @@
 namespace Sharprompt;
 
 [AttributeUsage(AttributeTargets.Property)]
-public sealed class BindIgnoreAttribute : Attribute
-{
-}
+public sealed class BindIgnoreAttribute : Attribute;

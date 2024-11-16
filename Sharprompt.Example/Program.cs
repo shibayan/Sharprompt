@@ -54,7 +54,7 @@ class Program
 
     private static void RunInputSample()
     {
-        var name = Prompt.Input<string>("What's your name?", defaultValue: "John Smith", placeholder: "At least 3 characters", validators: new[] { Validators.Required(), Validators.MinLength(3) });
+        var name = Prompt.Input<string>("What's your name?", defaultValue: "John Smith", placeholder: "At least 3 characters", validators: [Validators.Required(), Validators.MinLength(3)]);
         Console.WriteLine($"Hello, {name}!");
     }
 
@@ -66,19 +66,19 @@ class Program
 
     private static void RunPasswordSample()
     {
-        var secret = Prompt.Password("Type new password", placeholder: "At least 8 characters", validators: new[] { Validators.Required(), Validators.MinLength(8) });
+        var secret = Prompt.Password("Type new password", placeholder: "At least 8 characters", validators: [Validators.Required(), Validators.MinLength(8)]);
         Console.WriteLine($"Password OK, {secret}");
     }
 
     private static void RunSelectSample()
     {
-        var city = Prompt.Select("Select your city", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3);
+        var city = Prompt.Select("Select your city", ["Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai"], pageSize: 3);
         Console.WriteLine($"Hello, {city}!");
     }
 
     private static void RunMultiSelectSample()
     {
-        var options = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3, defaultValues: new[] { "Tokyo" });
+        var options = Prompt.MultiSelect("Which cities would you like to visit?", ["Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai"], pageSize: 3, defaultValues: ["Tokyo"]);
         Console.WriteLine($"You picked {string.Join(", ", options)}");
     }
 
@@ -90,7 +90,7 @@ class Program
 
     private static void RunMultiSelectEnumSample()
     {
-        var value = Prompt.MultiSelect<MyEnum>("Select enum value", defaultValues: new[] { MyEnum.Bar });
+        var value = Prompt.MultiSelect<MyEnum>("Select enum value", defaultValues: [MyEnum.Bar]);
         Console.WriteLine($"You picked {string.Join(", ", value)}");
     }
 

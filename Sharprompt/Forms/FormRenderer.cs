@@ -5,14 +5,9 @@ using Sharprompt.Internal;
 
 namespace Sharprompt.Forms;
 
-internal class FormRenderer : IDisposable
+internal class FormRenderer(IConsoleDriver consoleDriver) : IDisposable
 {
-    public FormRenderer(IConsoleDriver consoleDriver)
-    {
-        _offscreenBuffer = new OffscreenBuffer(consoleDriver);
-    }
-
-    private readonly OffscreenBuffer _offscreenBuffer;
+    private readonly OffscreenBuffer _offscreenBuffer = new(consoleDriver);
 
     public string? ErrorMessage { get; set; }
 

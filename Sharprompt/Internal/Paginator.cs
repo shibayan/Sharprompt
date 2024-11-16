@@ -21,7 +21,7 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
     private readonly Func<T, string> _textSelector;
 
     private int _pageSize;
-    private T[] _filteredItems = Array.Empty<T>();
+    private T[] _filteredItems = [];
     private int _selectedIndex = -1;
 
     public ReadOnlySpan<T> CurrentItems => new(_filteredItems, _pageSize * CurrentPage, Count);

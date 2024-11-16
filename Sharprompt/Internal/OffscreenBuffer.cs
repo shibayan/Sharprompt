@@ -16,7 +16,7 @@ internal class OffscreenBuffer : IDisposable
     }
 
     private readonly IConsoleDriver _consoleDriver;
-    private readonly List<List<TextInfo>> _outputBuffer = new() { new List<TextInfo>() };
+    private readonly List<List<TextInfo>> _outputBuffer = [new()];
 
     private int _cursorBottom;
     private Cursor? _pushedCursor;
@@ -37,7 +37,7 @@ internal class OffscreenBuffer : IDisposable
         _outputBuffer.Last().Add(new TextInfo(text, color));
     }
 
-    public void WriteLine() => _outputBuffer.Add(new List<TextInfo>());
+    public void WriteLine() => _outputBuffer.Add([]);
 
     public void PushCursor()
     {
@@ -105,7 +105,7 @@ internal class OffscreenBuffer : IDisposable
     public void ClearBuffer()
     {
         _outputBuffer.Clear();
-        _outputBuffer.Add(new List<TextInfo>());
+        _outputBuffer.Add([]);
 
         _pushedCursor = null;
     }
