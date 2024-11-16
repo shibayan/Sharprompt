@@ -21,7 +21,7 @@ internal class ListForm<T> : TextFormBase<IEnumerable<T>> where T : notnull
 
     private readonly ListOptions<T> _options;
 
-    private readonly List<T> _inputItems = new();
+    private readonly List<T> _inputItems = [];
 
     protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
     {

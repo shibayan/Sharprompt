@@ -297,9 +297,9 @@ public class PropertyMetadataTests
 
         public static IEnumerable<int> GetSelectItems()
         {
-            return new[] { 1, 2, 3, 4, 5 };
+            return [1, 2, 3, 4, 5];
         }
 
-        public static IEnumerable<int> SelectItems => new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        public static IEnumerable<int> SelectItems => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     }
 }

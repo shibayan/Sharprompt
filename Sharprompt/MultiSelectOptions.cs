@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Sharprompt.Internal;
 using Sharprompt.Strings;
@@ -22,7 +21,7 @@ public class MultiSelectOptions<T> where T : notnull
 
     public IEnumerable<T> Items { get; set; } = null!;
 
-    public IEnumerable<T> DefaultValues { get; set; } = Enumerable.Empty<T>();
+    public IEnumerable<T> DefaultValues { get; set; } = [];
 
     public int PageSize { get; set; } = int.MaxValue;
 

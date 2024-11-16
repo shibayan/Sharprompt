@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 
 using Sharprompt.Strings;
 
@@ -11,7 +10,7 @@ public class ListOptions<T> where T : notnull
 {
     public string Message { get; set; } = null!;
 
-    public IEnumerable<T> DefaultValues { get; set; } = Enumerable.Empty<T>();
+    public IEnumerable<T> DefaultValues { get; set; } = [];
 
     public int Minimum { get; set; } = 1;
 

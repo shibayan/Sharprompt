@@ -1,16 +1,10 @@
 ﻿namespace Sharprompt.Internal;
 
-internal readonly struct Optional<T>
+internal readonly struct Optional<T>(T value)
 {
-    public Optional(T value)
-    {
-        HasValue = true;
-        Value = value;
-    }
+    public bool HasValue => true;
 
-    public bool HasValue { get; }
-
-    public T Value { get; }
+    public T Value { get; } = value;
 
     public static readonly Optional<T> Empty = new();
 
