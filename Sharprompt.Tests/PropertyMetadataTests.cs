@@ -209,6 +209,19 @@ public class PropertyMetadataTests
         Assert.Equal(Enumerable.Range(1, 10), metadata[1].ItemsProvider.GetItems<int>(metadata[1].PropertyInfo));
     }
 
+    [Fact]
+    public void DefaultValueMustBeSelected()
+    {
+        var metadata = PropertyMetadataFactory.Create(new DefaultValueMustBeSelectedModel());
+
+        Assert.NotNull(metadata);
+        Assert.Equal(2, metadata.Count);
+
+        Assert.True(metadata[0].DefaultValueMustBeSelected);
+        Assert.False(metadata[1].DefaultValueMustBeSelected);
+    }
+
+
     public class BasicModel
     {
         [Display(Name = "Input Value", Prompt = "Required Value")]
@@ -301,5 +314,13 @@ public class PropertyMetadataTests
         }
 
         public static IEnumerable<int> SelectItems => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    }
+
+    public class DefaultValueMustBeSelectedModel
+    {
+        [DefaultValueMustBeSelected]
+        public string MemberValue1 { get; set; } = "something";
+
+        public string MemberValue2 { get; set; } = "nothing";
     }
 }

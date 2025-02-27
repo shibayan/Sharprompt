@@ -63,6 +63,7 @@ public static partial class Prompt
         {
             options.Message = propertyMetadata.Message;
             options.DefaultValue = propertyMetadata.DefaultValue;
+            options.DefaultValueMustBeSelected = propertyMetadata.DefaultValueMustBeSelected;
             options.Placeholder = propertyMetadata.Placeholder;
 
             options.Validators.Merge(propertyMetadata.Validators);
