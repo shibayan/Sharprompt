@@ -25,13 +25,14 @@ public static partial class Prompt
         return Input(options);
     }
 
-    public static T Input<T>(string message, object? defaultValue = default, string? placeholder = default, IList<Func<object?, ValidationResult?>>? validators = default)
+    public static T Input<T>(string message, object? defaultValue = default, bool defaultValueMustBeSelected = false, string? placeholder = default, IList<Func<object?, ValidationResult?>>? validators = default)
     {
         return Input<T>(options =>
         {
             options.Message = message;
             options.Placeholder = placeholder;
             options.DefaultValue = defaultValue;
+            options.DefaultValueMustBeSelected = defaultValueMustBeSelected;
 
             options.Validators.Merge(validators);
         });

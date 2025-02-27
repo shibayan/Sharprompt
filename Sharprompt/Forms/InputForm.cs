@@ -10,6 +10,8 @@ internal class InputForm<T> : TextFormBase<T>
 {
     public InputForm(InputOptions<T> options)
     {
+        KeyHandlerMaps.Add(ConsoleKey.Tab, HandleTab);
+
         options.EnsureOptions();
 
         _options = options;
@@ -26,7 +28,14 @@ internal class InputForm<T> : TextFormBase<T>
 
         if (_defaultValue.HasValue)
         {
-            offscreenBuffer.WriteHint($"({_defaultValue.Value}) ");
+            if (_options.DefaultValueMustBeSelected)
+            {
+                offscreenBuffer.WriteHint($"({_defaultValue.Value} - Tab to select) ");
+            }
+            else
+            {
+                offscreenBuffer.WriteHint($"({_defaultValue.Value}) ");
+            }
         }
 
         if (InputBuffer.Length == 0 && !string.IsNullOrEmpty(_options.Placeholder))
@@ -65,7 +74,7 @@ internal class InputForm<T> : TextFormBase<T>
                     return false;
                 }
 
-                result = _defaultValue;
+                result = _options.DefaultValueMustBeSelected ? default : _defaultValue;
             }
             else
             {
@@ -82,5 +91,19 @@ internal class InputForm<T> : TextFormBase<T>
         result = default;
 
         return false;
+    }
+
+    protected bool HandleTab(ConsoleKeyInfo keyInfo)
+    {
+        if (_options.DefaultValueMustBeSelected && _defaultValue.HasValue)
+        {
+            InputBuffer.Clear();
+            foreach (var c in _defaultValue.Value.ToString())
+            {
+                InputBuffer.Insert(c);
+            }
+        }
+
+        return true;
     }
 }
