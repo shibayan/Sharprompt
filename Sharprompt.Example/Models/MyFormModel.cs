@@ -32,7 +32,11 @@ public class MyFormModel
     [Display(Name = "Select enum values", Order = 5)]
     public IEnumerable<MyEnum> MyEnums { get; set; } = null!;
 
-    [Display(Name = "Please add item(s)", Order = 6)]
+    [Display(Name = "Select enum values without text selector", Order = 6)]
+    [DoNotUseTextSelector]
+    public IEnumerable<MyEnum> MyEnumsWithoutTextSelector { get; set; } = null!;
+
+    [Display(Name = "Please add item(s)", Order = 7)]
     public IEnumerable<string> Lists { get; set; } = null!;
 
     [Display(Name = "Are you ready?", Order = 10)]

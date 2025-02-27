@@ -221,6 +221,18 @@ public class PropertyMetadataTests
         Assert.False(metadata[1].DefaultValueMustBeSelected);
     }
 
+    [Fact]
+    public void DoNotUseTextSelector()
+    {
+        var metadata = PropertyMetadataFactory.Create(new DoNotUseTextSelectorModel());
+
+        Assert.NotNull(metadata);
+        Assert.Equal(2, metadata.Count);
+
+        Assert.True(metadata[0].UseTextSelector);
+        Assert.False(metadata[1].UseTextSelector);
+    }
+
 
     public class BasicModel
     {
@@ -322,5 +334,13 @@ public class PropertyMetadataTests
         public string MemberValue1 { get; set; } = "something";
 
         public string MemberValue2 { get; set; } = "nothing";
+    }
+
+    public class DoNotUseTextSelectorModel
+    {
+        public IEnumerable<string> StrArray { get; set; } = null!;
+
+        [DoNotUseTextSelector]
+        public IReadOnlyList<int> IntArray { get; set; } = null!;
     }
 }

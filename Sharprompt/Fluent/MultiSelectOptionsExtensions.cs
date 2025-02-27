@@ -54,6 +54,13 @@ public static class MultiSelectOptionsExtensions
         return options;
     }
 
+    public static MultiSelectOptions<T> WithoutTextSelector<T>(this MultiSelectOptions<T> options) where T : notnull
+    {
+        options.UseTextSelector = false;
+
+        return options;
+    }
+
     public static MultiSelectOptions<T> WithPagination<T>(this MultiSelectOptions<T> options, Func<int, int, int, string> pagination) where T : notnull
     {
         options.Pagination = pagination;

@@ -33,6 +33,7 @@ internal class PropertyMetadata
             .Select(x => new ValidationAttributeAdapter(x).GetValidator(propertyInfo.Name, model))
             .ToArray();
         ItemsProvider = GetItemsProvider(propertyInfo);
+        UseTextSelector = propertyInfo.GetCustomAttribute<DoNotUseTextSelectorAttribute>() is null;
     }
 
     public PropertyInfo PropertyInfo { get; }
@@ -48,6 +49,7 @@ internal class PropertyMetadata
     public bool DefaultValueMustBeSelected { get; }
     public IReadOnlyList<Func<object?, ValidationResult?>> Validators { get; }
     public IItemsProvider ItemsProvider { get; }
+    public bool UseTextSelector { get; set; }
 
     public FormType DetermineFormType()
     {
