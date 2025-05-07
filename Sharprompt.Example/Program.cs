@@ -22,6 +22,9 @@ class Program
                 case ExampleType.Input:
                     RunInputSample();
                     break;
+                case ExampleType.InputWithDefaultValueSelection:
+                    RunInputSampleWithDefaultValueSelection();
+                    break;
                 case ExampleType.Confirm:
                     RunConfirmSample();
                     break;
@@ -56,6 +59,12 @@ class Program
     {
         var name = Prompt.Input<string>("What's your name?", defaultValue: "John Smith", placeholder: "At least 3 characters", validators: [Validators.Required(), Validators.MinLength(3)]);
         Console.WriteLine($"Hello, {name}!");
+    }
+
+    private static void RunInputSampleWithDefaultValueSelection()
+    {
+        var colour = Prompt.Input<string>("What's your favourite colour?", defaultValue: "blue", defaultValueMustBeSelected: true);
+        Console.WriteLine($"Your answer is: {colour}!");
     }
 
     private static void RunConfirmSample()
