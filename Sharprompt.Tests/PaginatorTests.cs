@@ -52,6 +52,32 @@ public class PaginatorTests
     }
 
     [Fact]
+    public void Filter_NotEmpty_UseTextSelectorFalse()
+    {
+        var paginator = new Paginator<int>(Enumerable.Range(0, 20), 5, Optional<int>.Empty, x => x.ToString(), false);
+
+        paginator.UpdateFilter("0");
+
+        var currentItems = paginator.CurrentItems;
+
+        Assert.Equal(5, currentItems.Length);
+        Assert.Equal(new[] { 0, 1, 2, 3, 4 }, currentItems.ToArray());
+    }
+
+    [Fact]
+    public void Filter_Empty_UseTextSelectorFalse()
+    {
+        var paginator = new Paginator<int>(Enumerable.Range(0, 20), 5, Optional<int>.Empty, x => x.ToString(), false);
+
+        paginator.UpdateFilter("x");
+
+        var currentItems = paginator.CurrentItems;
+
+        Assert.Equal(5, currentItems.Length);
+        Assert.Equal(new[] { 0, 1, 2, 3, 4 }, currentItems.ToArray());
+    }
+
+    [Fact]
     public void SelectedItem()
     {
         var paginator = new Paginator<int>(Enumerable.Range(0, 20), 5, Optional<int>.Empty, x => x.ToString());

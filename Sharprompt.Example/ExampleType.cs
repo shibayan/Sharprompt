@@ -3,6 +3,7 @@
 public enum ExampleType
 {
     Input,
+    InputWithDefaultValueSelection,
     Confirm,
     Password,
     Select,

@@ -27,6 +27,8 @@ public class SelectOptions<T> where T : notnull
 
     public Func<T, string> TextSelector { get; set; } = x => x.ToString()!;
 
+    public bool UseTextSelector { get; set; } = true;
+
     public Func<int, int, int, string> Pagination { get; set; } = (count, current, total) => string.Format(Resource.Message_Pagination, count, current, total);
 
     public bool LoopingSelection { get; set; } = true;
