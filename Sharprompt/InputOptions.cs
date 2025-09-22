@@ -12,6 +12,8 @@ public class InputOptions<T>
 
     public object? DefaultValue { get; set; }
 
+    public bool DefaultValueMustBeSelected { get; set; } = false;
+
     public IList<Func<object?, ValidationResult?>> Validators { get; } = new List<Func<object?, ValidationResult?>>();
 
     internal void EnsureOptions()
