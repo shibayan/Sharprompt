@@ -9,6 +9,8 @@ env:
 
 jobs:
   publish:
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v5
@@ -18,6 +20,12 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
+    - name: NuGet login (OIDC → temp API key)
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: shibayan
+
     - name: Setup Version
       id: setup_version
       run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_OUTPUT
@@ -26,4 +34,4 @@ jobs:
       run: dotnet pack Sharprompt/Sharprompt.csproj -c Release -o ./dist -p:Version=${{ steps.setup_version.outputs.VERSION }}
 
     - name: Publish
-      run: dotnet nuget push dist/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
+      run: dotnet nuget push dist/*.nupkg -k ${{ steps.login.outputs.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
