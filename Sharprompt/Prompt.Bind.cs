@@ -63,6 +63,7 @@ public static partial class Prompt
         {
             options.Message = propertyMetadata.Message;
             options.DefaultValue = propertyMetadata.DefaultValue;
+            options.DefaultValueMustBeSelected = propertyMetadata.DefaultValueMustBeSelected;
             options.Placeholder = propertyMetadata.Placeholder;
 
             options.Validators.Merge(propertyMetadata.Validators);
@@ -91,6 +92,7 @@ public static partial class Prompt
             options.Message = propertyMetadata.Message;
             options.Items = propertyMetadata.ItemsProvider.GetItems<T>(propertyMetadata.PropertyInfo);
             options.DefaultValues = (IEnumerable<T>?)propertyMetadata.DefaultValue ?? [];
+            options.UseTextSelector = propertyMetadata.UseTextSelector;
         });
     }
 
@@ -114,6 +116,7 @@ public static partial class Prompt
             options.Message = propertyMetadata.Message;
             options.Items = propertyMetadata.ItemsProvider.GetItems<T>(propertyMetadata.PropertyInfo);
             options.DefaultValue = propertyMetadata.DefaultValue;
+            options.UseTextSelector = propertyMetadata.UseTextSelector;
         });
     }
 
