@@ -18,7 +18,9 @@ internal class PropertyMetadata
 
         PropertyInfo = propertyInfo;
         Type = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
-        ElementType = TypeHelper.IsCollection(propertyInfo.PropertyType) ? propertyInfo.PropertyType.GetGenericArguments()[0] : null;
+        ElementType = TypeHelper.IsCollection(propertyInfo.PropertyType)
+            ? propertyInfo.PropertyType.GetGenericArguments()[0]
+            : null;
         IsNullable = TypeHelper.IsNullable(propertyInfo.PropertyType);
         IsCollection = TypeHelper.IsCollection(propertyInfo.PropertyType);
         DataType = propertyInfo.GetCustomAttribute<DataTypeAttribute>()?.DataType;
@@ -26,10 +28,12 @@ internal class PropertyMetadata
         Placeholder = displayAttribute?.GetPrompt();
         Order = displayAttribute?.GetOrder();
         DefaultValue = propertyInfo.GetValue(model);
+        DefaultValueMustBeSelected = propertyInfo.GetCustomAttribute<DefaultValueMustBeSelectedAttribute>() is not null;
         Validators = propertyInfo.GetCustomAttributes<ValidationAttribute>(true)
-                                 .Select(x => new ValidationAttributeAdapter(x).GetValidator(propertyInfo.Name, model))
-                                 .ToArray();
+            .Select(x => new ValidationAttributeAdapter(x).GetValidator(propertyInfo.Name, model))
+            .ToArray();
         ItemsProvider = GetItemsProvider(propertyInfo);
+        UseTextSelector = propertyInfo.GetCustomAttribute<DoNotUseTextSelectorAttribute>() is null;
     }
 
     public PropertyInfo PropertyInfo { get; }
@@ -42,8 +46,10 @@ internal class PropertyMetadata
     public string? Placeholder { get; set; }
     public int? Order { get; }
     public object? DefaultValue { get; }
+    public bool DefaultValueMustBeSelected { get; }
     public IReadOnlyList<Func<object?, ValidationResult?>> Validators { get; }
     public IItemsProvider ItemsProvider { get; }
+    public bool UseTextSelector { get; set; }
 
     public FormType DetermineFormType()
     {
@@ -96,8 +102,7 @@ internal class PropertyMetadata
         {
             var validationContext = new ValidationContext(model)
             {
-                DisplayName = propertyName,
-                MemberName = propertyName
+                DisplayName = propertyName, MemberName = propertyName
             };
 
             return input => _validationAttribute.GetValidationResult(input, validationContext);

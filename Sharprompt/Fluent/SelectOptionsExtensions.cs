@@ -40,6 +40,13 @@ public static class SelectOptionsExtensions
         return options;
     }
 
+    public static SelectOptions<T> WithoutTextSelector<T>(this SelectOptions<T> options) where T : notnull
+    {
+        options.UseTextSelector = false;
+
+        return options;
+    }
+
     public static SelectOptions<T> WithPagination<T>(this SelectOptions<T> options, Func<int, int, int, string> pagination) where T : notnull
     {
         options.Pagination = pagination;

@@ -14,7 +14,7 @@ internal class SelectForm<T> : FormBase<T> where T : notnull
         options.EnsureOptions();
 
         _options = options;
-        _paginator = new Paginator<T>(options.Items, Math.Min(options.PageSize, Height - 2), Optional<T>.Create(options.DefaultValue), options.TextSelector)
+        _paginator = new Paginator<T>(options.Items, Math.Min(options.PageSize, Height - 2), Optional<T>.Create(options.DefaultValue), options.TextSelector, options.UseTextSelector)
         {
             LoopingSelection = options.LoopingSelection
         };
