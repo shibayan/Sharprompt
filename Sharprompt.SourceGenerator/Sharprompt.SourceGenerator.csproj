@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IsRoslynComponent>true</IsRoslynComponent>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
