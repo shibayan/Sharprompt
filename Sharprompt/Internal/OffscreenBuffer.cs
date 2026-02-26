@@ -19,12 +19,21 @@ internal class OffscreenBuffer : IDisposable
 
     private int _cursorBottom;
     private Cursor? _pushedCursor;
+    private bool _isWrittenLineCountDirty = true;
+    private int _cachedWrittenLineCount;
+    private int _cachedBufferWidth;
 
     private int WrittenLineCount
     {
         get
         {
             var bufferWidth = _consoleDriver.BufferWidth;
+
+            if (!_isWrittenLineCountDirty && _cachedBufferWidth == bufferWidth)
+            {
+                return _cachedWrittenLineCount;
+            }
+
             var count = 0;
 
             foreach (var line in _outputBuffer)
@@ -39,7 +48,11 @@ internal class OffscreenBuffer : IDisposable
                 count += (lineWidth - 1) / bufferWidth + 1;
             }
 
-            return count - 1;
+            _cachedBufferWidth = bufferWidth;
+            _cachedWrittenLineCount = count - 1;
+            _isWrittenLineCountDirty = false;
+
+            return _cachedWrittenLineCount;
         }
     }
 
@@ -55,9 +68,14 @@ internal class OffscreenBuffer : IDisposable
         }
 
         _outputBuffer[^1].Add(new TextInfo(text, color));
+        _isWrittenLineCountDirty = true;
     }
 
-    public void WriteLine() => _outputBuffer.Add([]);
+    public void WriteLine()
+    {
+        _outputBuffer.Add([]);
+        _isWrittenLineCountDirty = true;
+    }
 
     public void PushCursor()
     {
@@ -136,6 +154,7 @@ internal class OffscreenBuffer : IDisposable
         _outputBuffer.Add([]);
 
         _pushedCursor = null;
+        _isWrittenLineCountDirty = true;
     }
 
     public void Cancel()

@@ -41,13 +41,16 @@ internal class SelectForm<T> : FormBase<T> where T : notnull
 
         offscreenBuffer.PushCursor();
 
+        var hasSelected = _paginator.TryGetSelectedItem(out var selectedItem);
+        var comparer = EqualityComparer<T>.Default;
+
         foreach (var item in _paginator.CurrentItems)
         {
             var value = _options.TextSelector(item);
 
             offscreenBuffer.WriteLine();
 
-            if (_paginator.TryGetSelectedItem(out var selectedItem) && EqualityComparer<T>.Default.Equals(item, selectedItem))
+            if (hasSelected && comparer.Equals(item, selectedItem))
             {
                 offscreenBuffer.WriteSelect($"{Prompt.Symbols.Selector} {value}");
             }

@@ -57,19 +57,23 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
             offscreenBuffer.WriteHint(Resource.MultiSelectForm_Message_Hint);
         }
 
+        var hasSelected = _paginator.TryGetSelectedItem(out var selectedItem);
+        var comparer = EqualityComparer<T>.Default;
+
         foreach (var item in _paginator.CurrentItems)
         {
             var value = _options.TextSelector(item);
+            var isChecked = _selectedItems.Contains(item);
 
             offscreenBuffer.WriteLine();
 
-            if (_paginator.TryGetSelectedItem(out var selectedItem) && EqualityComparer<T>.Default.Equals(item, selectedItem))
+            if (hasSelected && comparer.Equals(item, selectedItem))
             {
-                offscreenBuffer.WriteSelect($"{Prompt.Symbols.Selector} {(_selectedItems.Contains(item) ? Prompt.Symbols.Selected : Prompt.Symbols.NotSelect)} {value}");
+                offscreenBuffer.WriteSelect($"{Prompt.Symbols.Selector} {(isChecked ? Prompt.Symbols.Selected : Prompt.Symbols.NotSelect)} {value}");
             }
             else
             {
-                if (_selectedItems.Contains(item))
+                if (isChecked)
                 {
                     offscreenBuffer.WriteSelect($"  {Prompt.Symbols.Selected} {value}");
                 }

@@ -134,7 +134,6 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         // Unwrap Nullable<T>
         if (propertyType is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } namedType)
         {
-            metadata.IsNullableValueType = true;
             metadata.UnderlyingType = namedType.TypeArguments[0];
         }
         else
@@ -150,7 +149,6 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
 
         if (elementType != null)
         {
-            metadata.ElementType = elementType;
             metadata.ElementTypeName = elementType.ToDisplayString(s_fullyQualifiedFormat);
             metadata.IsElementEnum = elementType.TypeKind == TypeKind.Enum;
         }
@@ -603,9 +601,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         public string FullTypeName { get; set; } = "";
         public ITypeSymbol? UnderlyingType { get; set; }
         public string UnderlyingTypeName { get; set; } = "";
-        public ITypeSymbol? ElementType { get; set; }
         public string? ElementTypeName { get; set; }
-        public bool IsNullableValueType { get; set; }
         public bool IsCollection { get; set; }
         public bool IsEnum { get; set; }
         public bool IsElementEnum { get; set; }

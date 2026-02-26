@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 using Sharprompt.Drivers;
 using Sharprompt.Internal;
@@ -73,12 +72,16 @@ internal abstract class FormBase<T> : IDisposable
 
     protected bool TryValidate([NotNullWhen(true)] object? input, IList<Func<object?, ValidationResult?>> validators)
     {
-        var result = validators.Select(x => x(input))
-                               .FirstOrDefault(x => x != ValidationResult.Success);
-
-        if (result is not null)
+        foreach (var validator in validators)
         {
-            SetError(result);
+            var result = validator(input);
+
+            if (result == ValidationResult.Success)
+            {
+                continue;
+            }
+
+            SetError(result!);
 
             return false;
         }

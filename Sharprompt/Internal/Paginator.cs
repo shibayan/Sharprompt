@@ -144,8 +144,24 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
 
     private void UpdateFilteredItems()
     {
-        _filteredItems = _items.Where(x => _textSelector(x).Contains(FilterKeyword, StringComparison.OrdinalIgnoreCase))
-                               .ToArray();
+        if (string.IsNullOrEmpty(FilterKeyword))
+        {
+            _filteredItems = _items;
+        }
+        else
+        {
+            var filteredItems = new List<T>();
+
+            foreach (var item in _items)
+            {
+                if (_textSelector(item).Contains(FilterKeyword, StringComparison.OrdinalIgnoreCase))
+                {
+                    filteredItems.Add(item);
+                }
+            }
+
+            _filteredItems = filteredItems.ToArray();
+        }
 
         PageCount = (_filteredItems.Length - 1) / _pageSize + 1;
 
