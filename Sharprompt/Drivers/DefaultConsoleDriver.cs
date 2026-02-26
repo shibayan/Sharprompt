@@ -93,7 +93,9 @@ internal sealed class DefaultConsoleDriver : IConsoleDriver
 
     public void WriteLine() => Console.WriteLine();
 
-    public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);
+    public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(
+        Math.Clamp(left, 0, Console.BufferWidth - 1),
+        Math.Clamp(top, 0, Console.BufferHeight - 1));
 
     public bool KeyAvailable => Console.KeyAvailable;
 
