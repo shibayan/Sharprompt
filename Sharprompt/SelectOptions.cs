@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using Sharprompt.Internal;
 using Sharprompt.Strings;
 
 namespace Sharprompt;
@@ -10,10 +9,10 @@ public class SelectOptions<T> where T : notnull
 {
     public SelectOptions()
     {
-        if (typeof(T).IsAssignableTo(typeof(Enum)))
+        if (EnumMetadataRegistry.TryGet<T>(out var values, out var textSelector))
         {
-            Items = EnumHelper<T>.GetValues();
-            TextSelector = EnumHelper<T>.GetDisplayName;
+            Items = values;
+            TextSelector = textSelector;
         }
     }
 
