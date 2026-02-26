@@ -462,12 +462,12 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             {
                 if (interfaceType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
                 {
-                    return (true, interfaceType.TypeArguments[0]);
-                }
-            }
-        }
+            var enumerableInterface = namedType.AllInterfaces
+                .FirstOrDefault(i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
 
-        return (false, null);
+            if (enumerableInterface != null)
+                }
+                return (true, enumerableInterface.TypeArguments[0]);
     }
 
     private static string GenerateNewExpression(AttributeData attribute)
