@@ -12,7 +12,7 @@ public class PasswordOptions
 
     public string PasswordChar { get; set; } = "*";
 
-    public IList<Func<object?, ValidationResult?>> Validators { get; } = new List<Func<object?, ValidationResult?>>();
+    public IList<Func<object?, ValidationResult?>> Validators { get; } = [];
 
     internal void EnsureOptions()
     {

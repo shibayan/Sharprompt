@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Sharprompt.Example/Sharprompt.Example.csproj" />
+  <Project Path="Sharprompt.Tests/Sharprompt.Tests.csproj" />
+  <Project Path="Sharprompt/Sharprompt.csproj" />
+</Solution>

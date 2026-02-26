@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 using Sharprompt.Internal;
 using Sharprompt.Strings;
@@ -92,7 +91,7 @@ internal class ListForm<T> : TextFormBase<IEnumerable<T>> where T : notnull
 
     protected override bool HandleDelete(ConsoleKeyInfo keyInfo)
     {
-        if (keyInfo.Modifiers == ConsoleModifiers.Control && _inputItems.Any())
+        if (keyInfo.Modifiers == ConsoleModifiers.Control && _inputItems.Count > 0)
         {
             _inputItems.RemoveAt(_inputItems.Count - 1);
 

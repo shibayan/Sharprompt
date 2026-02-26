@@ -144,7 +144,7 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
 
     private void UpdateFilteredItems()
     {
-        _filteredItems = _items.Where(x => _textSelector(x).IndexOf(FilterKeyword, StringComparison.OrdinalIgnoreCase) != -1)
+        _filteredItems = _items.Where(x => _textSelector(x).Contains(FilterKeyword, StringComparison.OrdinalIgnoreCase))
                                .ToArray();
 
         PageCount = (_filteredItems.Length - 1) / _pageSize + 1;

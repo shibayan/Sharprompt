@@ -127,11 +127,7 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
             return false;
         }
 
-        if (_selectedItems.Contains(currentItem))
-        {
-            _selectedItems.Remove(currentItem);
-        }
-        else
+        if (!_selectedItems.Remove(currentItem))
         {
             if (_selectedItems.Count >= _options.Maximum)
             {
