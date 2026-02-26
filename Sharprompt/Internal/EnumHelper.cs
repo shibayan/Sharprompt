@@ -16,9 +16,14 @@ internal static class EnumHelper<TEnum> where TEnum : notnull
         {
             s_metadataCache.Add(value, GetEnumMetadata(value));
         }
+
+        s_values = s_metadataCache.OrderBy(x => x.Value.Order)
+                                 .Select(x => x.Key)
+                                 .ToArray();
     }
 
     private static readonly Dictionary<TEnum, EnumMetadata> s_metadataCache = new();
+    private static readonly TEnum[] s_values;
 
     private static EnumMetadata GetEnumMetadata(TEnum value)
     {
@@ -29,9 +34,7 @@ internal static class EnumHelper<TEnum> where TEnum : notnull
 
     public static string GetDisplayName(TEnum value) => s_metadataCache[value].DisplayName ?? value.ToString()!;
 
-    public static IEnumerable<TEnum> GetValues() => s_metadataCache.OrderBy(x => x.Value.Order)
-                                                                   .Select(x => x.Key)
-                                                                   .ToArray();
+    public static IEnumerable<TEnum> GetValues() => s_values;
 
     private record EnumMetadata(string? DisplayName, int? Order);
 }
