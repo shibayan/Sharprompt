@@ -38,4 +38,21 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Sharprompt.SourceGenerator\Sharprompt.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_PackSourceGenerator</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <Target Name="_PackSourceGenerator">
+    <MSBuild Projects="..\Sharprompt.SourceGenerator\Sharprompt.SourceGenerator.csproj" Targets="GetTargetPath" RemoveProperties="TargetFramework">
+      <Output TaskParameter="TargetOutputs" ItemName="_SourceGeneratorOutput" />
+    </MSBuild>
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="@(_SourceGeneratorOutput)" PackagePath="analyzers/dotnet/cs" />
+    </ItemGroup>
+  </Target>
+
 </Project>
