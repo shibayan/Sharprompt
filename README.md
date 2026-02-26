@@ -21,13 +21,15 @@ Interactive command-line based application framework for C#
 
 ## Installation
 
-```
+```powershell
 Install-Package Sharprompt
 ```
 
-```
+```sh
 dotnet add package Sharprompt
 ```
+
+## Quick start
 
 ```csharp
 // Simple input
@@ -47,7 +49,7 @@ Console.WriteLine($"Your answer is {answer}");
 
 The project in the folder `Sharprompt.Example` contains all the samples. Please check it.
 
-```
+```sh
 dotnet run --project Sharprompt.Example
 ```
 
@@ -180,7 +182,22 @@ catch (PromptCanceledException ex)
 }
 ```
 
-## Features
+## Validators
+
+Sharprompt provides built-in validators that can be used with the `validators` parameter.
+
+```csharp
+var secret = Prompt.Password("Type new password", validators: new[] { Validators.Required(), Validators.MinLength(8) });
+```
+
+| Validator | Description |
+|-----------|-------------|
+| `Validators.Required()` | Ensures the input is not empty |
+| `Validators.MinLength(length)` | Ensures the input has at least the specified number of characters |
+| `Validators.MaxLength(length)` | Ensures the input does not exceed the specified number of characters |
+| `Validators.RegularExpression(pattern)` | Ensures the input matches the specified regular expression |
+
+## Additional features
 
 ### Enum type support
 
