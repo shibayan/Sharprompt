@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Sharprompt.Example.Models;
 
+[PromptBindable]
 public class MyFormModel
 {
     [Display(Name = "Id")]
