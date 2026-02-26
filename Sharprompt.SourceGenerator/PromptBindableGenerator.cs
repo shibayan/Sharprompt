@@ -192,12 +192,9 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         }
 
         // DataType attribute
-        var dataTypeAttribute = GetAttribute(property, "System.ComponentModel.DataAnnotations.DataTypeAttribute");
+        if (dataTypeAttribute is { ConstructorArguments.Length: > 0 } && dataTypeAttribute.ConstructorArguments[0].Value is int dataTypeValue)
         if (dataTypeAttribute is { ConstructorArguments.Length: > 0 })
-        {
-            if (dataTypeAttribute.ConstructorArguments[0].Value is int dataTypeValue)
-            {
-                metadata.IsPassword = dataTypeValue == DataTypePassword;
+            metadata.IsPassword = dataTypeValue == DataTypePassword;
             }
         }
 
