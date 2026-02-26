@@ -201,12 +201,10 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         // Validation attributes
         foreach (var attribute in property.GetAttributes())
         {
-            if (attribute.AttributeClass != null && IsValidationAttribute(attribute.AttributeClass))
+        foreach (var attribute in property.GetAttributes()
+                                           .Where(attribute => attribute.AttributeClass != null && IsValidationAttribute(attribute.AttributeClass)))
             {
-                metadata.Validators.Add(GenerateNewExpression(attribute));
-            }
-        }
-
+            metadata.Validators.Add(GenerateNewExpression(attribute));
         // Items provider: InlineItems
         var inlineAttribute = GetAttribute(property, "Sharprompt.InlineItemsAttribute");
         if (inlineAttribute is { ConstructorArguments.Length: > 0 })
