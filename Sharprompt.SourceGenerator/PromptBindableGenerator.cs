@@ -111,10 +111,11 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
 
         while (current != null && current.SpecialType != SpecialType.System_Object)
         {
-            foreach (var member in current.GetMembers())
+            foreach (var property in current.GetMembers()
+                .OfType<IPropertySymbol>()
+                .Where(p => !p.IsStatic && p.DeclaredAccessibility == Accessibility.Public))
             {
-                if (member is IPropertySymbol { IsStatic: false, DeclaredAccessibility: Accessibility.Public } property &&
-                    seen.Add(property.Name))
+                if (seen.Add(property.Name))
                 {
                     yield return property;
                 }
