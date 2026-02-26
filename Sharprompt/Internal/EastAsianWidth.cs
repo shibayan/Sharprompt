@@ -12,7 +12,7 @@ internal static class EastAsianWidth
 
             if (char.IsHighSurrogate(value[i]) && (i + 1 < value.Length && char.IsLowSurrogate(value[i + 1])))
             {
-                codePoint = (uint)(0x10000 + ((value[i] - 0xD800) * 0x0400) + (value[i + 1] - 0xDC00));
+                codePoint = (uint)char.ConvertToUtf32(value[i], value[i + 1]);
 
                 i++;
             }

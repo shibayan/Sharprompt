@@ -16,7 +16,7 @@ public class ListOptions<T> where T : notnull
 
     public int Maximum { get; set; } = int.MaxValue;
 
-    public IList<Func<object?, ValidationResult?>> Validators { get; } = new List<Func<object?, ValidationResult?>>();
+    public IList<Func<object?, ValidationResult?>> Validators { get; } = [];
 
     internal void EnsureOptions()
     {
