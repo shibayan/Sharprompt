@@ -147,17 +147,7 @@ public class TextInputBufferTests
     [InlineData(" abc def _", " abc ", "def ")]
     public void MoveToPreviousWord(string value, string backward, string forward)
     {
-        var textInputBuffer = new TextInputBuffer();
-        var cursor = value.IndexOf('_');
-        foreach (var c in value[(cursor + 1)..])
-        {
-            textInputBuffer.Insert(c);
-        }
-        textInputBuffer.MoveToStart();
-        foreach (var c in value[..cursor])
-        {
-            textInputBuffer.Insert(c);
-        }
+        var textInputBuffer = CreateTextInputBuffer(value);
 
         textInputBuffer.MoveToPreviousWord();
 
@@ -193,17 +183,7 @@ public class TextInputBufferTests
     [InlineData(" abc def _", " abc def ", "")]
     public void MoveToNextWord(string value, string backward, string forward)
     {
-        var textInputBuffer = new TextInputBuffer();
-        var cursor = value.IndexOf('_');
-        foreach (var c in value[(cursor + 1)..])
-        {
-            textInputBuffer.Insert(c);
-        }
-        textInputBuffer.MoveToStart();
-        foreach (var c in value[..cursor])
-        {
-            textInputBuffer.Insert(c);
-        }
+        var textInputBuffer = CreateTextInputBuffer(value);
 
         textInputBuffer.MoveToNextWord();
 
@@ -239,17 +219,7 @@ public class TextInputBufferTests
     [InlineData(" abc def _", " abc ", "")]
     public void BackspaceWord(string value, string backward, string forward)
     {
-        var textInputBuffer = new TextInputBuffer();
-        var cursor = value.IndexOf('_');
-        foreach (var c in value[(cursor + 1)..])
-        {
-            textInputBuffer.Insert(c);
-        }
-        textInputBuffer.MoveToStart();
-        foreach (var c in value[..cursor])
-        {
-            textInputBuffer.Insert(c);
-        }
+        var textInputBuffer = CreateTextInputBuffer(value);
 
         textInputBuffer.BackspaceWord();
 
@@ -285,21 +255,86 @@ public class TextInputBufferTests
     [InlineData(" abc def _", " abc def ", "")]
     public void DeleteWord(string value, string backward, string forward)
     {
-        var textInputBuffer = new TextInputBuffer();
-        var cursor = value.IndexOf('_');
-        foreach (var c in value[(cursor + 1)..])
-        {
-            textInputBuffer.Insert(c);
-        }
-        textInputBuffer.MoveToStart();
-        foreach (var c in value[..cursor])
-        {
-            textInputBuffer.Insert(c);
-        }
+        var textInputBuffer = CreateTextInputBuffer(value);
 
         textInputBuffer.DeleteWord();
 
         Assert.Equal(backward, textInputBuffer.ToBackwardString());
         Assert.Equal(forward, textInputBuffer.ToForwardString());
+    }
+
+    [Fact]
+    public void Clear()
+    {
+        var textInputBuffer = CreateTextInputBuffer("ab_cd");
+
+        textInputBuffer.Clear();
+
+        Assert.Equal(0, textInputBuffer.Length);
+        Assert.True(textInputBuffer.IsStart);
+        Assert.True(textInputBuffer.IsEnd);
+        Assert.Equal(string.Empty, textInputBuffer.ToString());
+    }
+
+    [Fact]
+    public void MoveToStart()
+    {
+        var textInputBuffer = new TextInputBuffer();
+
+        foreach (var c in "abc")
+        {
+            textInputBuffer.Insert(c);
+        }
+
+        textInputBuffer.MoveToStart();
+
+        Assert.True(textInputBuffer.IsStart);
+        Assert.False(textInputBuffer.IsEnd);
+        Assert.Equal(string.Empty, textInputBuffer.ToBackwardString());
+        Assert.Equal("abc", textInputBuffer.ToForwardString());
+    }
+
+    [Theory]
+    [InlineData("abc", "abXc")]
+    [InlineData("あいう", "あいXう")]
+    [InlineData("🍣🍖🥂", "🍣🍖X🥂")]
+    public void MoveToEnd(string value, string expected)
+    {
+        var textInputBuffer = new TextInputBuffer();
+
+        foreach (var c in value)
+        {
+            textInputBuffer.Insert(c);
+        }
+
+        textInputBuffer.MoveBackward();
+        textInputBuffer.Insert('X');
+        textInputBuffer.MoveToEnd();
+
+        Assert.False(textInputBuffer.IsStart);
+        Assert.True(textInputBuffer.IsEnd);
+        Assert.Equal(expected, textInputBuffer.ToString());
+        Assert.Equal(expected, textInputBuffer.ToBackwardString());
+        Assert.Equal(string.Empty, textInputBuffer.ToForwardString());
+    }
+
+    private static TextInputBuffer CreateTextInputBuffer(string value)
+    {
+        var textInputBuffer = new TextInputBuffer();
+        var cursor = value.IndexOf('_');
+
+        for (var i = cursor + 1; i < value.Length; i++)
+        {
+            textInputBuffer.Insert(value[i]);
+        }
+
+        textInputBuffer.MoveToStart();
+
+        for (var i = 0; i < cursor; i++)
+        {
+            textInputBuffer.Insert(value[i]);
+        }
+
+        return textInputBuffer;
     }
 }
