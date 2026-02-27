@@ -15,7 +15,7 @@ internal class OffscreenBuffer : IDisposable
     }
 
     private readonly IConsoleDriver _consoleDriver;
-    private readonly List<List<TextInfo>> _outputBuffer = [new()];
+    private readonly List<List<TextInfo>> _outputBuffer = [[]];
 
     private int _cursorBottom;
     private Cursor? _pushedCursor;
