@@ -13,10 +13,9 @@ internal abstract class FormBase<T> : IDisposable
 {
     protected FormBase()
     {
-        _consoleDriver = new DefaultConsoleDriver
-        {
-            CancellationCallback = CancellationHandler
-        };
+        _consoleDriver = Prompt.ConsoleDriverFactory() ?? throw new InvalidOperationException("ConsoleDriverFactory must return a non-null IConsoleDriver instance.");
+
+        _consoleDriver.CancellationCallback = CancellationHandler;
 
         _formRenderer = new FormRenderer(_consoleDriver);
     }

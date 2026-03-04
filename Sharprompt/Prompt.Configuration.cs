@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
+using Sharprompt.Drivers;
 using Sharprompt.Strings;
 
 namespace Sharprompt;
@@ -8,6 +9,14 @@ namespace Sharprompt;
 public static partial class Prompt
 {
     public static bool ThrowExceptionOnCancel { get; set; } = false;
+
+    private static Func<IConsoleDriver> s_consoleDriverFactory = () => new DefaultConsoleDriver();
+
+    public static Func<IConsoleDriver> ConsoleDriverFactory
+    {
+        get => s_consoleDriverFactory;
+        set => s_consoleDriverFactory = value ?? throw new ArgumentNullException(nameof(value));
+    }
 
     public static CultureInfo Culture
     {
