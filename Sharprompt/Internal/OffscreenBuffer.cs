@@ -5,16 +5,18 @@ using Sharprompt.Drivers;
 
 namespace Sharprompt.Internal;
 
-internal class OffscreenBuffer : IDisposable
+internal class OffscreenBuffer
 {
-    public OffscreenBuffer(IConsoleDriver consoleDriver)
+    public OffscreenBuffer(IConsoleDriver consoleDriver, PromptConfiguration configuration)
     {
         _consoleDriver = consoleDriver;
+        _configuration = configuration;
 
         _cursorBottom = _consoleDriver.CursorTop;
     }
 
     private readonly IConsoleDriver _consoleDriver;
+    private readonly PromptConfiguration _configuration;
     private readonly List<List<TextInfo>> _outputBuffer = [[]];
 
     private int _cursorBottom;
@@ -22,6 +24,8 @@ internal class OffscreenBuffer : IDisposable
     private bool _isWrittenLineCountDirty = true;
     private int _cachedWrittenLineCount;
     private int _cachedBufferWidth;
+
+    internal PromptConfiguration Configuration => _configuration;
 
     private int WrittenLineCount
     {
@@ -55,8 +59,6 @@ internal class OffscreenBuffer : IDisposable
             return _cachedWrittenLineCount;
         }
     }
-
-    public void Dispose() { }
 
     public void Write(string text) => Write(text, Console.ForegroundColor);
 

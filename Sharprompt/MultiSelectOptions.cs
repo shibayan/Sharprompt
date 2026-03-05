@@ -5,7 +5,7 @@ using Sharprompt.Strings;
 
 namespace Sharprompt;
 
-public class MultiSelectOptions<T> where T : notnull
+public class MultiSelectOptions<T> : PromptOptions where T : notnull
 {
     public MultiSelectOptions()
     {
@@ -15,8 +15,6 @@ public class MultiSelectOptions<T> where T : notnull
             TextSelector = textSelector;
         }
     }
-
-    public string Message { get; set; } = null!;
 
     public IEnumerable<T> Items { get; set; } = null!;
 
@@ -34,9 +32,10 @@ public class MultiSelectOptions<T> where T : notnull
 
     public bool LoopingSelection { get; set; } = true;
 
-    internal void EnsureOptions()
+    internal override void EnsureOptions()
     {
-        ArgumentNullException.ThrowIfNull(Message);
+        base.EnsureOptions();
+
         ArgumentNullException.ThrowIfNull(Items);
         ArgumentNullException.ThrowIfNull(DefaultValues);
         ArgumentNullException.ThrowIfNull(TextSelector);

@@ -6,10 +6,8 @@ using Sharprompt.Strings;
 
 namespace Sharprompt;
 
-public class ListOptions<T> where T : notnull
+public class ListOptions<T> : PromptOptions where T : notnull
 {
-    public string Message { get; set; } = null!;
-
     public IEnumerable<T> DefaultValues { get; set; } = [];
 
     public int Minimum { get; set; } = 1;
@@ -18,9 +16,9 @@ public class ListOptions<T> where T : notnull
 
     public IList<Func<object?, ValidationResult?>> Validators { get; } = [];
 
-    internal void EnsureOptions()
+    internal override void EnsureOptions()
     {
-        ArgumentNullException.ThrowIfNull(Message);
+        base.EnsureOptions();
 
         if (Minimum < 0)
         {

@@ -9,7 +9,7 @@ namespace Sharprompt.Forms;
 
 internal class ListForm<T> : TextFormBase<IEnumerable<T>> where T : notnull
 {
-    public ListForm(ListOptions<T> options)
+    public ListForm(ListOptions<T> options, PromptConfiguration configuration) : base(configuration)
     {
         options.EnsureOptions();
 

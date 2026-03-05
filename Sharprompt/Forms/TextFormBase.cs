@@ -6,7 +6,7 @@ namespace Sharprompt.Forms;
 
 internal abstract class TextFormBase<T> : FormBase<T>
 {
-    protected TextFormBase()
+    protected TextFormBase(PromptConfiguration configuration) : base(configuration)
     {
         KeyHandlerMaps = new(KeyHandlerMaps)
         {

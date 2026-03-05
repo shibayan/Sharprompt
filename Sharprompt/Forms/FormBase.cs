@@ -11,13 +11,14 @@ namespace Sharprompt.Forms;
 
 internal abstract class FormBase<T> : IDisposable
 {
-    protected FormBase()
+    protected FormBase(PromptConfiguration configuration)
     {
-        _consoleDriver = Prompt.ConsoleDriverFactory() ?? throw new InvalidOperationException("ConsoleDriverFactory must return a non-null IConsoleDriver instance.");
+        _configuration = configuration;
+        _consoleDriver = configuration.ConsoleDriverFactory() ?? throw new InvalidOperationException("ConsoleDriverFactory must return a non-null IConsoleDriver instance.");
 
         _consoleDriver.CancellationCallback = CancellationHandler;
 
-        _formRenderer = new FormRenderer(_consoleDriver);
+        _formRenderer = new FormRenderer(_consoleDriver, configuration);
 
         KeyHandlerMaps = new()
         {
@@ -27,6 +28,9 @@ internal abstract class FormBase<T> : IDisposable
 
     private readonly IConsoleDriver _consoleDriver;
     private readonly FormRenderer _formRenderer;
+    private readonly PromptConfiguration _configuration;
+
+    protected PromptConfiguration Configuration => _configuration;
 
     protected TextInputBuffer InputBuffer { get; } = new();
 
@@ -36,11 +40,7 @@ internal abstract class FormBase<T> : IDisposable
 
     protected int Height => _consoleDriver.WindowHeight;
 
-    public void Dispose()
-    {
-        _formRenderer.Dispose();
-        _consoleDriver.Dispose();
-    }
+    public void Dispose() => _consoleDriver.Dispose();
 
     public T Start()
     {
@@ -135,7 +135,7 @@ internal abstract class FormBase<T> : IDisposable
     {
         _formRenderer.Cancel();
 
-        if (Prompt.ThrowExceptionOnCancel)
+        if (_configuration.ThrowExceptionOnCancel)
         {
             throw new PromptCanceledException(Resource.Message_PromptCanceled, GetType().Name);
         }
