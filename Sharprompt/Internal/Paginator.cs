@@ -49,6 +49,19 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
 
         if (_selectedIndex == -1 || _filteredItems.Length == 0)
         {
+            if (!string.IsNullOrEmpty(FilterKeyword))
+            {
+                foreach (var item in _filteredItems)
+                {
+                    if (_textSelector(item).Equals(FilterKeyword, StringComparison.OrdinalIgnoreCase))
+                    {
+                        selectedItem = item;
+
+                        return true;
+                    }
+                }
+            }
+
             selectedItem = default;
 
             return false;

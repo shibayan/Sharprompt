@@ -280,4 +280,45 @@ public class PaginatorTests
         Assert.True(selected);
         Assert.Equal(19, selectedItem);
     }
+
+    [Fact]
+    public void SelectedItem_ExactMatch()
+    {
+        var items = new[] { "Select", "SelectWithEnum", "MultiSelect", "MultiSelectWithEnum" };
+        var paginator = new Paginator<string>(items, items.Length, Optional<string>.Empty, x => x);
+
+        paginator.UpdateFilter("Select");
+
+        var selected = paginator.TryGetSelectedItem(out var selectedItem);
+
+        Assert.True(selected);
+        Assert.Equal("Select", selectedItem);
+    }
+
+    [Fact]
+    public void SelectedItem_ExactMatch_CaseInsensitive()
+    {
+        var items = new[] { "Select", "SelectWithEnum", "MultiSelect", "MultiSelectWithEnum" };
+        var paginator = new Paginator<string>(items, items.Length, Optional<string>.Empty, x => x);
+
+        paginator.UpdateFilter("select");
+
+        var selected = paginator.TryGetSelectedItem(out var selectedItem);
+
+        Assert.True(selected);
+        Assert.Equal("Select", selectedItem);
+    }
+
+    [Fact]
+    public void SelectedItem_NoExactMatch()
+    {
+        var items = new[] { "Select", "SelectWithEnum", "MultiSelect", "MultiSelectWithEnum" };
+        var paginator = new Paginator<string>(items, items.Length, Optional<string>.Empty, x => x);
+
+        paginator.UpdateFilter("Sel");
+
+        var selected = paginator.TryGetSelectedItem(out _);
+
+        Assert.False(selected);
+    }
 }
