@@ -611,7 +611,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         public bool IsPassword { get; set; }
         public FormKind FormType { get; set; }
         public string? TypeArg { get; set; }
-        public List<string> Validators { get; set; } = new();
+        public List<string> Validators { get; set; } = [];
         public string? ItemsExpression { get; set; }
         public bool HasItemsProvider { get; set; }
     }
