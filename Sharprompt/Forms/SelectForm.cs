@@ -19,13 +19,13 @@ internal class SelectForm<T> : FormBase<T> where T : notnull
             LoopingSelection = options.LoopingSelection
         };
 
-        KeyHandlerMaps = new()
+        KeyHandlerMaps = new(KeyHandlerMaps)
         {
-            [ConsoleKey.UpArrow] = HandleUpArrow,
-            [ConsoleKey.DownArrow] = HandleDownArrow,
-            [ConsoleKey.LeftArrow] = HandleLeftArrow,
-            [ConsoleKey.RightArrow] = HandleRightArrow,
-            [ConsoleKey.Backspace] = HandleBackspace
+            [new ConsoleKeyBinding(ConsoleKey.UpArrow)] = HandleUpArrow,
+            [new ConsoleKeyBinding(ConsoleKey.DownArrow)] = HandleDownArrow,
+            [new ConsoleKeyBinding(ConsoleKey.LeftArrow)] = HandleLeftArrow,
+            [new ConsoleKeyBinding(ConsoleKey.RightArrow)] = HandleRightArrow,
+            [new ConsoleKeyBinding(ConsoleKey.Backspace)] = HandleBackspace
         };
     }
 
@@ -94,35 +94,35 @@ internal class SelectForm<T> : FormBase<T> where T : notnull
         return true;
     }
 
-    private bool HandleUpArrow(ConsoleKeyInfo keyInfo)
+    private bool HandleUpArrow()
     {
         _paginator.PreviousItem();
 
         return true;
     }
 
-    private bool HandleDownArrow(ConsoleKeyInfo keyInfo)
+    private bool HandleDownArrow()
     {
         _paginator.NextItem();
 
         return true;
     }
 
-    private bool HandleLeftArrow(ConsoleKeyInfo keyInfo)
+    private bool HandleLeftArrow()
     {
         _paginator.PreviousPage();
 
         return true;
     }
 
-    private bool HandleRightArrow(ConsoleKeyInfo keyInfo)
+    private bool HandleRightArrow()
     {
         _paginator.NextPage();
 
         return true;
     }
 
-    private bool HandleBackspace(ConsoleKeyInfo keyInfo)
+    private bool HandleBackspace()
     {
         if (InputBuffer.IsStart)
         {

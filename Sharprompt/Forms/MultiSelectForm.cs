@@ -25,16 +25,16 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
             _selectedItems.Add(defaultValue);
         }
 
-        KeyHandlerMaps = new()
+        KeyHandlerMaps = new(KeyHandlerMaps)
         {
-            [ConsoleKey.Spacebar] = HandleSpacebar,
-            [ConsoleKey.UpArrow] = HandleUpArrow,
-            [ConsoleKey.DownArrow] = HandleDownArrow,
-            [ConsoleKey.LeftArrow] = HandleLeftArrow,
-            [ConsoleKey.RightArrow] = HandleRightArrow,
-            [ConsoleKey.Backspace] = HandleBackspace,
-            [ConsoleKey.A] = HandleAWithControl,
-            [ConsoleKey.I] = HandleIWithControl,
+            [new ConsoleKeyBinding(ConsoleKey.Spacebar)] = HandleSpacebar,
+            [new ConsoleKeyBinding(ConsoleKey.UpArrow)] = HandleUpArrow,
+            [new ConsoleKeyBinding(ConsoleKey.DownArrow)] = HandleDownArrow,
+            [new ConsoleKeyBinding(ConsoleKey.LeftArrow)] = HandleLeftArrow,
+            [new ConsoleKeyBinding(ConsoleKey.RightArrow)] = HandleRightArrow,
+            [new ConsoleKeyBinding(ConsoleKey.Backspace)] = HandleBackspace,
+            [new ConsoleKeyBinding(ConsoleKey.A, ConsoleModifiers.Control)] = HandleCtrlA,
+            [new ConsoleKeyBinding(ConsoleKey.I, ConsoleModifiers.Control)] = HandleCtrlI,
         };
     }
 
@@ -124,7 +124,7 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
         return true;
     }
 
-    private bool HandleSpacebar(ConsoleKeyInfo keyInfo)
+    private bool HandleSpacebar()
     {
         if (!_paginator.TryGetSelectedItem(out var currentItem))
         {
@@ -146,35 +146,35 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
         return true;
     }
 
-    private bool HandleUpArrow(ConsoleKeyInfo keyInfo)
+    private bool HandleUpArrow()
     {
         _paginator.PreviousItem();
 
         return true;
     }
 
-    private bool HandleDownArrow(ConsoleKeyInfo keyInfo)
+    private bool HandleDownArrow()
     {
         _paginator.NextItem();
 
         return true;
     }
 
-    private bool HandleLeftArrow(ConsoleKeyInfo keyInfo)
+    private bool HandleLeftArrow()
     {
         _paginator.PreviousPage();
 
         return true;
     }
 
-    private bool HandleRightArrow(ConsoleKeyInfo keyInfo)
+    private bool HandleRightArrow()
     {
         _paginator.NextPage();
 
         return true;
     }
 
-    private bool HandleBackspace(ConsoleKeyInfo keyInfo)
+    private bool HandleBackspace()
     {
         if (InputBuffer.IsStart)
         {
@@ -187,13 +187,8 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
         return true;
     }
 
-    private bool HandleAWithControl(ConsoleKeyInfo keyInfo)
+    private bool HandleCtrlA()
     {
-        if (keyInfo.Modifiers != ConsoleModifiers.Control)
-        {
-            return false;
-        }
-
         if (_selectedItems.Count == _paginator.TotalCount)
         {
             _selectedItems.Clear();
@@ -209,13 +204,8 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
         return true;
     }
 
-    private bool HandleIWithControl(ConsoleKeyInfo keyInfo)
+    private bool HandleCtrlI()
     {
-        if (keyInfo.Modifiers != ConsoleModifiers.Control)
-        {
-            return false;
-        }
-
         var invertedItems = _paginator.Except(_selectedItems).ToArray();
 
         _selectedItems.Clear();

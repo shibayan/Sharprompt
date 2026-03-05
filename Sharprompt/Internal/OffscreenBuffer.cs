@@ -56,7 +56,7 @@ internal class OffscreenBuffer : IDisposable
         }
     }
 
-    public void Dispose() => _consoleDriver.Dispose();
+    public void Dispose() { }
 
     public void Write(string text) => Write(text, Console.ForegroundColor);
 
