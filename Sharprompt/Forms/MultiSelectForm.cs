@@ -8,59 +8,48 @@ using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
-internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
+internal class MultiSelectForm<T> : SelectFormBase<T, IEnumerable<T>> where T : notnull
 {
-    public MultiSelectForm(MultiSelectOptions<T> options)
+    public MultiSelectForm(MultiSelectOptions<T> options, PromptConfiguration configuration) : base(configuration)
     {
         options.EnsureOptions();
 
         _options = options;
-        _paginator = new Paginator<T>(options.Items, Math.Min(options.PageSize, Height - 2), Optional<T>.Empty, options.TextSelector)
-        {
-            LoopingSelection = options.LoopingSelection
-        };
+
+        InitializePaginator(options.Items, options.PageSize, Optional<T>.Empty, options.TextSelector, options.LoopingSelection);
 
         foreach (var defaultValue in options.DefaultValues)
         {
             _selectedItems.Add(defaultValue);
         }
 
-        KeyHandlerMaps = new()
-        {
-            [ConsoleKey.Spacebar] = HandleSpacebar,
-            [ConsoleKey.UpArrow] = HandleUpArrow,
-            [ConsoleKey.DownArrow] = HandleDownArrow,
-            [ConsoleKey.LeftArrow] = HandleLeftArrow,
-            [ConsoleKey.RightArrow] = HandleRightArrow,
-            [ConsoleKey.Backspace] = HandleBackspace,
-            [ConsoleKey.A] = HandleAWithControl,
-            [ConsoleKey.I] = HandleIWithControl,
-        };
+        KeyHandlerMaps[ConsoleKey.Spacebar] = HandleSpacebar;
+        KeyHandlerMaps[ConsoleKey.A] = HandleAWithControl;
+        KeyHandlerMaps[ConsoleKey.I] = HandleIWithControl;
     }
 
     private readonly MultiSelectOptions<T> _options;
-    private readonly Paginator<T> _paginator;
 
     private readonly HashSet<T> _selectedItems = [];
 
     protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
     {
-        _paginator.UpdatePageSize(Math.Min(_options.PageSize, Height - 2));
+        Paginator.UpdatePageSize(Math.Min(_options.PageSize, Height - 2));
 
         offscreenBuffer.WritePrompt(_options.Message);
-        offscreenBuffer.Write(_paginator.FilterKeyword);
+        offscreenBuffer.Write(Paginator.FilterKeyword);
 
         offscreenBuffer.PushCursor();
 
-        if (string.IsNullOrEmpty(_paginator.FilterKeyword))
+        if (string.IsNullOrEmpty(Paginator.FilterKeyword))
         {
             offscreenBuffer.WriteHint(Resource.MultiSelectForm_Message_Hint);
         }
 
-        var hasSelected = _paginator.TryGetSelectedItem(out var selectedItem);
+        var hasSelected = Paginator.TryGetSelectedItem(out var selectedItem);
         var comparer = EqualityComparer<T>.Default;
 
-        foreach (var item in _paginator.CurrentItems)
+        foreach (var item in Paginator.CurrentItems)
         {
             var value = _options.TextSelector(item);
             var isChecked = _selectedItems.Contains(item);
@@ -69,26 +58,22 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
 
             if (hasSelected && comparer.Equals(item, selectedItem))
             {
-                offscreenBuffer.WriteSelect($"{Prompt.Symbols.Selector} {(isChecked ? Prompt.Symbols.Selected : Prompt.Symbols.NotSelect)} {value}");
+                offscreenBuffer.WriteSelect($"{Configuration.Symbols.Selector} {(isChecked ? Configuration.Symbols.Selected : Configuration.Symbols.NotSelect)} {value}");
             }
             else
             {
                 if (isChecked)
                 {
-                    offscreenBuffer.WriteSelect($"  {Prompt.Symbols.Selected} {value}");
+                    offscreenBuffer.WriteSelect($"  {Configuration.Symbols.Selected} {value}");
                 }
                 else
                 {
-                    offscreenBuffer.Write($"  {Prompt.Symbols.NotSelect} {value}");
+                    offscreenBuffer.Write($"  {Configuration.Symbols.NotSelect} {value}");
                 }
             }
         }
 
-        if (_paginator.PageCount > 1)
-        {
-            offscreenBuffer.WriteLine();
-            offscreenBuffer.WriteHint(_options.Pagination(_paginator.TotalCount, _paginator.CurrentPage + 1, _paginator.PageCount));
-        }
+        RenderPagination(offscreenBuffer, _options.Pagination);
     }
 
     protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, IEnumerable<T> result)
@@ -115,18 +100,9 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
         return false;
     }
 
-    protected override bool HandleTextInput(ConsoleKeyInfo keyInfo)
-    {
-        base.HandleTextInput(keyInfo);
-
-        _paginator.UpdateFilter(InputBuffer.ToString());
-
-        return true;
-    }
-
     private bool HandleSpacebar(ConsoleKeyInfo keyInfo)
     {
-        if (!_paginator.TryGetSelectedItem(out var currentItem))
+        if (!Paginator.TryGetSelectedItem(out var currentItem))
         {
             return false;
         }
@@ -146,47 +122,6 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
         return true;
     }
 
-    private bool HandleUpArrow(ConsoleKeyInfo keyInfo)
-    {
-        _paginator.PreviousItem();
-
-        return true;
-    }
-
-    private bool HandleDownArrow(ConsoleKeyInfo keyInfo)
-    {
-        _paginator.NextItem();
-
-        return true;
-    }
-
-    private bool HandleLeftArrow(ConsoleKeyInfo keyInfo)
-    {
-        _paginator.PreviousPage();
-
-        return true;
-    }
-
-    private bool HandleRightArrow(ConsoleKeyInfo keyInfo)
-    {
-        _paginator.NextPage();
-
-        return true;
-    }
-
-    private bool HandleBackspace(ConsoleKeyInfo keyInfo)
-    {
-        if (InputBuffer.IsStart)
-        {
-            return false;
-        }
-
-        InputBuffer.Backspace();
-        _paginator.UpdateFilter(InputBuffer.ToString());
-
-        return true;
-    }
-
     private bool HandleAWithControl(ConsoleKeyInfo keyInfo)
     {
         if (keyInfo.Modifiers != ConsoleModifiers.Control)
@@ -194,13 +129,13 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
             return false;
         }
 
-        if (_selectedItems.Count == _paginator.TotalCount)
+        if (_selectedItems.Count == Paginator.TotalCount)
         {
             _selectedItems.Clear();
         }
         else
         {
-            foreach (var item in _paginator)
+            foreach (var item in Paginator)
             {
                 _selectedItems.Add(item);
             }
@@ -216,7 +151,7 @@ internal class MultiSelectForm<T> : FormBase<IEnumerable<T>> where T : notnull
             return false;
         }
 
-        var invertedItems = _paginator.Except(_selectedItems).ToArray();
+        var invertedItems = Paginator.Except(_selectedItems).ToArray();
 
         _selectedItems.Clear();
 

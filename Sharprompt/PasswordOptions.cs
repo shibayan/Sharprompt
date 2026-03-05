@@ -4,19 +4,18 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Sharprompt;
 
-public class PasswordOptions
+public class PasswordOptions : PromptOptions
 {
-    public string Message { get; set; } = null!;
-
     public string? Placeholder { get; set; }
 
     public string PasswordChar { get; set; } = "*";
 
     public IList<Func<object?, ValidationResult?>> Validators { get; } = [];
 
-    internal void EnsureOptions()
+    internal override void EnsureOptions()
     {
-        ArgumentNullException.ThrowIfNull(Message);
+        base.EnsureOptions();
+
         ArgumentNullException.ThrowIfNull(PasswordChar);
     }
 }

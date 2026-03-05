@@ -7,44 +7,32 @@ using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
-internal class SelectForm<T> : FormBase<T> where T : notnull
+internal class SelectForm<T> : SelectFormBase<T, T> where T : notnull
 {
-    public SelectForm(SelectOptions<T> options)
+    public SelectForm(SelectOptions<T> options, PromptConfiguration configuration) : base(configuration)
     {
         options.EnsureOptions();
 
         _options = options;
-        _paginator = new Paginator<T>(options.Items, Math.Min(options.PageSize, Height - 2), Optional<T>.Create(options.DefaultValue), options.TextSelector)
-        {
-            LoopingSelection = options.LoopingSelection
-        };
 
-        KeyHandlerMaps = new()
-        {
-            [ConsoleKey.UpArrow] = HandleUpArrow,
-            [ConsoleKey.DownArrow] = HandleDownArrow,
-            [ConsoleKey.LeftArrow] = HandleLeftArrow,
-            [ConsoleKey.RightArrow] = HandleRightArrow,
-            [ConsoleKey.Backspace] = HandleBackspace
-        };
+        InitializePaginator(options.Items, options.PageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector, options.LoopingSelection);
     }
 
     private readonly SelectOptions<T> _options;
-    private readonly Paginator<T> _paginator;
 
     protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
     {
-        _paginator.UpdatePageSize(Math.Min(_options.PageSize, Height - 2));
+        Paginator.UpdatePageSize(Math.Min(_options.PageSize, Height - 2));
 
         offscreenBuffer.WritePrompt(_options.Message);
-        offscreenBuffer.Write(_paginator.FilterKeyword);
+        offscreenBuffer.Write(Paginator.FilterKeyword);
 
         offscreenBuffer.PushCursor();
 
-        var hasSelected = _paginator.TryGetSelectedItem(out var selectedItem);
+        var hasSelected = Paginator.TryGetSelectedItem(out var selectedItem);
         var comparer = EqualityComparer<T>.Default;
 
-        foreach (var item in _paginator.CurrentItems)
+        foreach (var item in Paginator.CurrentItems)
         {
             var value = _options.TextSelector(item);
 
@@ -52,7 +40,7 @@ internal class SelectForm<T> : FormBase<T> where T : notnull
 
             if (hasSelected && comparer.Equals(item, selectedItem))
             {
-                offscreenBuffer.WriteSelect($"{Prompt.Symbols.Selector} {value}");
+                offscreenBuffer.WriteSelect($"{Configuration.Symbols.Selector} {value}");
             }
             else
             {
@@ -60,11 +48,7 @@ internal class SelectForm<T> : FormBase<T> where T : notnull
             }
         }
 
-        if (_paginator.PageCount > 1)
-        {
-            offscreenBuffer.WriteLine();
-            offscreenBuffer.WriteHint(_options.Pagination(_paginator.TotalCount, _paginator.CurrentPage + 1, _paginator.PageCount));
-        }
+        RenderPagination(offscreenBuffer, _options.Pagination);
     }
 
     protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, T result)
@@ -75,7 +59,7 @@ internal class SelectForm<T> : FormBase<T> where T : notnull
 
     protected override bool HandleEnter([NotNullWhen(true)] out T? result)
     {
-        if (_paginator.TryGetSelectedItem(out result))
+        if (Paginator.TryGetSelectedItem(out result))
         {
             return true;
         }
@@ -83,55 +67,5 @@ internal class SelectForm<T> : FormBase<T> where T : notnull
         SetError(Resource.Validation_Required);
 
         return false;
-    }
-
-    protected override bool HandleTextInput(ConsoleKeyInfo keyInfo)
-    {
-        base.HandleTextInput(keyInfo);
-
-        _paginator.UpdateFilter(InputBuffer.ToString());
-
-        return true;
-    }
-
-    private bool HandleUpArrow(ConsoleKeyInfo keyInfo)
-    {
-        _paginator.PreviousItem();
-
-        return true;
-    }
-
-    private bool HandleDownArrow(ConsoleKeyInfo keyInfo)
-    {
-        _paginator.NextItem();
-
-        return true;
-    }
-
-    private bool HandleLeftArrow(ConsoleKeyInfo keyInfo)
-    {
-        _paginator.PreviousPage();
-
-        return true;
-    }
-
-    private bool HandleRightArrow(ConsoleKeyInfo keyInfo)
-    {
-        _paginator.NextPage();
-
-        return true;
-    }
-
-    private bool HandleBackspace(ConsoleKeyInfo keyInfo)
-    {
-        if (InputBuffer.IsStart)
-        {
-            return false;
-        }
-
-        InputBuffer.Backspace();
-        _paginator.UpdateFilter(InputBuffer.ToString());
-
-        return true;
     }
 }

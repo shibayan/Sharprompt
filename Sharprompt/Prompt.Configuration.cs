@@ -8,18 +8,20 @@ namespace Sharprompt;
 
 public static partial class Prompt
 {
-    public static bool ThrowExceptionOnCancel { get; set; } = false;
+    internal static readonly PromptConfiguration s_configuration = new();
 
-    private static Func<IConsoleDriver> s_consoleDriverFactory = () => new DefaultConsoleDriver();
+    public static PromptConfiguration Configuration => s_configuration;
+
+    public static bool ThrowExceptionOnCancel
+    {
+        get => s_configuration.ThrowExceptionOnCancel;
+        set => s_configuration.ThrowExceptionOnCancel = value;
+    }
 
     public static Func<IConsoleDriver> ConsoleDriverFactory
     {
-        get => s_consoleDriverFactory;
-        set
-        {
-            ArgumentNullException.ThrowIfNull(value);
-            s_consoleDriverFactory = value;
-        }
+        get => s_configuration.ConsoleDriverFactory;
+        set => s_configuration.ConsoleDriverFactory = value;
     }
 
     public static CultureInfo Culture
@@ -28,24 +30,7 @@ public static partial class Prompt
         set => Resource.Culture = value;
     }
 
-    public static class ColorSchema
-    {
-        public static ConsoleColor DoneSymbol { get; set; } = ConsoleColor.Green;
-        public static ConsoleColor PromptSymbol { get; set; } = ConsoleColor.Green;
-        public static ConsoleColor Answer { get; set; } = ConsoleColor.Cyan;
-        public static ConsoleColor Select { get; set; } = ConsoleColor.Green;
-        public static ConsoleColor Error { get; set; } = ConsoleColor.Red;
-        public static ConsoleColor Hint { get; set; } = ConsoleColor.DarkGray;
-        public static ConsoleColor DisabledOption { get; set; } = ConsoleColor.DarkCyan;
-    }
+    public static PromptColorSchema ColorSchema => s_configuration.ColorSchema;
 
-    public static class Symbols
-    {
-        public static Symbol Prompt { get; set; } = new("?", "?");
-        public static Symbol Done { get; set; } = new("✔", "V");
-        public static Symbol Error { get; set; } = new("»", ">>");
-        public static Symbol Selector { get; set; } = new("›", ">");
-        public static Symbol Selected { get; set; } = new("◉", "(*)");
-        public static Symbol NotSelect { get; set; } = new("◯", "( )");
-    }
+    public static PromptSymbols Symbols => s_configuration.Symbols;
 }

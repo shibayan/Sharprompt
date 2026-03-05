@@ -1,15 +1,6 @@
-﻿using System;
+﻿namespace Sharprompt;
 
-namespace Sharprompt;
-
-public class ConfirmOptions
+public class ConfirmOptions : PromptOptions
 {
-    public string Message { get; set; } = null!;
-
     public bool? DefaultValue { get; set; }
-
-    internal void EnsureOptions()
-    {
-        ArgumentNullException.ThrowIfNull(Message);
-    }
 }

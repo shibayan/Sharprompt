@@ -8,7 +8,7 @@ namespace Sharprompt.Forms;
 
 internal class InputForm<T> : TextFormBase<T>
 {
-    public InputForm(InputOptions<T> options)
+    public InputForm(InputOptions<T> options, PromptConfiguration configuration) : base(configuration)
     {
         options.EnsureOptions();
 

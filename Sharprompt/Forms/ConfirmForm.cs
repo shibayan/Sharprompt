@@ -7,7 +7,7 @@ namespace Sharprompt.Forms;
 
 internal class ConfirmForm : TextFormBase<bool>
 {
-    public ConfirmForm(ConfirmOptions options)
+    public ConfirmForm(ConfirmOptions options, PromptConfiguration configuration) : base(configuration)
     {
         options.EnsureOptions();
 
