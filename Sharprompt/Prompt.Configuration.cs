@@ -15,7 +15,11 @@ public static partial class Prompt
     public static Func<IConsoleDriver> ConsoleDriverFactory
     {
         get => s_consoleDriverFactory;
-        set => s_consoleDriverFactory = value ?? throw new ArgumentNullException(nameof(value));
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            s_consoleDriverFactory = value;
+        }
     }
 
     public static CultureInfo Culture

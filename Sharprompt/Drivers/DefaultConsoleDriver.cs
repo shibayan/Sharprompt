@@ -7,7 +7,7 @@ using Sharprompt.Strings;
 
 namespace Sharprompt.Drivers;
 
-public class DefaultConsoleDriver : IConsoleDriver
+public sealed class DefaultConsoleDriver : IConsoleDriver
 {
     static DefaultConsoleDriver()
     {
