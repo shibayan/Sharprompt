@@ -89,15 +89,15 @@ internal class ListForm<T> : TextFormBase<IEnumerable<T>> where T : notnull
         return false;
     }
 
-    protected override bool HandleDelete(ConsoleKeyInfo keyInfo)
+    protected override bool HandleCtrlDelete()
     {
-        if (keyInfo.Modifiers == ConsoleModifiers.Control && _inputItems.Count > 0)
+        if (_inputItems.Count > 0)
         {
             _inputItems.RemoveAt(_inputItems.Count - 1);
 
             return true;
         }
 
-        return base.HandleDelete(keyInfo);
+        return base.HandleCtrlDelete();
     }
 }

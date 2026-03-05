@@ -19,6 +19,11 @@ internal abstract class FormBase<T> : IDisposable
         _consoleDriver.CancellationCallback = CancellationHandler;
 
         _formRenderer = new FormRenderer(_consoleDriver, configuration);
+
+        KeyHandlerMaps = new()
+        {
+            [new ConsoleKeyBinding(ConsoleKey.Escape)] = HandleEscape
+        };
     }
 
     private readonly IConsoleDriver _consoleDriver;
@@ -29,7 +34,7 @@ internal abstract class FormBase<T> : IDisposable
 
     protected TextInputBuffer InputBuffer { get; } = new();
 
-    protected Dictionary<ConsoleKey, Func<ConsoleKeyInfo, bool>> KeyHandlerMaps { get; set; } = new();
+    protected Dictionary<ConsoleKeyBinding, Func<bool>> KeyHandlerMaps { get; set; }
 
     protected int Width => _consoleDriver.WindowWidth;
 
@@ -103,7 +108,9 @@ internal abstract class FormBase<T> : IDisposable
                 return HandleEnter(out result);
             }
 
-            if (KeyHandlerMaps.TryGetValue(keyInfo.Key, out var keyHandler) && keyHandler(keyInfo))
+            var binding = new ConsoleKeyBinding(keyInfo.Key, keyInfo.Modifiers);
+
+            if (KeyHandlerMaps.TryGetValue(binding, out var keyHandler) && keyHandler())
             {
                 continue;
             }
@@ -134,5 +141,12 @@ internal abstract class FormBase<T> : IDisposable
         }
 
         Environment.Exit(1);
+    }
+
+    private bool HandleEscape()
+    {
+        CancellationHandler();
+
+        return true;
     }
 }

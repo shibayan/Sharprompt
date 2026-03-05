@@ -14,10 +14,7 @@ internal class PasswordForm : FormBase<string>
 
         _options = options;
 
-        KeyHandlerMaps = new()
-        {
-            [ConsoleKey.Backspace] = HandleBackspace
-        };
+        KeyHandlerMaps[new ConsoleKeyBinding(ConsoleKey.Backspace)] = HandleBackspace;
     }
 
     private readonly PasswordOptions _options;
@@ -63,7 +60,7 @@ internal class PasswordForm : FormBase<string>
         return true;
     }
 
-    private bool HandleBackspace(ConsoleKeyInfo keyInfo)
+    private bool HandleBackspace()
     {
         if (InputBuffer.IsStart)
         {

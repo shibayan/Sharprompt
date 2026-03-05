@@ -20,11 +20,11 @@ internal abstract class SelectFormBase<TItem, TResult> : FormBase<TResult> where
             LoopingSelection = loopingSelection
         };
 
-        KeyHandlerMaps[ConsoleKey.UpArrow] = HandleUpArrow;
-        KeyHandlerMaps[ConsoleKey.DownArrow] = HandleDownArrow;
-        KeyHandlerMaps[ConsoleKey.LeftArrow] = HandleLeftArrow;
-        KeyHandlerMaps[ConsoleKey.RightArrow] = HandleRightArrow;
-        KeyHandlerMaps[ConsoleKey.Backspace] = HandleBackspace;
+        KeyHandlerMaps[new ConsoleKeyBinding(ConsoleKey.UpArrow)] = HandleUpArrow;
+        KeyHandlerMaps[new ConsoleKeyBinding(ConsoleKey.DownArrow)] = HandleDownArrow;
+        KeyHandlerMaps[new ConsoleKeyBinding(ConsoleKey.LeftArrow)] = HandleLeftArrow;
+        KeyHandlerMaps[new ConsoleKeyBinding(ConsoleKey.RightArrow)] = HandleRightArrow;
+        KeyHandlerMaps[new ConsoleKeyBinding(ConsoleKey.Backspace)] = HandleBackspace;
     }
 
     protected override bool HandleTextInput(ConsoleKeyInfo keyInfo)
@@ -45,35 +45,35 @@ internal abstract class SelectFormBase<TItem, TResult> : FormBase<TResult> where
         }
     }
 
-    private bool HandleUpArrow(ConsoleKeyInfo keyInfo)
+    private bool HandleUpArrow()
     {
         Paginator.PreviousItem();
 
         return true;
     }
 
-    private bool HandleDownArrow(ConsoleKeyInfo keyInfo)
+    private bool HandleDownArrow()
     {
         Paginator.NextItem();
 
         return true;
     }
 
-    private bool HandleLeftArrow(ConsoleKeyInfo keyInfo)
+    private bool HandleLeftArrow()
     {
         Paginator.PreviousPage();
 
         return true;
     }
 
-    private bool HandleRightArrow(ConsoleKeyInfo keyInfo)
+    private bool HandleRightArrow()
     {
         Paginator.NextPage();
 
         return true;
     }
 
-    private bool HandleBackspace(ConsoleKeyInfo keyInfo)
+    private bool HandleBackspace()
     {
         if (InputBuffer.IsStart)
         {

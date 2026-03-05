@@ -1,61 +1,77 @@
 ﻿using System;
 
+using Sharprompt.Internal;
+
 namespace Sharprompt.Forms;
 
 internal abstract class TextFormBase<T> : FormBase<T>
 {
     protected TextFormBase(PromptConfiguration configuration) : base(configuration)
     {
-        KeyHandlerMaps = new()
+        KeyHandlerMaps = new(KeyHandlerMaps)
         {
-            [ConsoleKey.LeftArrow] = HandleLeftArrow,
-            [ConsoleKey.RightArrow] = HandleRightArrow,
-            [ConsoleKey.Home] = HandleHome,
-            [ConsoleKey.End] = HandleEnd,
-            [ConsoleKey.Backspace] = HandleBackspace,
-            [ConsoleKey.Delete] = HandleDelete
+            [new ConsoleKeyBinding(ConsoleKey.LeftArrow)] = HandleLeftArrow,
+            [new ConsoleKeyBinding(ConsoleKey.LeftArrow, ConsoleModifiers.Control)] = HandleCtrlLeftArrow,
+            [new ConsoleKeyBinding(ConsoleKey.RightArrow)] = HandleRightArrow,
+            [new ConsoleKeyBinding(ConsoleKey.RightArrow, ConsoleModifiers.Control)] = HandleCtrlRightArrow,
+            [new ConsoleKeyBinding(ConsoleKey.Home)] = HandleHome,
+            [new ConsoleKeyBinding(ConsoleKey.End)] = HandleEnd,
+            [new ConsoleKeyBinding(ConsoleKey.Backspace)] = HandleBackspace,
+            [new ConsoleKeyBinding(ConsoleKey.Backspace, ConsoleModifiers.Control)] = HandleCtrlBackspace,
+            [new ConsoleKeyBinding(ConsoleKey.Delete)] = HandleDelete,
+            [new ConsoleKeyBinding(ConsoleKey.Delete, ConsoleModifiers.Control)] = HandleCtrlDelete
         };
     }
 
-    protected virtual bool HandleLeftArrow(ConsoleKeyInfo keyInfo)
+    protected virtual bool HandleLeftArrow()
     {
         if (InputBuffer.IsStart)
         {
             return false;
         }
 
-        if (keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control))
-        {
-            InputBuffer.MoveToPreviousWord();
-        }
-        else
-        {
-            InputBuffer.MoveBackward();
-        }
+        InputBuffer.MoveBackward();
 
         return true;
     }
 
-    protected virtual bool HandleRightArrow(ConsoleKeyInfo keyInfo)
+    protected virtual bool HandleCtrlLeftArrow()
+    {
+        if (InputBuffer.IsStart)
+        {
+            return false;
+        }
+
+        InputBuffer.MoveToPreviousWord();
+
+        return true;
+    }
+
+    protected virtual bool HandleRightArrow()
     {
         if (InputBuffer.IsEnd)
         {
             return false;
         }
 
-        if (keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control))
-        {
-            InputBuffer.MoveToNextWord();
-        }
-        else
-        {
-            InputBuffer.MoveForward();
-        }
+        InputBuffer.MoveForward();
 
         return true;
     }
 
-    protected virtual bool HandleHome(ConsoleKeyInfo keyInfo)
+    protected virtual bool HandleCtrlRightArrow()
+    {
+        if (InputBuffer.IsEnd)
+        {
+            return false;
+        }
+
+        InputBuffer.MoveToNextWord();
+
+        return true;
+    }
+
+    protected virtual bool HandleHome()
     {
         if (InputBuffer.IsStart)
         {
@@ -67,7 +83,7 @@ internal abstract class TextFormBase<T> : FormBase<T>
         return true;
     }
 
-    protected virtual bool HandleEnd(ConsoleKeyInfo keyInfo)
+    protected virtual bool HandleEnd()
     {
         if (InputBuffer.IsEnd)
         {
@@ -79,40 +95,50 @@ internal abstract class TextFormBase<T> : FormBase<T>
         return true;
     }
 
-    protected virtual bool HandleBackspace(ConsoleKeyInfo keyInfo)
+    protected virtual bool HandleBackspace()
     {
         if (InputBuffer.IsStart)
         {
             return false;
         }
 
-        if (keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control))
-        {
-            InputBuffer.BackspaceWord();
-        }
-        else
-        {
-            InputBuffer.Backspace();
-        }
+        InputBuffer.Backspace();
 
         return true;
     }
 
-    protected virtual bool HandleDelete(ConsoleKeyInfo keyInfo)
+    protected virtual bool HandleCtrlBackspace()
+    {
+        if (InputBuffer.IsStart)
+        {
+            return false;
+        }
+
+        InputBuffer.BackspaceWord();
+
+        return true;
+    }
+
+    protected virtual bool HandleDelete()
     {
         if (InputBuffer.IsEnd)
         {
             return false;
         }
 
-        if (keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control))
+        InputBuffer.Delete();
+
+        return true;
+    }
+
+    protected virtual bool HandleCtrlDelete()
+    {
+        if (InputBuffer.IsEnd)
         {
-            InputBuffer.DeleteWord();
+            return false;
         }
-        else
-        {
-            InputBuffer.Delete();
-        }
+
+        InputBuffer.DeleteWord();
 
         return true;
     }

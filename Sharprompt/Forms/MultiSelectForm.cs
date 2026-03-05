@@ -23,9 +23,9 @@ internal class MultiSelectForm<T> : SelectFormBase<T, IEnumerable<T>> where T : 
             _selectedItems.Add(defaultValue);
         }
 
-        KeyHandlerMaps[ConsoleKey.Spacebar] = HandleSpacebar;
-        KeyHandlerMaps[ConsoleKey.A] = HandleAWithControl;
-        KeyHandlerMaps[ConsoleKey.I] = HandleIWithControl;
+        KeyHandlerMaps[new ConsoleKeyBinding(ConsoleKey.Spacebar)] = HandleSpacebar;
+        KeyHandlerMaps[new ConsoleKeyBinding(ConsoleKey.A, ConsoleModifiers.Control)] = HandleCtrlA;
+        KeyHandlerMaps[new ConsoleKeyBinding(ConsoleKey.I, ConsoleModifiers.Control)] = HandleCtrlI;
     }
 
     private readonly MultiSelectOptions<T> _options;
@@ -100,7 +100,7 @@ internal class MultiSelectForm<T> : SelectFormBase<T, IEnumerable<T>> where T : 
         return false;
     }
 
-    private bool HandleSpacebar(ConsoleKeyInfo keyInfo)
+    private bool HandleSpacebar()
     {
         if (!Paginator.TryGetSelectedItem(out var currentItem))
         {
@@ -122,13 +122,8 @@ internal class MultiSelectForm<T> : SelectFormBase<T, IEnumerable<T>> where T : 
         return true;
     }
 
-    private bool HandleAWithControl(ConsoleKeyInfo keyInfo)
+    private bool HandleCtrlA()
     {
-        if (keyInfo.Modifiers != ConsoleModifiers.Control)
-        {
-            return false;
-        }
-
         if (_selectedItems.Count == Paginator.TotalCount)
         {
             _selectedItems.Clear();
@@ -144,13 +139,8 @@ internal class MultiSelectForm<T> : SelectFormBase<T, IEnumerable<T>> where T : 
         return true;
     }
 
-    private bool HandleIWithControl(ConsoleKeyInfo keyInfo)
+    private bool HandleCtrlI()
     {
-        if (keyInfo.Modifiers != ConsoleModifiers.Control)
-        {
-            return false;
-        }
-
         var invertedItems = Paginator.Except(_selectedItems).ToArray();
 
         _selectedItems.Clear();
