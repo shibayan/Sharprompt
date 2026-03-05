@@ -8,7 +8,7 @@ namespace Sharprompt.Forms;
 
 internal class PasswordForm : FormBase<string>
 {
-    public PasswordForm(PasswordOptions options)
+    public PasswordForm(PasswordOptions options, PromptConfiguration configuration) : base(configuration)
     {
         options.EnsureOptions();
 
