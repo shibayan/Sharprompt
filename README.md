@@ -250,6 +250,14 @@ var city = Prompt.Select<string>(o => o.WithMessage("Select your city")
 - macOS
   - Terminal.app
 
+## Contributing
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, validation commands, and pull request expectations.
+
+## Security
+
+Please see [SECURITY.md](SECURITY.md) for how to report vulnerabilities privately.
+
 ## License
 
 This project is licensed under the [MIT License](https://github.com/shibayan/Sharprompt/blob/master/LICENSE)
