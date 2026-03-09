@@ -16,6 +16,13 @@ public class EastAsianWidthTests
     [InlineData("🍣", 2)]
     [InlineData("🍣🍖🥂", 6)]
     [InlineData("aあ𩸽🍣", 7)]
+    [InlineData("\u200D", 0)]
+    [InlineData("❤️", 2)]
+    [InlineData("👍🏻", 2)]
+    [InlineData("1️⃣", 2)]
+    [InlineData("🇯🇵", 2)]
+    [InlineData("👩‍💻", 2)]
+    [InlineData("👨‍👩‍👧‍👦", 2)]
     public void GetWidth(string value, int width)
     {
         Assert.Equal(width, value.GetWidth());

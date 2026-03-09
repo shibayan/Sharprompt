@@ -1,10 +1,31 @@
-﻿namespace Sharprompt.Internal;
+﻿using System.Globalization;
+using System.Text;
+
+namespace Sharprompt.Internal;
 
 internal static class EastAsianWidth
 {
+    private const char ZeroWidthJoiner = '\u200D';
+
     public static int GetWidth(this string value)
     {
         var width = 0;
+        var textElementEnumerator = StringInfo.GetTextElementEnumerator(value);
+
+        while (textElementEnumerator.MoveNext())
+        {
+            width += GetTextElementWidth(textElementEnumerator.GetTextElement());
+        }
+
+        return width;
+    }
+
+    private static int GetTextElementWidth(string value)
+    {
+        var width = 0;
+        var hasVisibleCodePoint = false;
+        var hasEmojiSequence = false;
+        var regionalIndicatorCount = 0;
 
         for (var i = 0; i < value.Length; i++)
         {
@@ -21,13 +42,63 @@ internal static class EastAsianWidth
                 codePoint = value[i];
             }
 
-            width += GetWidth(codePoint);
+            if (IsEmojiSequenceCodePoint(codePoint))
+            {
+                hasEmojiSequence = true;
+            }
+
+            if (IsRegionalIndicator(codePoint))
+            {
+                regionalIndicatorCount++;
+            }
+
+            var codePointWidth = GetWidth(codePoint);
+
+            if (codePointWidth > 0)
+            {
+                hasVisibleCodePoint = true;
+                width += codePointWidth;
+            }
+        }
+
+        if (!hasVisibleCodePoint)
+        {
+            return 0;
+        }
+
+        if (hasEmojiSequence || regionalIndicatorCount == 2)
+        {
+            return 2;
         }
 
         return width;
     }
 
-    private static int GetWidth(uint codePoint) => IsFullWidth(codePoint) ? 2 : 1;
+    private static int GetWidth(uint codePoint) => IsZeroWidth(codePoint) ? 0 : IsFullWidth(codePoint) ? 2 : 1;
+
+    private static bool IsZeroWidth(uint codePoint)
+    {
+        if (!Rune.TryCreate((int)codePoint, out var rune))
+        {
+            return false;
+        }
+
+        return Rune.GetUnicodeCategory(rune) is UnicodeCategory.Control or UnicodeCategory.Format or UnicodeCategory.NonSpacingMark or UnicodeCategory.EnclosingMark;
+    }
+
+    private static bool IsEmojiSequenceCodePoint(uint codePoint) =>
+        codePoint == ZeroWidthJoiner ||
+        IsVariationSelector(codePoint) ||
+        IsEmojiModifier(codePoint) ||
+        codePoint == 0x20E3;
+
+    private static bool IsVariationSelector(uint codePoint) =>
+        (codePoint >= 0xFE00 && codePoint <= 0xFE0F) ||
+        (codePoint >= 0xE0100 && codePoint <= 0xE01EF);
+
+    private static bool IsEmojiModifier(uint codePoint) => codePoint is >= 0x1F3FB and <= 0x1F3FF;
+
+    private static bool IsRegionalIndicator(uint codePoint) => codePoint is >= 0x1F1E6 and <= 0x1F1FF;
 
     private static bool IsFullWidth(uint codePoint)
     {
