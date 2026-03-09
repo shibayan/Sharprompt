@@ -1,12 +1,15 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 
 namespace Sharprompt.Internal;
 
 internal class TextInputBuffer
 {
     private readonly StringBuilder _inputBuffer = new();
+    private int[] _textElementStarts = [];
 
     private int _position;
+    private bool _isTextElementStartsDirty = true;
 
     public int Length => _inputBuffer.Length;
 
@@ -14,114 +17,164 @@ internal class TextInputBuffer
 
     public bool IsEnd => _position == _inputBuffer.Length;
 
-    public void Insert(char value) => _inputBuffer.Insert(_position++, value);
+    public void Insert(char value)
+    {
+        _inputBuffer.Insert(_position++, value);
+        _isTextElementStartsDirty = true;
+    }
 
     public void Backspace()
     {
-        var count = 1;
+        var start = GetPreviousTextElementStart(_position);
+        var count = _position - start;
 
-        if (char.IsLowSurrogate(_inputBuffer[--_position]))
-        {
-            count++;
-            _position--;
-        }
-
+        _position = start;
         _inputBuffer.Remove(_position, count);
+        _isTextElementStartsDirty = true;
     }
 
     public void Delete()
     {
-        var count = 1;
+        var end = GetNextTextElementEnd(_position);
 
-        if (char.IsHighSurrogate(_inputBuffer[_position]))
-        {
-            count++;
-        }
-
-        _inputBuffer.Remove(_position, count);
+        _inputBuffer.Remove(_position, end - _position);
+        _isTextElementStartsDirty = true;
     }
 
     public void BackspaceWord()
     {
         var count = 0;
 
-        while (_position > 0 && char.IsWhiteSpace(_inputBuffer[_position - 1]))
+        while (_position > 0)
         {
-            _position--;
-            count++;
+            var start = GetPreviousTextElementStart(_position);
+
+            if (!IsWhiteSpace(start, _position - start))
+            {
+                break;
+            }
+
+            count += _position - start;
+            _position = start;
         }
 
-        while (_position > 0 && !char.IsWhiteSpace(_inputBuffer[_position - 1]))
+        while (_position > 0)
         {
-            _position--;
-            count++;
+            var start = GetPreviousTextElementStart(_position);
+
+            if (IsWhiteSpace(start, _position - start))
+            {
+                break;
+            }
+
+            count += _position - start;
+            _position = start;
         }
 
         _inputBuffer.Remove(_position, count);
+        _isTextElementStartsDirty = true;
     }
 
     public void DeleteWord()
     {
         var count = 0;
 
-        while (_position + count < _inputBuffer.Length && !char.IsWhiteSpace(_inputBuffer[_position + count]))
+        while (_position + count < _inputBuffer.Length)
         {
-            count++;
+            var start = _position + count;
+            var end = GetNextTextElementEnd(start);
+
+            if (IsWhiteSpace(start, end - start))
+            {
+                break;
+            }
+
+            count += end - start;
         }
 
-        while (_position + count < _inputBuffer.Length && char.IsWhiteSpace(_inputBuffer[_position + count]))
+        while (_position + count < _inputBuffer.Length)
         {
-            count++;
+            var start = _position + count;
+            var end = GetNextTextElementEnd(start);
+
+            if (!IsWhiteSpace(start, end - start))
+            {
+                break;
+            }
+
+            count += end - start;
         }
 
         _inputBuffer.Remove(_position, count);
+        _isTextElementStartsDirty = true;
     }
 
     public void Clear()
     {
         _position = 0;
         _inputBuffer.Clear();
+        _textElementStarts = [];
+        _isTextElementStartsDirty = false;
     }
 
     public void MoveBackward()
     {
-        if (char.IsLowSurrogate(_inputBuffer[--_position]))
-        {
-            _position--;
-        }
+        _position = GetPreviousTextElementStart(_position);
     }
 
-    public void MoveForward()
-    {
-        if (char.IsHighSurrogate(_inputBuffer[_position++]))
-        {
-            _position++;
-        }
-    }
+    public void MoveForward() => _position = GetNextTextElementEnd(_position);
 
     public void MoveToPreviousWord()
     {
-        while (_position > 0 && char.IsWhiteSpace(_inputBuffer[_position - 1]))
+        while (_position > 0)
         {
-            _position--;
+            var start = GetPreviousTextElementStart(_position);
+
+            if (!IsWhiteSpace(start, _position - start))
+            {
+                break;
+            }
+
+            _position = start;
         }
 
-        while (_position > 0 && !char.IsWhiteSpace(_inputBuffer[_position - 1]))
+        while (_position > 0)
         {
-            _position--;
+            var start = GetPreviousTextElementStart(_position);
+
+            if (IsWhiteSpace(start, _position - start))
+            {
+                break;
+            }
+
+            _position = start;
         }
     }
 
     public void MoveToNextWord()
     {
-        while (_position < _inputBuffer.Length && !char.IsWhiteSpace(_inputBuffer[_position]))
+        while (_position < _inputBuffer.Length)
         {
-            _position++;
+            var end = GetNextTextElementEnd(_position);
+
+            if (IsWhiteSpace(_position, end - _position))
+            {
+                break;
+            }
+
+            _position = end;
         }
 
-        while (_position < _inputBuffer.Length && char.IsWhiteSpace(_inputBuffer[_position]))
+        while (_position < _inputBuffer.Length)
         {
-            _position++;
+            var end = GetNextTextElementEnd(_position);
+
+            if (!IsWhiteSpace(_position, end - _position))
+            {
+                break;
+            }
+
+            _position = end;
         }
     }
 
@@ -134,4 +187,58 @@ internal class TextInputBuffer
     public string ToForwardString() => _inputBuffer.ToString(_position, _inputBuffer.Length - _position);
 
     public override string ToString() => _inputBuffer.ToString();
+
+    private int GetPreviousTextElementStart(int position)
+    {
+        var indices = GetTextElementStarts();
+        var index = System.Array.BinarySearch(indices, position);
+
+        if (index >= 0)
+        {
+            return index > 0 ? indices[index - 1] : 0;
+        }
+
+        index = ~index;
+
+        return index > 0 ? indices[index - 1] : 0;
+    }
+
+    private int GetNextTextElementEnd(int position)
+    {
+        var indices = GetTextElementStarts();
+        var index = System.Array.BinarySearch(indices, position);
+
+        if (index >= 0)
+        {
+            return index + 1 < indices.Length ? indices[index + 1] : _inputBuffer.Length;
+        }
+
+        index = ~index;
+
+        return index < indices.Length ? indices[index] : _inputBuffer.Length;
+    }
+
+    private bool IsWhiteSpace(int start, int count)
+    {
+        for (var i = start; i < start + count; i++)
+        {
+            if (!char.IsWhiteSpace(_inputBuffer[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private int[] GetTextElementStarts()
+    {
+        if (_isTextElementStartsDirty)
+        {
+            _textElementStarts = StringInfo.ParseCombiningCharacters(_inputBuffer.ToString());
+            _isTextElementStartsDirty = false;
+        }
+
+        return _textElementStarts;
+    }
 }

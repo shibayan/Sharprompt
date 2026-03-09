@@ -35,6 +35,8 @@ public class TextInputBufferTests
     [InlineData("𩸽𠈻𠮷", "𩸽𠈻")]
     [InlineData("🍣🍖🥂", "🍣🍖")]
     [InlineData("aあ𩸽🍣", "aあ𩸽")]
+    [InlineData("👩‍💻", "")]
+    [InlineData("a👩‍💻", "a")]
     public void Backspace(string value, string substring)
     {
         var textInputBuffer = new TextInputBuffer();
@@ -57,6 +59,8 @@ public class TextInputBufferTests
     [InlineData("𩸽𠈻𠮷", "𠈻𠮷")]
     [InlineData("🍣🍖🥂", "🍖🥂")]
     [InlineData("aあ𩸽🍣", "あ𩸽🍣")]
+    [InlineData("👩‍💻", "")]
+    [InlineData("👩‍💻a", "a")]
     public void Delete(string value, string substring)
     {
         var textInputBuffer = new TextInputBuffer();
@@ -81,6 +85,7 @@ public class TextInputBufferTests
     [InlineData("𩸽𠈻𠮷", "𩸽𠈻", "𠮷")]
     [InlineData("🍣🍖🥂", "🍣🍖", "🥂")]
     [InlineData("aあ𩸽🍣", "aあ𩸽", "🍣")]
+    [InlineData("a👩‍💻", "a", "👩‍💻")]
     public void MoveBackward(string value, string backward, string forward)
     {
         var textInputBuffer = new TextInputBuffer();
@@ -102,6 +107,7 @@ public class TextInputBufferTests
     [InlineData("𩸽𠈻𠮷", "𩸽", "𠈻𠮷")]
     [InlineData("🍣🍖🥂", "🍣", "🍖🥂")]
     [InlineData("aあ𩸽🍣", "a", "あ𩸽🍣")]
+    [InlineData("👩‍💻a", "👩‍💻", "a")]
     public void MoveForward(string value, string backward, string forward)
     {
         var textInputBuffer = new TextInputBuffer();
@@ -209,6 +215,7 @@ public class TextInputBufferTests
     [InlineData("aあ_𩸽🍣", "", "𩸽🍣")]
     [InlineData("aあ𩸽_🍣", "", "🍣")]
     [InlineData("aあ𩸽🍣_", "", "")]
+    [InlineData("a👩‍💻_", "", "")]
     [InlineData("_ abc def ", "", " abc def ")]
     [InlineData(" _abc def ", "", "abc def ")]
     [InlineData(" a_bc def ", " ", "bc def ")]
