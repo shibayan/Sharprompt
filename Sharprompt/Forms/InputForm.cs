@@ -14,20 +14,22 @@ internal class InputForm<T> : TextFormBase<T>
 
         _options = options;
 
-        _defaultValue = Optional<T>.Create(options.DefaultValue);
+        var defaultText = options.DefaultValue?.ToString();
+
+        if (defaultText is not null)
+        {
+            foreach (var c in defaultText)
+            {
+                InputBuffer.Insert(c);
+            }
+        }
     }
 
     private readonly InputOptions<T> _options;
-    private readonly Optional<T> _defaultValue;
 
     protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
     {
         offscreenBuffer.WritePrompt(_options.Message);
-
-        if (_defaultValue.HasValue)
-        {
-            offscreenBuffer.WriteHint($"({_defaultValue.Value}) ");
-        }
 
         if (InputBuffer.Length == 0 && !string.IsNullOrEmpty(_options.Placeholder))
         {
@@ -56,7 +58,7 @@ internal class InputForm<T> : TextFormBase<T>
         {
             if (string.IsNullOrEmpty(input))
             {
-                if (!TypeHelper<T>.IsNullable && !_defaultValue.HasValue)
+                if (!TypeHelper<T>.IsNullable)
                 {
                     SetError(Resource.Validation_Required);
 
@@ -65,7 +67,7 @@ internal class InputForm<T> : TextFormBase<T>
                     return false;
                 }
 
-                result = _defaultValue;
+                result = default;
             }
             else
             {
