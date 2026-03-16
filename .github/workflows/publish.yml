@@ -31,7 +31,7 @@ jobs:
       run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_OUTPUT
 
     - name: Pack NuGet Package
-      run: dotnet pack Sharprompt/Sharprompt.csproj -c Release -o ./dist -p:Version=${{ steps.setup_version.outputs.VERSION }}
+      run: dotnet pack src/Sharprompt/Sharprompt.csproj -c Release -o ./dist -p:Version=${{ steps.setup_version.outputs.VERSION }}
 
     - name: Publish
       run: dotnet nuget push dist/*.nupkg -k ${{ steps.login.outputs.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json

@@ -18,7 +18,7 @@ dotnet test -c Release
 The example project can be run with:
 
 ```sh
-dotnet run --project Sharprompt.Example
+dotnet run --project samples/Sharprompt.Example
 ```
 
 ## Before Opening a Pull Request
