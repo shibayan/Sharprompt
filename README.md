@@ -47,10 +47,10 @@ Console.WriteLine($"Your answer is {answer}");
 
 ## Examples
 
-The project in the folder `Sharprompt.Example` contains all the samples. Please check it.
+The project in the folder `samples/Sharprompt.Example` contains all the samples. Please check it.
 
 ```sh
-dotnet run --project Sharprompt.Example
+dotnet run --project samples/Sharprompt.Example
 ```
 
 ## Prompt types
