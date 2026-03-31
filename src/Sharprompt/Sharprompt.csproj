@@ -6,7 +6,7 @@
 
   <PropertyGroup>
     <Authors>shibayan</Authors>
-    <Copyright>Copyright (c) Tatsuro Shibamura</Copyright>
+    <Copyright>Copyright (c) Tatsuro Shibamura 2019</Copyright>
     <Description>Interactive command-line based application framework for C#</Description>
     <PackageId>Sharprompt</PackageId>
     <PackageIcon>icon.png</PackageIcon>
