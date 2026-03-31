@@ -7,16 +7,12 @@ on:
       - 'docs/**'
       - '*.md'
       - 'LICENSE'
-      - '.github/workflows/docs.yml'
-      - '.github/workflows/publish.yml'
   pull_request:
     branches: [ "master" ]
     paths-ignore:
       - 'docs/**'
       - '*.md'
       - 'LICENSE'
-      - '.github/workflows/docs.yml'
-      - '.github/workflows/publish.yml'
   schedule:
     - cron: '18 17 * * 4'
 
