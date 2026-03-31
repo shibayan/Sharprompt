@@ -383,6 +383,10 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
+# VitePress
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+
 # JetBrains Rider
 .idea/
 *.sln.iml
