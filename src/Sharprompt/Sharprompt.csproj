@@ -7,14 +7,15 @@
   <PropertyGroup>
     <Authors>shibayan</Authors>
     <Copyright>Copyright (c) Tatsuro Shibamura 2019</Copyright>
-    <Description>Interactive command-line based application framework for C#</Description>
+    <Description>Build interactive command-line prompts for C# applications with input, selection, validation, and model binding.</Description>
     <PackageId>Sharprompt</PackageId>
+    <PackageTitle>Sharprompt</PackageTitle>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageProjectUrl>https://github.com/shibayan/Sharprompt</PackageProjectUrl>
-    <PackageReleaseNotes>https://github.com/shibayan/Sharprompt/releases/tag/v$(Version)</PackageReleaseNotes>
+    <PackageProjectUrl>https://shibayan.github.io/Sharprompt/</PackageProjectUrl>
+    <PackageReleaseNotes>Release notes: https://github.com/shibayan/Sharprompt/releases/tag/v$(Version)</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>cli;command-line;console;interactive;prompt;terminal</PackageTags>
+    <PackageTags>cli;command-line;console;csharp;dotnet;interactive;model-binding;prompt;terminal;validation</PackageTags>
     <RepositoryUrl>https://github.com/shibayan/Sharprompt</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
