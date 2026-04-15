@@ -6,7 +6,7 @@ export default defineConfig({
   base: '/Sharprompt/',
   cleanUrls: true,
   head: [
-    ['link', { rel: 'icon', href: '/Sharprompt/icon.png' }]
+    ['link', { rel: 'icon', href: '/Sharprompt/icon.svg' }]
   ],
   rewrites: {
     'en/:rest*': ':rest*'
@@ -90,7 +90,7 @@ export default defineConfig({
     }
   },
   themeConfig: {
-    logo: '/icon.png',
+    logo: '/icon.svg',
     socialLinks: [
       { icon: 'github', link: 'https://github.com/shibayan/Sharprompt' }
     ],

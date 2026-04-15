@@ -6,7 +6,7 @@ hero:
   text: C# 向けの対話型コマンドラインプロンプト
   tagline: 対話型 CLI アプリケーションを構築するためのシンプルでクロスプラットフォームなフレームワーク
   image:
-    src: /icon.png
+    src: /icon.svg
     alt: Sharprompt
   actions:
     - theme: brand

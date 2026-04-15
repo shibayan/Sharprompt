@@ -6,7 +6,7 @@ hero:
   text: Interactive command-line prompts for C#
   tagline: A simple, cross-platform framework for building interactive CLI applications
   image:
-    src: /icon.png
+    src: /icon.svg
     alt: Sharprompt
   actions:
     - theme: brand
