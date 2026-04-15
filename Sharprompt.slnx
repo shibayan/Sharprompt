@@ -1,6 +1,12 @@
 <Solution>
-  <Project Path="samples/Sharprompt.Example/Sharprompt.Example.csproj" />
-  <Project Path="src/Sharprompt.SourceGenerator/Sharprompt.SourceGenerator.csproj" />
-  <Project Path="tests/Sharprompt.Tests/Sharprompt.Tests.csproj" />
-  <Project Path="src/Sharprompt/Sharprompt.csproj" />
+  <Folder Name="/samples/">
+    <Project Path="samples/Sharprompt.Example/Sharprompt.Example.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Sharprompt.SourceGenerator/Sharprompt.SourceGenerator.csproj" />
+    <Project Path="src/Sharprompt/Sharprompt.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Sharprompt.Tests/Sharprompt.Tests.csproj" />
+  </Folder>
 </Solution>
