@@ -139,16 +139,18 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
 
     public void UpdatePageSize(int newPageSize)
     {
+        newPageSize = newPageSize <= 0 ? _items.Length : Math.Min(newPageSize, _items.Length);
+
         if (_pageSize == newPageSize)
         {
             return;
         }
 
-        TryGetSelectedItem(out var selectedItem);
+        var hasSelected = TryGetSelectedItem(out var selectedItem);
 
-        _pageSize = newPageSize <= 0 ? _items.Length : Math.Min(newPageSize, _items.Length);
+        _pageSize = newPageSize;
 
-        InitializeDefaults(Optional<T>.Create(selectedItem));
+        InitializeDefaults(hasSelected ? new Optional<T>(selectedItem!) : Optional<T>.Empty);
     }
 
     public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_filteredItems).GetEnumerator();

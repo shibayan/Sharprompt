@@ -239,6 +239,33 @@ public class PaginatorTests
     }
 
     [Fact]
+    public void UpdatePageSize_WithoutSelection_KeepsValueTypeItemUnselected()
+    {
+        var paginator = new Paginator<int>(Enumerable.Range(0, 5), 5, Optional<int>.Empty, x => x.ToString());
+
+        paginator.UpdatePageSize(3);
+
+        var selected = paginator.TryGetSelectedItem(out _);
+
+        Assert.False(selected);
+    }
+
+    [Fact]
+    public void UpdatePageSize_LargerThanItemCount_DoesNotReinitialize()
+    {
+        var paginator = new Paginator<int>(Enumerable.Range(0, 5), int.MaxValue, Optional<int>.Empty, x => x.ToString());
+
+        paginator.NextItem();
+        paginator.NextItem();
+        paginator.UpdatePageSize(100);
+
+        var selected = paginator.TryGetSelectedItem(out var selectedItem);
+
+        Assert.True(selected);
+        Assert.Equal(1, selectedItem);
+    }
+
+    [Fact]
     public void GetEnumerator()
     {
         var paginator = new Paginator<int>(Enumerable.Range(0, 5), 5, Optional<int>.Empty, x => x.ToString());
