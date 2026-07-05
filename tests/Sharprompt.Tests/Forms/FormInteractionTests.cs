@@ -259,4 +259,109 @@ public class FormInteractionTests
         Assert.Contains("apple", driver.Output);
         Assert.Contains("banana", driver.Output);
     }
+
+    [Fact]
+    public void PasswordForm_TypedText_ReturnsPasswordWithoutEchoingIt()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("secret");
+        driver.EnqueueEnter();
+
+        var options = new PasswordOptions
+        {
+            Message = "message"
+        };
+
+        using var form = new PasswordForm(options, configuration);
+
+        Assert.Equal("secret", form.Start());
+        Assert.DoesNotContain("secret", driver.Output);
+        Assert.Contains("******", driver.Output);
+    }
+
+    [Fact]
+    public void PasswordForm_ValidationFailure_ClearsBufferAndRetries()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("short");
+        driver.EnqueueEnter();
+        driver.EnqueueText("longenough");
+        driver.EnqueueEnter();
+
+        var options = new PasswordOptions
+        {
+            Message = "message",
+            Validators = { Validators.MinLength(8) }
+        };
+
+        using var form = new PasswordForm(options, configuration);
+
+        Assert.Equal("longenough", form.Start());
+    }
+
+    [Fact]
+    public void ListForm_CollectsItemsUntilEmptyEnter()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("one");
+        driver.EnqueueEnter();
+        driver.EnqueueText("two");
+        driver.EnqueueEnter();
+        driver.EnqueueEnter();
+
+        var options = new ListOptions<string>
+        {
+            Message = "message"
+        };
+
+        using var form = new ListForm<string>(options, configuration);
+
+        Assert.Equal(new[] { "one", "two" }, form.Start());
+    }
+
+    [Fact]
+    public void ListForm_CtrlDelete_RemovesLastItem()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("one");
+        driver.EnqueueEnter();
+        driver.EnqueueText("two");
+        driver.EnqueueEnter();
+        driver.EnqueueKey(ConsoleKey.Delete, ConsoleModifiers.Control);
+        driver.EnqueueEnter();
+
+        var options = new ListOptions<string>
+        {
+            Message = "message"
+        };
+
+        using var form = new ListForm<string>(options, configuration);
+
+        Assert.Equal(new[] { "one" }, form.Start());
+    }
+
+    [Fact]
+    public void ListForm_BelowMinimum_ShowsErrorAndContinues()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueEnter();
+        driver.EnqueueText("one");
+        driver.EnqueueEnter();
+        driver.EnqueueEnter();
+
+        var options = new ListOptions<string>
+        {
+            Message = "message",
+            Minimum = 1
+        };
+
+        using var form = new ListForm<string>(options, configuration);
+
+        Assert.Equal(new[] { "one" }, form.Start());
+    }
 }
