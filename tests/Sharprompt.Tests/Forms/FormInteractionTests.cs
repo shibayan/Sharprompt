@@ -218,6 +218,26 @@ public class FormInteractionTests
     }
 
     [Fact]
+    public void SelectForm_MessageLongerThanBufferWidth_StillWorks()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.DownArrow);
+        driver.EnqueueKey(ConsoleKey.DownArrow);
+        driver.EnqueueEnter();
+
+        var options = new SelectOptions<string>
+        {
+            Message = new string('x', 200),
+            Items = ["apple", "banana", "cherry"]
+        };
+
+        using var form = new SelectForm<string>(options, configuration);
+
+        Assert.Equal("banana", form.Start());
+    }
+
+    [Fact]
     public void SelectForm_RendersMessageAndItems()
     {
         var (driver, configuration) = CreateTestContext();

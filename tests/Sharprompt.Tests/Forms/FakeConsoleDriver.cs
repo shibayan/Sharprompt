@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 using Sharprompt.Drivers;
+using Sharprompt.Internal;
 
 namespace Sharprompt.Tests;
 
@@ -51,7 +52,22 @@ internal sealed class FakeConsoleDriver : IConsoleDriver
     public void Write(string value, ConsoleColor color)
     {
         _output.Append(value);
-        _cursorLeft += value.Length;
+
+        // Emulate deferred line wrapping: the cursor stays past the end of a full
+        // line and wraps only when the next character is written, which is the
+        // behavior OffscreenBuffer's cursor math assumes.
+        foreach (var rune in value.EnumerateRunes())
+        {
+            var width = rune.ToString().GetWidth();
+
+            if (_cursorLeft + width > BufferWidth)
+            {
+                _cursorLeft = 0;
+                _cursorTop++;
+            }
+
+            _cursorLeft += width;
+        }
     }
 
     public void WriteLine()
