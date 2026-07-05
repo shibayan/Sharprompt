@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
@@ -38,15 +39,20 @@ public static class EnumMetadataRegistry
         return true;
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2090", Justification = "This method is only invoked for enum types, and the trimmer always preserves the fields of enum types it keeps.")]
     internal static EnumMetadata<TEnum> CreateFallbackMetadata<TEnum>() where TEnum : notnull
     {
-        // GetFields does not guarantee ordering, so sort by MetadataToken to get
-        // the declaration order, matching the source generator semantics. Aliased
-        // members sharing the same constant value keep the first declaration only.
+        // GetFields does not guarantee ordering and MetadataToken is unavailable on
+        // Native AOT, so sort by the underlying constant value for a deterministic
+        // order, matching Enum.GetValues semantics. Aliased members sharing the
+        // same constant value keep a single representative, chosen by ordinal name
+        // order so the result does not depend on the GetFields ordering either.
         var members = typeof(TEnum).GetFields(BindingFlags.Public | BindingFlags.Static)
-                                   .OrderBy(field => field.MetadataToken)
-                                   .Select((field, index) => (value: (TEnum)field.GetValue(null)!, index, displayAttribute: field.GetCustomAttribute<DisplayAttribute>()))
+                                   .Select(field => (value: (TEnum)field.GetValue(null)!, field.Name, displayAttribute: field.GetCustomAttribute<DisplayAttribute>()))
+                                   .OrderBy(x => x.value)
+                                   .ThenBy(x => x.Name, StringComparer.Ordinal)
                                    .DistinctBy(x => x.value)
+                                   .Select((x, index) => (x.value, x.Name, index, x.displayAttribute))
                                    .ToArray();
 
         var values = members.OrderBy(x => x.displayAttribute?.GetOrder() ?? int.MaxValue)
@@ -54,16 +60,13 @@ public static class EnumMetadataRegistry
                             .Select(x => x.value)
                             .ToArray();
 
+        // Always map through the representative's field name: Enum.ToString picks
+        // an implementation-defined alias, which would defeat the determinism above.
         var displayNames = new Dictionary<TEnum, string>();
 
         foreach (var member in members)
         {
-            var displayName = member.displayAttribute?.GetName();
-
-            if (displayName is not null)
-            {
-                displayNames.TryAdd(member.value, displayName);
-            }
+            displayNames.TryAdd(member.value, member.displayAttribute?.GetName() ?? member.Name);
         }
 
         return new EnumMetadata<TEnum>(values, value => displayNames.TryGetValue(value, out var displayName) ? displayName : value.ToString()!);
