@@ -70,6 +70,16 @@ public class EnumMetadataRegistryTests
     }
 
     [Fact]
+    public void CreateFallbackMetadata_AliasedValues_KeepsFirstDeclaration()
+    {
+        var metadata = EnumMetadataRegistry.CreateFallbackMetadata<AliasedEnum>();
+
+        Assert.Equal(new[] { AliasedEnum.None, AliasedEnum.Value }, metadata.Values);
+        Assert.Equal("None", metadata.TextSelector(AliasedEnum.None));
+        Assert.Equal("None", metadata.TextSelector(AliasedEnum.Default));
+    }
+
+    [Fact]
     public void SelectOptions_UnregisteredEnum_HasItems()
     {
         var options = new SelectOptions<FallbackEnum>
@@ -110,6 +120,13 @@ public class EnumMetadataRegistryTests
         Second,
         [Display(Name = "The Third", Order = 1)]
         Third
+    }
+
+    public enum AliasedEnum
+    {
+        None = 0,
+        Default = 0,
+        Value = 1
     }
 
     public enum FallbackEnum

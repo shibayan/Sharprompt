@@ -42,9 +42,14 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
 
     private static string GenerateSource(INamedTypeSymbol enumSymbol)
     {
+        // Deduplicate aliased members (multiple names sharing the same constant
+        // value) keeping the first declaration, since they are indistinguishable
+        // at runtime and duplicate switch arms do not compile (CS8510).
         var members = enumSymbol.GetMembers()
             .OfType<IFieldSymbol>()
             .Where(field => field.HasConstantValue)
+            .GroupBy(field => field.ConstantValue)
+            .Select(group => group.First())
             .Select((field, index) => AnalyzeMember(enumSymbol, field, index))
             .ToArray();
 
