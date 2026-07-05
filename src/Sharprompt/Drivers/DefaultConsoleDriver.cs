@@ -93,7 +93,23 @@ public sealed class DefaultConsoleDriver : IConsoleDriver
 
     public void WriteLine() => Console.WriteLine();
 
-    public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);
+    public void SetCursorPosition(int left, int top)
+    {
+        // The window may have been resized after the coordinates were calculated,
+        // so clamp them to the current buffer size to avoid ArgumentOutOfRangeException.
+        left = Math.Clamp(left, 0, Console.BufferWidth - 1);
+        top = Math.Clamp(top, 0, Console.BufferHeight - 1);
+
+        try
+        {
+            Console.SetCursorPosition(left, top);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            // The buffer was shrunk between the clamp and the call. Skip repositioning;
+            // the next render pass will use the updated buffer size.
+        }
+    }
 
     public bool KeyAvailable => Console.KeyAvailable;
 
