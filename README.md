@@ -67,6 +67,8 @@ var number = Prompt.Input<int>("Enter any number");
 Console.WriteLine($"Input = {number}");
 ```
 
+When a default value is provided, pressing <kbd>Enter</kbd> with nothing typed accepts the default. Press <kbd>Tab</kbd> to insert the default value for editing, or <kbd>Backspace</kbd> to dismiss the default so an empty value can be submitted.
+
 ![input](https://user-images.githubusercontent.com/1356444/62228275-50c72300-b3f8-11e9-8d51-63892e8eeaaa.gif)
 
 ### Confirm
