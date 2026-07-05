@@ -22,7 +22,9 @@ internal abstract class FormBase<T> : IDisposable
 
         KeyHandlerMaps = new()
         {
-            [new ConsoleKeyBinding(ConsoleKey.Escape)] = HandleEscape
+            [new ConsoleKeyBinding(ConsoleKey.Escape)] = HandleEscape,
+            [new ConsoleKeyBinding(ConsoleKey.V, ConsoleModifiers.Control)] = HandlePaste,
+            [new ConsoleKeyBinding(ConsoleKey.Insert, ConsoleModifiers.Shift)] = HandlePaste
         };
     }
 
@@ -148,5 +150,29 @@ internal abstract class FormBase<T> : IDisposable
         CancellationHandler();
 
         return true;
+    }
+
+    private bool HandlePaste()
+    {
+        // With TreatControlCAsInput enabled, the legacy Windows console no longer
+        // handles Ctrl+V itself, so the key arrives here as a raw input record.
+        var text = _configuration.ClipboardTextProvider();
+
+        if (string.IsNullOrEmpty(text))
+        {
+            return false;
+        }
+
+        var handled = false;
+
+        foreach (var c in text)
+        {
+            if (!char.IsControl(c))
+            {
+                handled |= HandleTextInput(new ConsoleKeyInfo(c, default, false, false, false));
+            }
+        }
+
+        return handled;
     }
 }

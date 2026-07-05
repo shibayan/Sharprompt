@@ -200,6 +200,88 @@ public class FormInteractionTests
     }
 
     [Fact]
+    public void InputForm_CtrlV_PastesClipboardText()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        configuration.ClipboardTextProvider = () => "pasted";
+
+        driver.EnqueueKey(ConsoleKey.V, ConsoleModifiers.Control, '\x16');
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<string>
+        {
+            Message = "message"
+        };
+
+        using var form = new InputForm<string>(options, configuration);
+
+        Assert.Equal("pasted", form.Start());
+    }
+
+    [Fact]
+    public void InputForm_Paste_StripsControlCharacters()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        configuration.ClipboardTextProvider = () => "ab\r\ncd";
+
+        driver.EnqueueKey(ConsoleKey.V, ConsoleModifiers.Control, '\x16');
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<string>
+        {
+            Message = "message"
+        };
+
+        using var form = new InputForm<string>(options, configuration);
+
+        Assert.Equal("abcd", form.Start());
+    }
+
+    [Fact]
+    public void InputForm_PasteWithEmptyClipboard_KeepsAcceptingInput()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        configuration.ClipboardTextProvider = () => null;
+
+        driver.EnqueueKey(ConsoleKey.V, ConsoleModifiers.Control, '\x16');
+        driver.EnqueueText("ok");
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<string>
+        {
+            Message = "message"
+        };
+
+        using var form = new InputForm<string>(options, configuration);
+
+        Assert.Equal("ok", form.Start());
+    }
+
+    [Fact]
+    public void SelectForm_ShiftInsert_PastesIntoFilter()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        configuration.ClipboardTextProvider = () => "che";
+
+        driver.EnqueueKey(ConsoleKey.Insert, ConsoleModifiers.Shift);
+        driver.EnqueueEnter();
+
+        var options = new SelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana", "cherry"]
+        };
+
+        using var form = new SelectForm<string>(options, configuration);
+
+        Assert.Equal("cherry", form.Start());
+    }
+
+    [Fact]
     public void Escape_ThrowsPromptCanceledException()
     {
         var (driver, configuration) = CreateTestContext();

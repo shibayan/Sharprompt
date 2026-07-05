@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Sharprompt.Drivers;
+using Sharprompt.Internal;
 
 namespace Sharprompt;
 
@@ -17,6 +18,18 @@ public class PromptConfiguration
         {
             ArgumentNullException.ThrowIfNull(value);
             _consoleDriverFactory = value;
+        }
+    }
+
+    private Func<string?> _clipboardTextProvider = ClipboardHelper.GetText;
+
+    public Func<string?> ClipboardTextProvider
+    {
+        get => _clipboardTextProvider;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _clipboardTextProvider = value;
         }
     }
 
