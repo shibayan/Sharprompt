@@ -11,12 +11,14 @@ public class EnumMetadataRegistryTests
     [Fact]
     public void Register_And_TryGet_ReturnsRegisteredValues()
     {
-        var values = new List<string> { "A", "B", "C" };
-        Func<string, string> textSelector = x => x.ToUpperInvariant();
+        // Use a type unique to this test: the registry is a global static, so
+        // registering a common type such as string leaks into other tests.
+        var values = new List<CustomItem> { new("A"), new("B"), new("C") };
+        Func<CustomItem, string> textSelector = x => x.Value.ToUpperInvariant();
 
         EnumMetadataRegistry.Register(values, textSelector);
 
-        var found = EnumMetadataRegistry.TryGet<string>(out var retrievedValues, out var retrievedSelector);
+        var found = EnumMetadataRegistry.TryGet<CustomItem>(out var retrievedValues, out var retrievedSelector);
 
         Assert.True(found);
         Assert.Equal(values, retrievedValues);
@@ -92,6 +94,8 @@ public class EnumMetadataRegistryTests
 
         Assert.Equal(new[] { FallbackEnum.Foo, FallbackEnum.Bar }, options.Items);
     }
+
+    public sealed record CustomItem(string Value);
 
     public enum RegisteredEnum
     {
