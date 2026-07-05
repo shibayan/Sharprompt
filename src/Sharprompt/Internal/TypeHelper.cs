@@ -14,4 +14,8 @@ internal static class TypeHelper<T>
     [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "TypeDescriptor's intrinsic converters cover the types typically used with prompts (string, numeric types, bool, char, Guid, DateTime, enums, etc.) and do not require unreferenced code. Custom TypeConverter attributes on user-defined types may require the application to preserve the converter type.")]
     [UnconditionalSuppressMessage("Trimming", "IL2077", Justification = "See IL2026 justification: only intrinsic converters are relied upon.")]
     public static T? ConvertTo(string value) => (T?)TypeDescriptor.GetConverter(s_underlyingType ?? s_targetType).ConvertFromInvariantString(value);
+
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "See ConvertTo: only intrinsic converters are relied upon.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2077", Justification = "See ConvertTo: only intrinsic converters are relied upon.")]
+    public static string ConvertToString(T value) => TypeDescriptor.GetConverter(s_underlyingType ?? s_targetType).ConvertToInvariantString(value) ?? "";
 }

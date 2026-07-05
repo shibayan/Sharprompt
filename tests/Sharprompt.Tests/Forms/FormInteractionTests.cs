@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 using Sharprompt.Forms;
 
@@ -156,6 +157,118 @@ public class FormInteractionTests
         using var form = new InputForm<int>(options, configuration);
 
         Assert.Equal(5, form.Start());
+    }
+
+    [Fact]
+    public void InputForm_Tab_InsertsDefaultValueForEditing()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.Tab, keyChar: '\t');
+        driver.EnqueueText("berry");
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<string>
+        {
+            Message = "message",
+            DefaultValue = "blue"
+        };
+
+        using var form = new InputForm<string>(options, configuration);
+
+        Assert.Equal("blueberry", form.Start());
+    }
+
+    [Fact]
+    public void InputForm_Tab_RoundTripsDefaultValueUnderNonInvariantCulture()
+    {
+        var previousCulture = CultureInfo.CurrentCulture;
+
+        try
+        {
+            // de-DE formats 1.5 as "1,5" via ToString, which ConvertFromInvariantString
+            // cannot parse back; the inserted text must use the invariant format.
+            CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+
+            var (driver, configuration) = CreateTestContext();
+
+            driver.EnqueueKey(ConsoleKey.Tab, keyChar: '\t');
+            driver.EnqueueEnter();
+
+            var options = new InputOptions<double>
+            {
+                Message = "message",
+                DefaultValue = 1.5
+            };
+
+            using var form = new InputForm<double>(options, configuration);
+
+            Assert.Equal(1.5, form.Start());
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previousCulture;
+        }
+    }
+
+    [Fact]
+    public void InputForm_TabWithTypedText_DoesNothing()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("red");
+        driver.EnqueueKey(ConsoleKey.Tab, keyChar: '\t');
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<string>
+        {
+            Message = "message",
+            DefaultValue = "blue"
+        };
+
+        using var form = new InputForm<string>(options, configuration);
+
+        Assert.Equal("red", form.Start());
+    }
+
+    [Fact]
+    public void InputForm_BackspaceOnEmptyBuffer_DismissesDefaultValue()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.Backspace);
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<string>
+        {
+            Message = "message",
+            DefaultValue = "blue"
+        };
+
+        using var form = new InputForm<string>(options, configuration);
+
+        Assert.Null(form.Start());
+    }
+
+    [Fact]
+    public void InputForm_DismissedDefaultValue_RequiresInputForNonNullable()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.Backspace);
+        driver.EnqueueEnter();
+        driver.EnqueueText("7");
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<int>
+        {
+            Message = "message",
+            DefaultValue = 5
+        };
+
+        using var form = new InputForm<int>(options, configuration);
+
+        Assert.Equal(7, form.Start());
     }
 
     [Fact]

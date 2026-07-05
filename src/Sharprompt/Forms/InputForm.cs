@@ -15,10 +15,12 @@ internal class InputForm<T> : TextFormBase<T>
         _options = options;
 
         _defaultValue = Optional<T>.Create(options.DefaultValue);
+
+        KeyHandlerMaps[new ConsoleKeyBinding(ConsoleKey.Tab)] = HandleTab;
     }
 
     private readonly InputOptions<T> _options;
-    private readonly Optional<T> _defaultValue;
+    private Optional<T> _defaultValue;
 
     protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
     {
@@ -82,5 +84,39 @@ internal class InputForm<T> : TextFormBase<T>
         result = default;
 
         return false;
+    }
+
+    private bool HandleTab()
+    {
+        if (!_defaultValue.HasValue || InputBuffer.Length > 0)
+        {
+            return false;
+        }
+
+        // Use the invariant converter so the inserted text round-trips through
+        // TypeHelper<T>.ConvertTo regardless of the current culture.
+        foreach (var c in TypeHelper<T>.ConvertToString(_defaultValue.Value))
+        {
+            InputBuffer.Insert(c);
+        }
+
+        _defaultValue = Optional<T>.Empty;
+
+        return true;
+    }
+
+    protected override bool HandleBackspace()
+    {
+        // Backspace with nothing typed dismisses the default value: Enter then
+        // behaves as if no default value was provided, so nullable types can
+        // submit an empty value while non-nullable types still require input.
+        if (InputBuffer.Length == 0 && _defaultValue.HasValue)
+        {
+            _defaultValue = Optional<T>.Empty;
+
+            return true;
+        }
+
+        return base.HandleBackspace();
     }
 }
