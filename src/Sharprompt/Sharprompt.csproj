@@ -53,8 +53,8 @@
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_PackSourceGenerator</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
-  <!-- The analyzer is TFM-independent, so pack it only once even when multi-targeting. -->
-  <Target Name="_PackSourceGenerator" Condition="'$(TargetFramework)' == 'net8.0'">
+  <!-- The analyzer is TFM-independent, so pack it only once (for the first TFM) even when multi-targeting. -->
+  <Target Name="_PackSourceGenerator" Condition="'$(TargetFramework)' == '$(TargetFrameworks.Split(`;`)[0])'">
     <MSBuild Projects="..\Sharprompt.SourceGenerator\Sharprompt.SourceGenerator.csproj" Targets="GetTargetPath" RemoveProperties="TargetFramework">
       <Output TaskParameter="TargetOutputs" ItemName="_SourceGeneratorOutput" />
     </MSBuild>
