@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
@@ -53,7 +53,8 @@
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_PackSourceGenerator</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
-  <Target Name="_PackSourceGenerator">
+  <!-- The analyzer is TFM-independent, so pack it only once (for the first TFM) even when multi-targeting. -->
+  <Target Name="_PackSourceGenerator" Condition="'$(TargetFramework)' == '$(TargetFrameworks.Split(`;`)[0])'">
     <MSBuild Projects="..\Sharprompt.SourceGenerator\Sharprompt.SourceGenerator.csproj" Targets="GetTargetPath" RemoveProperties="TargetFramework">
       <Output TaskParameter="TargetOutputs" ItemName="_SourceGeneratorOutput" />
     </MSBuild>
