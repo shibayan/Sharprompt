@@ -4,9 +4,6 @@ on:
   push:
     tags: [ v* ]
 
-env:
-  DOTNET_VERSION: 8.0.x
-
 jobs:
   publish:
     permissions:
@@ -15,10 +12,12 @@ jobs:
     steps:
     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-    - name: Use .NET ${{ env.DOTNET_VERSION }}
+    - name: Use .NET SDK
       uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
       with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+        dotnet-version: |
+          8.0.x
+          10.0.x
 
     - name: NuGet login (OIDC → temp API key)
       uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
