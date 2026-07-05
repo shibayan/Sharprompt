@@ -70,13 +70,15 @@ public class EnumMetadataRegistryTests
     }
 
     [Fact]
-    public void CreateFallbackMetadata_AliasedValues_KeepsFirstDeclaration()
+    public void CreateFallbackMetadata_AliasedValues_KeepsSingleDeterministicRepresentative()
     {
         var metadata = EnumMetadataRegistry.CreateFallbackMetadata<AliasedEnum>();
 
+        // Aliases collapse to one entry; the representative is the alias whose
+        // name sorts first ordinally ("Default" < "None").
         Assert.Equal(new[] { AliasedEnum.None, AliasedEnum.Value }, metadata.Values);
-        Assert.Equal("None", metadata.TextSelector(AliasedEnum.None));
-        Assert.Equal("None", metadata.TextSelector(AliasedEnum.Default));
+        Assert.Equal("Default", metadata.TextSelector(AliasedEnum.None));
+        Assert.Equal("Default", metadata.TextSelector(AliasedEnum.Default));
     }
 
     [Fact]

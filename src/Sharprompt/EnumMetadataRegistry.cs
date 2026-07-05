@@ -45,12 +45,14 @@ public static class EnumMetadataRegistry
         // GetFields does not guarantee ordering and MetadataToken is unavailable on
         // Native AOT, so sort by the underlying constant value for a deterministic
         // order, matching Enum.GetValues semantics. Aliased members sharing the
-        // same constant value keep a single representative.
+        // same constant value keep a single representative, chosen by ordinal name
+        // order so the result does not depend on the GetFields ordering either.
         var members = typeof(TEnum).GetFields(BindingFlags.Public | BindingFlags.Static)
-                                   .Select(field => (value: (TEnum)field.GetValue(null)!, displayAttribute: field.GetCustomAttribute<DisplayAttribute>()))
-                                   .DistinctBy(x => x.value)
+                                   .Select(field => (value: (TEnum)field.GetValue(null)!, field.Name, displayAttribute: field.GetCustomAttribute<DisplayAttribute>()))
                                    .OrderBy(x => x.value)
-                                   .Select((x, index) => (x.value, index, x.displayAttribute))
+                                   .ThenBy(x => x.Name, StringComparer.Ordinal)
+                                   .DistinctBy(x => x.value)
+                                   .Select((x, index) => (x.value, x.Name, index, x.displayAttribute))
                                    .ToArray();
 
         var values = members.OrderBy(x => x.displayAttribute?.GetOrder() ?? int.MaxValue)
@@ -58,16 +60,13 @@ public static class EnumMetadataRegistry
                             .Select(x => x.value)
                             .ToArray();
 
+        // Always map through the representative's field name: Enum.ToString picks
+        // an implementation-defined alias, which would defeat the determinism above.
         var displayNames = new Dictionary<TEnum, string>();
 
         foreach (var member in members)
         {
-            var displayName = member.displayAttribute?.GetName();
-
-            if (displayName is not null)
-            {
-                displayNames.TryAdd(member.value, displayName);
-            }
+            displayNames.TryAdd(member.value, member.displayAttribute?.GetName() ?? member.Name);
         }
 
         return new EnumMetadata<TEnum>(values, value => displayNames.TryGetValue(value, out var displayName) ? displayName : value.ToString()!);
