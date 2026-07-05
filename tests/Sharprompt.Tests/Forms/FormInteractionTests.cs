@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 using Sharprompt.Forms;
 
@@ -176,6 +177,38 @@ public class FormInteractionTests
         using var form = new InputForm<string>(options, configuration);
 
         Assert.Equal("blueberry", form.Start());
+    }
+
+    [Fact]
+    public void InputForm_Tab_RoundTripsDefaultValueUnderNonInvariantCulture()
+    {
+        var previousCulture = CultureInfo.CurrentCulture;
+
+        try
+        {
+            // de-DE formats 1.5 as "1,5" via ToString, which ConvertFromInvariantString
+            // cannot parse back; the inserted text must use the invariant format.
+            CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+
+            var (driver, configuration) = CreateTestContext();
+
+            driver.EnqueueKey(ConsoleKey.Tab, keyChar: '\t');
+            driver.EnqueueEnter();
+
+            var options = new InputOptions<double>
+            {
+                Message = "message",
+                DefaultValue = 1.5
+            };
+
+            using var form = new InputForm<double>(options, configuration);
+
+            Assert.Equal(1.5, form.Start());
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previousCulture;
+        }
     }
 
     [Fact]

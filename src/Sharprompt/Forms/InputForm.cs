@@ -93,7 +93,9 @@ internal class InputForm<T> : TextFormBase<T>
             return false;
         }
 
-        foreach (var c in _defaultValue.Value.ToString() ?? "")
+        // Use the invariant converter so the inserted text round-trips through
+        // TypeHelper<T>.ConvertTo regardless of the current culture.
+        foreach (var c in TypeHelper<T>.ConvertToString(_defaultValue.Value))
         {
             InputBuffer.Insert(c);
         }
@@ -105,8 +107,9 @@ internal class InputForm<T> : TextFormBase<T>
 
     protected override bool HandleBackspace()
     {
-        // Backspace with nothing typed dismisses the default value, allowing an
-        // empty submission even when a default value is provided.
+        // Backspace with nothing typed dismisses the default value: Enter then
+        // behaves as if no default value was provided, so nullable types can
+        // submit an empty value while non-nullable types still require input.
         if (InputBuffer.Length == 0 && _defaultValue.HasValue)
         {
             _defaultValue = Optional<T>.Empty;
