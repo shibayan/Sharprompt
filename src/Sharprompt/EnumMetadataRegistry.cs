@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
@@ -38,15 +39,18 @@ public static class EnumMetadataRegistry
         return true;
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2090", Justification = "This method is only invoked for enum types, and the trimmer always preserves the fields of enum types it keeps.")]
     internal static EnumMetadata<TEnum> CreateFallbackMetadata<TEnum>() where TEnum : notnull
     {
-        // GetFields does not guarantee ordering, so sort by MetadataToken to get
-        // the declaration order, matching the source generator semantics. Aliased
-        // members sharing the same constant value keep the first declaration only.
+        // GetFields does not guarantee ordering and MetadataToken is unavailable on
+        // Native AOT, so sort by the underlying constant value for a deterministic
+        // order, matching Enum.GetValues semantics. Aliased members sharing the
+        // same constant value keep a single representative.
         var members = typeof(TEnum).GetFields(BindingFlags.Public | BindingFlags.Static)
-                                   .OrderBy(field => field.MetadataToken)
-                                   .Select((field, index) => (value: (TEnum)field.GetValue(null)!, index, displayAttribute: field.GetCustomAttribute<DisplayAttribute>()))
+                                   .Select(field => (value: (TEnum)field.GetValue(null)!, displayAttribute: field.GetCustomAttribute<DisplayAttribute>()))
                                    .DistinctBy(x => x.value)
+                                   .OrderBy(x => x.value)
+                                   .Select((x, index) => (x.value, index, x.displayAttribute))
                                    .ToArray();
 
         var values = members.OrderBy(x => x.displayAttribute?.GetOrder() ?? int.MaxValue)
