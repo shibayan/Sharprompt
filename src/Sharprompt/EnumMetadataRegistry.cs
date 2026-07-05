@@ -40,7 +40,10 @@ public static class EnumMetadataRegistry
 
     internal static EnumMetadata<TEnum> CreateFallbackMetadata<TEnum>() where TEnum : notnull
     {
+        // GetFields does not guarantee ordering, so sort by MetadataToken to get
+        // the declaration order, matching the source generator semantics.
         var members = typeof(TEnum).GetFields(BindingFlags.Public | BindingFlags.Static)
+                                   .OrderBy(field => field.MetadataToken)
                                    .Select((field, index) => (value: (TEnum)field.GetValue(null)!, index, displayAttribute: field.GetCustomAttribute<DisplayAttribute>()))
                                    .ToArray();
 
