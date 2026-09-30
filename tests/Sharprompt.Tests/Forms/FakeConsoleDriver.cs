@@ -83,7 +83,24 @@ internal sealed class FakeConsoleDriver : IConsoleDriver
         _cursorTop = top;
     }
 
-    public bool KeyAvailable => _keys.Count > 0;
+    // Invoked when the form polls for input after every queued key has been consumed,
+    // giving tests a deterministic point to react to the form waiting for more input.
+    public Action? KeysExhausted { get; set; }
+
+    public bool KeyAvailable
+    {
+        get
+        {
+            if (_keys.Count > 0)
+            {
+                return true;
+            }
+
+            KeysExhausted?.Invoke();
+
+            return false;
+        }
+    }
 
     public bool CursorVisible { get; set; } = true;
 

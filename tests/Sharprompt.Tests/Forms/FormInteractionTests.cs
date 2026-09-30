@@ -359,7 +359,9 @@ public class FormInteractionTests
         driver.EnqueueText("abc");
 
         using var cts = new CancellationTokenSource();
-        cts.CancelAfter(TimeSpan.FromMilliseconds(50));
+
+        // Cancel only once every queued key has been consumed and the form is waiting for more input.
+        driver.KeysExhausted = cts.Cancel;
 
         using var form = new InputForm<string>(new InputOptions<string> { Message = "message" }, configuration);
 
@@ -367,6 +369,7 @@ public class FormInteractionTests
 
         Assert.Equal(cts.Token, exception.CancellationToken);
         Assert.False(driver.KeyAvailable);
+        Assert.Contains("abc", driver.Output);
     }
 
     [Fact]
