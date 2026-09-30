@@ -52,7 +52,7 @@ var name = Prompt.Input<string>("What's your name?");
 
 ## キャンセルのサポート
 
-デフォルトでは、`Ctrl+C` を押すとデフォルト値が返されます。この動作を変更して例外をスローさせることができます:
+デフォルトでは、`Ctrl+C` または `Esc` を押すとプロセスが終了します。この動作を変更して例外をスローさせることができます:
 
 ```csharp
 Prompt.ThrowExceptionOnCancel = true;
@@ -65,6 +65,24 @@ try
 catch (PromptCanceledException ex)
 {
     Console.WriteLine("Prompt canceled");
+}
+```
+
+### コードからのキャンセル
+
+すべてのプロンプトは、オプションオブジェクトまたは構成デリゲートを受け取るオーバーロードで `CancellationToken` を指定できます。`Prompt.Bind` も同様です。入力待ちの間にトークンがキャンセルされると、プロンプトを閉じて `OperationCanceledException` をスローします。この動作は `ThrowExceptionOnCancel` の設定に関係ありません。
+
+```csharp
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+try
+{
+    var name = Prompt.Input<string>(options => options.Message = "What's your name?", cts.Token);
+    Console.WriteLine($"Hello, {name}!");
+}
+catch (OperationCanceledException)
+{
+    Console.WriteLine("Timed out");
 }
 ```
 

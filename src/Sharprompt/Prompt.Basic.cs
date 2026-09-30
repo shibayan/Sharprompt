@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Threading;
 
 using Sharprompt.Forms;
 using Sharprompt.Internal;
@@ -11,18 +12,28 @@ public static partial class Prompt
 {
     public static T Input<T>(InputOptions<T> options)
     {
+        return Input(options, CancellationToken.None);
+    }
+
+    public static T Input<T>(InputOptions<T> options, CancellationToken cancellationToken)
+    {
         using var form = new InputForm<T>(options, s_configuration);
 
-        return form.Start();
+        return form.Start(cancellationToken);
     }
 
     public static T Input<T>(Action<InputOptions<T>> configure)
+    {
+        return Input(configure, CancellationToken.None);
+    }
+
+    public static T Input<T>(Action<InputOptions<T>> configure, CancellationToken cancellationToken)
     {
         var options = new InputOptions<T>();
 
         configure(options);
 
-        return Input(options);
+        return Input(options, cancellationToken);
     }
 
     public static T Input<T>(string message, object? defaultValue = default, string? placeholder = default, IList<Func<object?, ValidationResult?>>? validators = default)
@@ -39,18 +50,28 @@ public static partial class Prompt
 
     public static string Password(PasswordOptions options)
     {
+        return Password(options, CancellationToken.None);
+    }
+
+    public static string Password(PasswordOptions options, CancellationToken cancellationToken)
+    {
         using var form = new PasswordForm(options, s_configuration);
 
-        return form.Start();
+        return form.Start(cancellationToken);
     }
 
     public static string Password(Action<PasswordOptions> configure)
+    {
+        return Password(configure, CancellationToken.None);
+    }
+
+    public static string Password(Action<PasswordOptions> configure, CancellationToken cancellationToken)
     {
         var options = new PasswordOptions();
 
         configure(options);
 
-        return Password(options);
+        return Password(options, cancellationToken);
     }
 
     public static string Password(string message, string passwordChar = "*", string? placeholder = default, IList<Func<object?, ValidationResult?>>? validators = default)
@@ -67,18 +88,28 @@ public static partial class Prompt
 
     public static bool Confirm(ConfirmOptions options)
     {
+        return Confirm(options, CancellationToken.None);
+    }
+
+    public static bool Confirm(ConfirmOptions options, CancellationToken cancellationToken)
+    {
         using var form = new ConfirmForm(options, s_configuration);
 
-        return form.Start();
+        return form.Start(cancellationToken);
     }
 
     public static bool Confirm(Action<ConfirmOptions> configure)
+    {
+        return Confirm(configure, CancellationToken.None);
+    }
+
+    public static bool Confirm(Action<ConfirmOptions> configure, CancellationToken cancellationToken)
     {
         var options = new ConfirmOptions();
 
         configure(options);
 
-        return Confirm(options);
+        return Confirm(options, cancellationToken);
     }
 
     public static bool Confirm(string message, bool? defaultValue = default)
@@ -92,18 +123,28 @@ public static partial class Prompt
 
     public static T Select<T>(SelectOptions<T> options) where T : notnull
     {
+        return Select(options, CancellationToken.None);
+    }
+
+    public static T Select<T>(SelectOptions<T> options, CancellationToken cancellationToken) where T : notnull
+    {
         using var form = new SelectForm<T>(options, s_configuration);
 
-        return form.Start();
+        return form.Start(cancellationToken);
     }
 
     public static T Select<T>(Action<SelectOptions<T>> configure) where T : notnull
+    {
+        return Select(configure, CancellationToken.None);
+    }
+
+    public static T Select<T>(Action<SelectOptions<T>> configure, CancellationToken cancellationToken) where T : notnull
     {
         var options = new SelectOptions<T>();
 
         configure(options);
 
-        return Select(options);
+        return Select(options, cancellationToken);
     }
 
     public static T Select<T>(string message, IEnumerable<T>? items = default, int pageSize = int.MaxValue, object? defaultValue = default, Func<T, string>? textSelector = default) where T : notnull
@@ -129,18 +170,28 @@ public static partial class Prompt
 
     public static IEnumerable<T> MultiSelect<T>(MultiSelectOptions<T> options) where T : notnull
     {
+        return MultiSelect(options, CancellationToken.None);
+    }
+
+    public static IEnumerable<T> MultiSelect<T>(MultiSelectOptions<T> options, CancellationToken cancellationToken) where T : notnull
+    {
         using var form = new MultiSelectForm<T>(options, s_configuration);
 
-        return form.Start();
+        return form.Start(cancellationToken);
     }
 
     public static IEnumerable<T> MultiSelect<T>(Action<MultiSelectOptions<T>> configure) where T : notnull
+    {
+        return MultiSelect(configure, CancellationToken.None);
+    }
+
+    public static IEnumerable<T> MultiSelect<T>(Action<MultiSelectOptions<T>> configure, CancellationToken cancellationToken) where T : notnull
     {
         var options = new MultiSelectOptions<T>();
 
         configure(options);
 
-        return MultiSelect(options);
+        return MultiSelect(options, cancellationToken);
     }
 
     public static IEnumerable<T> MultiSelect<T>(string message, IEnumerable<T>? items = null, int pageSize = int.MaxValue, int minimum = 1, int maximum = int.MaxValue, IEnumerable<T>? defaultValues = default, Func<T, string>? textSelector = default) where T : notnull
@@ -172,18 +223,28 @@ public static partial class Prompt
 
     public static IEnumerable<T> List<T>(ListOptions<T> options) where T : notnull
     {
+        return List(options, CancellationToken.None);
+    }
+
+    public static IEnumerable<T> List<T>(ListOptions<T> options, CancellationToken cancellationToken) where T : notnull
+    {
         using var form = new ListForm<T>(options, s_configuration);
 
-        return form.Start();
+        return form.Start(cancellationToken);
     }
 
     public static IEnumerable<T> List<T>(Action<ListOptions<T>> configure) where T : notnull
+    {
+        return List(configure, CancellationToken.None);
+    }
+
+    public static IEnumerable<T> List<T>(Action<ListOptions<T>> configure, CancellationToken cancellationToken) where T : notnull
     {
         var options = new ListOptions<T>();
 
         configure(options);
 
-        return List(options);
+        return List(options, cancellationToken);
     }
 
     public static IEnumerable<T> List<T>(string message, int minimum = 1, int maximum = int.MaxValue, IList<Func<object?, ValidationResult?>>? validators = default) where T : notnull

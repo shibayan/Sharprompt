@@ -182,6 +182,11 @@ catch (PromptCanceledException ex)
 {
     Console.WriteLine("Prompt canceled");
 }
+
+// Cancel from code with a CancellationToken (throws OperationCanceledException)
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+var answer = Prompt.Confirm(options => options.Message = "Are you ready?", cts.Token);
 ```
 
 ## Validators

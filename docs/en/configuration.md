@@ -52,7 +52,7 @@ var name = Prompt.Input<string>("What's your name?");
 
 ## Cancellation Support
 
-By default, pressing `Ctrl+C` returns the default value. You can change this behavior to throw an exception:
+By default, pressing `Ctrl+C` or `Esc` exits the process. You can change this behavior to throw an exception:
 
 ```csharp
 Prompt.ThrowExceptionOnCancel = true;
@@ -65,6 +65,24 @@ try
 catch (PromptCanceledException ex)
 {
     Console.WriteLine("Prompt canceled");
+}
+```
+
+### Canceling from code
+
+Every prompt accepts a `CancellationToken` through the overloads that take an options object or a configure delegate, and `Prompt.Bind` accepts one too. When the token is canceled while the prompt is waiting for input, the prompt is closed and an `OperationCanceledException` is thrown, regardless of `ThrowExceptionOnCancel`.
+
+```csharp
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+try
+{
+    var name = Prompt.Input<string>(options => options.Message = "What's your name?", cts.Token);
+    Console.WriteLine($"Hello, {name}!");
+}
+catch (OperationCanceledException)
+{
+    Console.WriteLine("Timed out");
 }
 ```
 

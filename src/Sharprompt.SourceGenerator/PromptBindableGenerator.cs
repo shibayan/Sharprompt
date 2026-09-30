@@ -84,7 +84,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         builder.AppendLine("    [global::System.Runtime.CompilerServices.ModuleInitializer]");
         builder.AppendLine("    internal static void Register()");
         builder.AppendLine("    {");
-        builder.AppendLine("        global::Sharprompt.ModelBinderRegistry.Register<" + fullTypeName + ">(model =>");
+        builder.AppendLine("        global::Sharprompt.ModelBinderRegistry.Register<" + fullTypeName + ">((model, cancellationToken) =>");
         builder.AppendLine("        {");
 
         for (var i = 0; i < properties.Count; i++)
@@ -333,7 +333,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
 
         builder.AppendLine(indent + "    options.DefaultValue = model." + property.Name + ";");
         EmitValidators(builder, property, indent);
-        builder.AppendLine(indent + "});");
+        builder.AppendLine(indent + "}, cancellationToken);");
     }
 
     private static void EmitPassword(StringBuilder builder, PropertyMetadata property, string indent)
@@ -348,7 +348,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         }
 
         EmitValidators(builder, property, indent);
-        builder.AppendLine(indent + "});");
+        builder.AppendLine(indent + "}, cancellationToken);");
     }
 
     private static void EmitConfirm(StringBuilder builder, PropertyMetadata property, string indent)
@@ -357,7 +357,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         builder.AppendLine(indent + "{");
         builder.AppendLine(indent + "    options.Message = " + Quote(property.Message) + ";");
         builder.AppendLine(indent + "    options.DefaultValue = model." + property.Name + ";");
-        builder.AppendLine(indent + "});");
+        builder.AppendLine(indent + "}, cancellationToken);");
     }
 
     private static void EmitSelect(StringBuilder builder, PropertyMetadata property, string indent)
@@ -372,7 +372,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         }
 
         builder.AppendLine(indent + "    options.DefaultValue = model." + property.Name + ";");
-        builder.AppendLine(indent + "});");
+        builder.AppendLine(indent + "}, cancellationToken);");
     }
 
     private static void EmitMultiSelect(StringBuilder builder, PropertyMetadata property, string indent)
@@ -387,7 +387,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         }
 
         builder.AppendLine(indent + "    options.DefaultValues = model." + property.Name + " ?? global::System.Array.Empty<" + property.TypeArg + ">();");
-        builder.AppendLine(indent + "});");
+        builder.AppendLine(indent + "}, cancellationToken);");
     }
 
     private static void EmitList(StringBuilder builder, PropertyMetadata property, string indent)
@@ -397,7 +397,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         builder.AppendLine(indent + "    options.Message = " + Quote(property.Message) + ";");
         builder.AppendLine(indent + "    options.DefaultValues = model." + property.Name + " ?? global::System.Array.Empty<" + property.TypeArg + ">();");
         EmitValidators(builder, property, indent);
-        builder.AppendLine(indent + "});");
+        builder.AppendLine(indent + "}, cancellationToken);");
     }
 
     private static void EmitValidators(StringBuilder builder, PropertyMetadata property, string indent)
