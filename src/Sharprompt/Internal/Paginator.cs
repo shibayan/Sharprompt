@@ -93,7 +93,9 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
     {
         if (_selectedIndex <= 0)
         {
-            if (!LoopingSelection)
+            // With nothing selected, select the last item on the current page
+            // instead of moving to the previous page, mirroring NextItem.
+            if (!LoopingSelection && _selectedIndex == 0)
             {
                 PreviousPage();
             }

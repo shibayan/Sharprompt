@@ -124,6 +124,170 @@ public class FormInteractionTests
     }
 
     [Fact]
+    public void MultiSelectForm_CtrlA_SelectsAllItems()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.A, ConsoleModifiers.Control, '\x01');
+        driver.EnqueueEnter();
+
+        var options = new MultiSelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana", "cherry"]
+        };
+
+        using var form = new MultiSelectForm<string>(options, configuration);
+
+        Assert.Equal(new[] { "apple", "banana", "cherry" }, form.Start());
+    }
+
+    [Fact]
+    public void MultiSelectForm_CtrlA_AllSelected_DeselectsAllItems()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.A, ConsoleModifiers.Control, '\x01');
+        driver.EnqueueEnter();
+
+        var options = new MultiSelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana", "cherry"],
+            DefaultValues = ["apple", "banana", "cherry"],
+            Minimum = 0
+        };
+
+        using var form = new MultiSelectForm<string>(options, configuration);
+
+        Assert.Empty(form.Start());
+    }
+
+    [Fact]
+    public void MultiSelectForm_CtrlA_ExceedingMaximum_KeepsSelection()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.A, ConsoleModifiers.Control, '\x01');
+        driver.EnqueueEnter();
+
+        var options = new MultiSelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana", "cherry"],
+            DefaultValues = ["apple"],
+            Maximum = 2
+        };
+
+        using var form = new MultiSelectForm<string>(options, configuration);
+
+        Assert.Equal(new[] { "apple" }, form.Start());
+    }
+
+    [Fact]
+    public void MultiSelectForm_CtrlA_WithFilter_SelectsOnlyFilteredItems()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("b");
+        driver.EnqueueKey(ConsoleKey.A, ConsoleModifiers.Control, '\x01');
+        driver.EnqueueEnter();
+
+        var options = new MultiSelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana", "cherry", "blueberry"]
+        };
+
+        using var form = new MultiSelectForm<string>(options, configuration);
+
+        Assert.Equal(new[] { "banana", "blueberry" }, form.Start());
+    }
+
+    [Fact]
+    public void MultiSelectForm_CtrlA_WithFilter_DeselectsOnlyFilteredItems()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("b");
+        driver.EnqueueKey(ConsoleKey.A, ConsoleModifiers.Control, '\x01');
+        driver.EnqueueEnter();
+
+        var options = new MultiSelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana", "cherry", "blueberry"],
+            DefaultValues = ["apple", "banana", "blueberry"]
+        };
+
+        using var form = new MultiSelectForm<string>(options, configuration);
+
+        Assert.Equal(new[] { "apple" }, form.Start());
+    }
+
+    [Fact]
+    public void MultiSelectForm_CtrlI_InvertsSelection()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.I, ConsoleModifiers.Control, '\t');
+        driver.EnqueueEnter();
+
+        var options = new MultiSelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana", "cherry"],
+            DefaultValues = ["apple"]
+        };
+
+        using var form = new MultiSelectForm<string>(options, configuration);
+
+        Assert.Equal(new[] { "banana", "cherry" }, form.Start());
+    }
+
+    [Fact]
+    public void MultiSelectForm_CtrlI_WithFilter_PreservesHiddenSelections()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("b");
+        driver.EnqueueKey(ConsoleKey.I, ConsoleModifiers.Control, '\t');
+        driver.EnqueueEnter();
+
+        var options = new MultiSelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana", "cherry", "blueberry"],
+            DefaultValues = ["apple", "banana"]
+        };
+
+        using var form = new MultiSelectForm<string>(options, configuration);
+
+        Assert.Equal(new[] { "apple", "blueberry" }, form.Start());
+    }
+
+    [Fact]
+    public void MultiSelectForm_CtrlI_ExceedingMaximum_KeepsSelection()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.I, ConsoleModifiers.Control, '\t');
+        driver.EnqueueEnter();
+
+        var options = new MultiSelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana", "cherry"],
+            DefaultValues = ["apple"],
+            Maximum = 1
+        };
+
+        using var form = new MultiSelectForm<string>(options, configuration);
+
+        Assert.Equal(new[] { "apple" }, form.Start());
+    }
+
+    [Fact]
     public void InputForm_TypedText_ReturnsConvertedValue()
     {
         var (driver, configuration) = CreateTestContext();
