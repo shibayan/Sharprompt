@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 using Sharprompt.Drivers;
 using Sharprompt.Internal;
@@ -26,6 +27,8 @@ internal abstract class FormBase<T> : IDisposable
         };
     }
 
+    private static readonly TimeSpan s_keyPollingInterval = TimeSpan.FromMilliseconds(16);
+
     private readonly IConsoleDriver _consoleDriver;
     private readonly FormRenderer _formRenderer;
     private readonly PromptConfiguration _configuration;
@@ -42,13 +45,15 @@ internal abstract class FormBase<T> : IDisposable
 
     public void Dispose() => _consoleDriver.Dispose();
 
-    public T Start()
+    public T Start(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         while (true)
         {
             _formRenderer.Render(InputTemplate);
 
-            if (!TryGetResult(out var result))
+            if (!TryGetResult(cancellationToken, out var result))
             {
                 continue;
             }
@@ -97,11 +102,11 @@ internal abstract class FormBase<T> : IDisposable
         return true;
     }
 
-    private bool TryGetResult([NotNullWhen(true)] out T? result)
+    private bool TryGetResult(CancellationToken cancellationToken, [NotNullWhen(true)] out T? result)
     {
         do
         {
-            var keyInfo = _consoleDriver.ReadKey();
+            var keyInfo = ReadKey(cancellationToken);
 
             if (keyInfo.Key == ConsoleKey.Enter)
             {
@@ -129,6 +134,28 @@ internal abstract class FormBase<T> : IDisposable
         result = default;
 
         return false;
+    }
+
+    private ConsoleKeyInfo ReadKey(CancellationToken cancellationToken)
+    {
+        // ReadKey blocks and cannot be interrupted, so when the token can be canceled
+        // poll for available input while waiting on the token instead.
+        while (true)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _formRenderer.Cancel();
+
+                throw new OperationCanceledException(Resource.Message_PromptCanceled, cancellationToken);
+            }
+
+            if (!cancellationToken.CanBeCanceled || _consoleDriver.KeyAvailable)
+            {
+                return _consoleDriver.ReadKey();
+            }
+
+            cancellationToken.WaitHandle.WaitOne(s_keyPollingInterval);
+        }
     }
 
     private void CancellationHandler()

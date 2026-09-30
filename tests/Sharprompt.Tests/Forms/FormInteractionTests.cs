@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading;
 
 using Sharprompt.Forms;
 
@@ -328,6 +329,62 @@ public class FormInteractionTests
         using var form = new SelectForm<string>(options, configuration);
 
         Assert.Throws<PromptCanceledException>(() => form.Start());
+    }
+
+    [Fact]
+    public void CanceledToken_ThrowsBeforeRendering()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("abc");
+        driver.EnqueueEnter();
+
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        using var form = new InputForm<string>(new InputOptions<string> { Message = "message" }, configuration);
+
+        var exception = Assert.Throws<OperationCanceledException>(() => form.Start(cts.Token));
+
+        Assert.Equal(cts.Token, exception.CancellationToken);
+        Assert.Empty(driver.Output);
+        Assert.True(driver.KeyAvailable);
+    }
+
+    [Fact]
+    public void TokenCanceledWhileWaitingForInput_ThrowsOperationCanceledException()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("abc");
+
+        using var cts = new CancellationTokenSource();
+
+        // Cancel only once every queued key has been consumed and the form is waiting for more input.
+        driver.KeysExhausted = cts.Cancel;
+
+        using var form = new InputForm<string>(new InputOptions<string> { Message = "message" }, configuration);
+
+        var exception = Assert.Throws<OperationCanceledException>(() => form.Start(cts.Token));
+
+        Assert.Equal(cts.Token, exception.CancellationToken);
+        Assert.False(driver.KeyAvailable);
+        Assert.Contains("abc", driver.Output);
+    }
+
+    [Fact]
+    public void CancelableTokenNotCanceled_ReturnsResult()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("abc");
+        driver.EnqueueEnter();
+
+        using var cts = new CancellationTokenSource();
+
+        using var form = new InputForm<string>(new InputOptions<string> { Message = "message" }, configuration);
+
+        Assert.Equal("abc", form.Start(cts.Token));
     }
 
     [Fact]
