@@ -104,6 +104,39 @@ public class PaginatorTests
     }
 
     [Fact]
+    public void PreviousItem_NotSelected_SelectsLastItemOnCurrentPage()
+    {
+        var paginator = new Paginator<int>(Enumerable.Range(0, 20), 5, Optional<int>.Empty, x => x.ToString());
+        paginator.LoopingSelection = false;
+
+        paginator.NextPage();
+        paginator.PreviousItem();
+
+        var selected = paginator.TryGetSelectedItem(out var selectedItem);
+
+        Assert.True(selected);
+        Assert.Equal(9, selectedItem);
+        Assert.Equal(1, paginator.CurrentPage);
+    }
+
+    [Fact]
+    public void PreviousItem_FirstItem_MovesToPreviousPage()
+    {
+        var paginator = new Paginator<int>(Enumerable.Range(0, 20), 5, Optional<int>.Empty, x => x.ToString());
+        paginator.LoopingSelection = false;
+
+        paginator.NextPage();
+        paginator.NextItem();
+        paginator.PreviousItem();
+
+        var selected = paginator.TryGetSelectedItem(out var selectedItem);
+
+        Assert.True(selected);
+        Assert.Equal(4, selectedItem);
+        Assert.Equal(0, paginator.CurrentPage);
+    }
+
+    [Fact]
     public void PreviousPage()
     {
         var paginator = new Paginator<int>(Enumerable.Range(0, 20), 5, Optional<int>.Empty, x => x.ToString());

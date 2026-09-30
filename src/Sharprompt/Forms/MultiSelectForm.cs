@@ -124,32 +124,45 @@ internal class MultiSelectForm<T> : SelectFormBase<T, IEnumerable<T>> where T : 
 
     private bool HandleCtrlA()
     {
-        if (_selectedItems.Count == Paginator.TotalCount)
+        // Bulk operations only apply to the currently filtered items, so selections
+        // hidden by the filter are preserved.
+        var selectedItems = new HashSet<T>(_selectedItems);
+
+        if (Paginator.All(_selectedItems.Contains))
         {
-            _selectedItems.Clear();
+            selectedItems.ExceptWith(Paginator);
         }
         else
         {
-            foreach (var item in Paginator)
-            {
-                _selectedItems.Add(item);
-            }
+            selectedItems.UnionWith(Paginator);
         }
+
+        UpdateSelectedItems(selectedItems);
 
         return true;
     }
 
     private bool HandleCtrlI()
     {
-        var invertedItems = Paginator.Except(_selectedItems).ToArray();
+        var selectedItems = new HashSet<T>(_selectedItems);
 
-        _selectedItems.Clear();
+        selectedItems.SymmetricExceptWith(Paginator);
 
-        foreach (var item in invertedItems)
-        {
-            _selectedItems.Add(item);
-        }
+        UpdateSelectedItems(selectedItems);
 
         return true;
+    }
+
+    private void UpdateSelectedItems(HashSet<T> selectedItems)
+    {
+        if (selectedItems.Count > _options.Maximum)
+        {
+            SetError(string.Format(Resource.Validation_Maximum_SelectionRequired, _options.Maximum));
+
+            return;
+        }
+
+        _selectedItems.Clear();
+        _selectedItems.UnionWith(selectedItems);
     }
 }
