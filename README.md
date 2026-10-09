@@ -118,8 +118,15 @@ Console.WriteLine($"You picked {string.Join(", ", value)}");
 
 ### Bind (Model-based prompts)
 
+Bind automatically generates a sequence of prompts from a model class. The model must be a `class` with a public parameterless constructor and accessible property setters, annotated with `[PromptBindable]`:
+
 ```csharp
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Sharprompt;
+
 // Input model definition
+[PromptBindable]
 public class MyFormModel
 {
     [Display(Name = "What's your name?")]
@@ -137,8 +144,14 @@ public class MyFormModel
     [InlineItems("Seattle", "London", "Tokyo")]
     public string City { get; set; }
 
+    [Display(Name = "Select favorite fruit")]
+    [MemberItems(nameof(Fruits))]
+    public string Fruit { get; set; }
+
     [Display(Name = "Are you ready?")]
     public bool? Ready { get; set; }
+
+    public static IEnumerable<string> Fruits => new[] { "Apple", "Banana", "Orange" };
 }
 
 var result = Prompt.Bind<MyFormModel>();
