@@ -74,37 +74,102 @@ public class EnumMetadataRegistryTests
     {
         var metadata = EnumMetadataRegistry.CreateFallbackMetadata<AliasedEnum>();
 
-        // Aliases collapse to one entry; the representative is the alias whose
-        // name sorts first ordinally ("Default" < "None").
+        // Aliases collapse to one entry, keeping the first declared representative ("None").
         Assert.Equal(new[] { AliasedEnum.None, AliasedEnum.Value }, metadata.Values);
-        Assert.Equal("Default", metadata.TextSelector(AliasedEnum.None));
-        Assert.Equal("Default", metadata.TextSelector(AliasedEnum.Default));
+        Assert.Equal("None", metadata.TextSelector(AliasedEnum.None));
+        Assert.Equal("None", metadata.TextSelector(AliasedEnum.Default));
+    }
+
+    [Fact]
+    public void Generated_And_Fallback_Metadata_Are_Identical_For_AnnotatedEnum()
+    {
+        AssertMetadataParity<AnnotatedEnum>();
+    }
+
+    [Fact]
+    public void Generated_And_Fallback_Metadata_Are_Identical_For_AliasedEnum()
+    {
+        AssertMetadataParity<AliasedEnum>();
+    }
+
+    [Fact]
+    public void Generated_And_Fallback_Metadata_Are_Identical_For_AliasedWithDisplayEnum()
+    {
+        AssertMetadataParity<AliasedWithDisplayEnum>();
+
+        var fallback = EnumMetadataRegistry.CreateFallbackMetadata<AliasedWithDisplayEnum>();
+        Assert.Equal(new[] { AliasedWithDisplayEnum.Zero, AliasedWithDisplayEnum.One }, fallback.Values);
+        Assert.Equal("Zero (First)", fallback.TextSelector(AliasedWithDisplayEnum.Zero));
+        Assert.Equal("Zero (First)", fallback.TextSelector(AliasedWithDisplayEnum.Nothing));
+        Assert.Equal("One", fallback.TextSelector(AliasedWithDisplayEnum.One));
+    }
+
+    [Fact]
+    public void Generated_And_Fallback_Metadata_Are_Identical_For_ExplicitOrderAndUnannotated()
+    {
+        AssertMetadataParity<AnnotatedOrderEnum>();
+
+        var fallback = EnumMetadataRegistry.CreateFallbackMetadata<AnnotatedOrderEnum>();
+        Assert.Equal(
+            new[]
+            {
+                AnnotatedOrderEnum.FirstOrder,
+                AnnotatedOrderEnum.SecondOrder,
+                AnnotatedOrderEnum.SecondOrderB,
+                AnnotatedOrderEnum.UnannotatedA,
+                AnnotatedOrderEnum.UnannotatedB
+            },
+            fallback.Values);
+    }
+
+    [Fact]
+    public void Generated_And_Fallback_Metadata_Are_Identical_For_OutOfOrderEnum()
+    {
+        AssertMetadataParity<OutOfOrderEnum>();
+
+        var fallback = EnumMetadataRegistry.CreateFallbackMetadata<OutOfOrderEnum>();
+        Assert.Equal(new[] { OutOfOrderEnum.Charlie, OutOfOrderEnum.Alpha, OutOfOrderEnum.Bravo }, fallback.Values);
     }
 
     [Fact]
     public void SelectOptions_UnregisteredEnum_HasItems()
     {
-        var options = new SelectOptions<FallbackEnum>
+        var options = new SelectOptions<ConsoleColor>
         {
             Message = "message"
         };
 
         options.EnsureOptions();
 
-        Assert.Equal(new[] { FallbackEnum.Foo, FallbackEnum.Bar }, options.Items);
+        Assert.Equal(Enum.GetValues<ConsoleColor>(), options.Items);
     }
 
     [Fact]
     public void MultiSelectOptions_UnregisteredEnum_HasItems()
     {
-        var options = new MultiSelectOptions<FallbackEnum>
+        var options = new MultiSelectOptions<ConsoleColor>
         {
             Message = "message"
         };
 
         options.EnsureOptions();
 
-        Assert.Equal(new[] { FallbackEnum.Foo, FallbackEnum.Bar }, options.Items);
+        Assert.Equal(Enum.GetValues<ConsoleColor>(), options.Items);
+    }
+
+    private static void AssertMetadataParity<TEnum>() where TEnum : struct, Enum
+    {
+        var found = EnumMetadataRegistry.TryGet<TEnum>(out var generatedValues, out var generatedSelector);
+        Assert.True(found, $"Source generator should have registered metadata for {typeof(TEnum).Name}.");
+
+        var fallback = EnumMetadataRegistry.CreateFallbackMetadata<TEnum>();
+
+        Assert.Equal(generatedValues, fallback.Values);
+
+        foreach (var value in Enum.GetValues<TEnum>())
+        {
+            Assert.Equal(generatedSelector(value), fallback.TextSelector(value));
+        }
     }
 
     public sealed record CustomItem(string Value);
@@ -131,9 +196,36 @@ public class EnumMetadataRegistryTests
         Value = 1
     }
 
-    public enum FallbackEnum
+    public enum AliasedWithDisplayEnum
     {
-        Foo,
-        Bar
+        [Display(Name = "Zero (First)")]
+        Zero = 0,
+        [Display(Name = "Zero (Second)")]
+        Nothing = 0,
+        [Display(Name = "One")]
+        One = 1
+    }
+
+    public enum AnnotatedOrderEnum
+    {
+        [Display(Name = "Order 2", Order = 2)]
+        SecondOrder = 10,
+
+        UnannotatedA = 20,
+
+        [Display(Name = "Order 1", Order = 1)]
+        FirstOrder = 30,
+
+        UnannotatedB = 40,
+
+        [Display(Name = "Order 2 (Second)", Order = 2)]
+        SecondOrderB = 50
+    }
+
+    public enum OutOfOrderEnum
+    {
+        Charlie = 3,
+        Alpha = 1,
+        Bravo = 2
     }
 }

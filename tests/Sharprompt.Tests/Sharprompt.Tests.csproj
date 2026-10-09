@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Sharprompt\Sharprompt.csproj" />
+    <ProjectReference Include="..\..\src\Sharprompt.SourceGenerator\Sharprompt.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>

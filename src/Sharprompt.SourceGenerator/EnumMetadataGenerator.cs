@@ -108,7 +108,7 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
         int? order = null;
 
         var displayAttribute = field.GetAttributes()
-            .FirstOrDefault(attribute => attribute.AttributeClass?.ToDisplayString() == "System.ComponentModel.DataAnnotations.DisplayAttribute");
+            .FirstOrDefault(attribute => IsDisplayAttribute(attribute.AttributeClass));
 
         if (displayAttribute != null)
         {
@@ -126,6 +126,21 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
         }
 
         return new EnumMemberMetadata(field.Name, displayName, order, index);
+    }
+
+    private static bool IsDisplayAttribute(ITypeSymbol? type)
+    {
+        while (type != null)
+        {
+            if (type.ToDisplayString() == "System.ComponentModel.DataAnnotations.DisplayAttribute")
+            {
+                return true;
+            }
+
+            type = type.BaseType;
+        }
+
+        return false;
     }
 
     private static string Quote(string text)
