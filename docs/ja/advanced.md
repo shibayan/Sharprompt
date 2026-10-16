@@ -83,3 +83,79 @@ var city = Prompt.Select(new SelectOptions<string>
     LoopingSelection = false
 });
 ```
+
+## Native AOT とソースジェネレーター
+
+Sharprompt は `<IsAotCompatible>true</IsAotCompatible>` に対応しており、.NET 8 および .NET 10 で Native AOT コンパイルをサポートしています。
+
+### 仕組み
+
+Sharprompt は Roslyn インクリメンタルソースジェネレーターを利用してコンパイル時にコードを生成し、実行時のリフレクションを排除しています:
+
+1. **`[PromptBindable]` ジェネレーター**: `[PromptBindable]` 属性が付与されたクラスを解析し、C# の `[ModuleInitializer]` 経由で登録される型安全なモデルバインダーコードを生成します。`Prompt.Bind<T>()` の呼び出し時、リフレクションなしで事前コンパイルされたバインダーが直接実行されます。
+2. **Enum メタデータジェネレーター**: プロジェクト内の enum 宣言を解析し、値の一覧や `[Display]` 属性（表示名・並び順）を `[ModuleInitializer]` 経由で登録するコードを生成します。
+
+### プロジェクト構成と発行
+
+Native AOT でアプリケーションを発行するには、プロジェクトファイルに `<PublishAot>true</PublishAot>` を追加します:
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <PublishAot>true</PublishAot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Sharprompt" Version="..." />
+  </ItemGroup>
+
+</Project>
+```
+
+対象のランタイムを指定して `dotnet publish` コマンドを実行します:
+
+```sh
+dotnet publish -c Release -r win-x64
+```
+
+※ `win-x64` はターゲットのランタイム識別子（例: `linux-x64`、`osx-arm64`）に適宜置き換えてください。
+
+### Enum の取り扱いと外部アセンブリ
+
+- **同一プロジェクト内の Enum**: 同一プロジェクト内で宣言された enum は、コンパイル時にソースジェネレーターによって自動検出されます。`[Display]` で指定された表示名や並び順もコードとして直接生成されます。
+- **外部アセンブリの Enum**: 外部アセンブリの enum（BCL の `DayOfWeek` や参照パッケージの enum など）はソースジェネレーターの解析対象外です。実行時、Sharprompt は Native AOT に配慮したリフレクションフォールバックを使用します。リフレクションを完全に排除したい場合や表示をカスタマイズしたい場合は、アプリケーション起動時に手動で登録できます:
+
+```csharp
+using Sharprompt;
+
+EnumMetadataRegistry.Register<DayOfWeek>(
+    Enum.GetValues<DayOfWeek>(),
+    day => day.ToString()
+);
+```
+
+### 型変換とカスタム型
+
+プロンプト入力の型変換は `TypeDescriptor` コンバーターを利用しています。組み込みの標準コンバーター（`string`、数値型、`bool`、`char`、`Guid`、`DateTime`、enum、およびこれらの Nullable）は Native AOT 環境でも完全に保持されます。
+
+`[TypeConverter]` 属性を持つ独自のカスタム型を使用する場合は、トリミングによってコンバーター型が削除されないよう、アプリケーション側で型を保持する設定（`[DynamicallyAccessedMembers]` やトリマー記述ファイルなど）を行ってください。
+
+### キャンセル
+
+モデルバインディングを含むすべてのプロンプトで `CancellationToken` によるキャンセルをサポートしています。`Prompt.Bind` にトークンを渡します:
+
+```csharp
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+try
+{
+    var form = Prompt.Bind<MyFormModel>(cts.Token);
+}
+catch (OperationCanceledException)
+{
+    Console.WriteLine("操作がタイムアウトまたはキャンセルされました。");
+}
+```
