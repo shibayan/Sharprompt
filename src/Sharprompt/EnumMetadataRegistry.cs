@@ -42,17 +42,11 @@ public static class EnumMetadataRegistry
     [UnconditionalSuppressMessage("Trimming", "IL2090", Justification = "This method is only invoked for enum types, and the trimmer always preserves the fields of enum types it keeps.")]
     internal static EnumMetadata<TEnum> CreateFallbackMetadata<TEnum>() where TEnum : notnull
     {
-        // GetFields does not guarantee ordering and MetadataToken is unavailable on
-        // Native AOT, so sort by the underlying constant value for a deterministic
-        // order, matching Enum.GetValues semantics. Aliased members sharing the
-        // same constant value keep a single representative, chosen by ordinal name
-        // order so the result does not depend on the GetFields ordering either.
+        // Preserve declaration order for deterministic alias deduplication and secondary
+        // tie-breaking, matching the semantics of EnumMetadataGenerator.
         var members = typeof(TEnum).GetFields(BindingFlags.Public | BindingFlags.Static)
-                                   .Select(field => (value: (TEnum)field.GetValue(null)!, field.Name, displayAttribute: field.GetCustomAttribute<DisplayAttribute>()))
-                                   .OrderBy(x => x.value)
-                                   .ThenBy(x => x.Name, StringComparer.Ordinal)
+                                   .Select((field, index) => (value: (TEnum)field.GetValue(null)!, field.Name, index, displayAttribute: field.GetCustomAttribute<DisplayAttribute>()))
                                    .DistinctBy(x => x.value)
-                                   .Select((x, index) => (x.value, x.Name, index, x.displayAttribute))
                                    .ToArray();
 
         var values = members.OrderBy(x => x.displayAttribute?.GetOrder() ?? int.MaxValue)
