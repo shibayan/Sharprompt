@@ -92,7 +92,7 @@ Sharprompt is configured with `<IsAotCompatible>true</IsAotCompatible>` and supp
 
 Sharprompt uses Roslyn Incremental Source Generators to generate code at compile time, eliminating runtime reflection:
 
-1. **`[PromptBindable]` Generator**: Inspects classes annotated with `[PromptBindable]` and generates strongly typed model binding code registered via a C# `[ModuleInitializer]`. When invoking `Prompt.Bind<T>()`, Sharprompt uses the precompiled binder with zero reflection.
+1. **`[PromptBindable]` Generator**: Inspects classes and records annotated with `[PromptBindable]` and generates strongly typed model binding code registered via a C# `[ModuleInitializer]`. When invoking `Prompt.Bind<T>()`, Sharprompt uses the precompiled binder with zero reflection.
 2. **Enum Metadata Generator**: Inspects enum declarations in your project and generates metadata (values, `[Display]` names, and ordering) registered via a `[ModuleInitializer]`.
 
 ### Project Configuration & Publishing
@@ -159,3 +159,5 @@ catch (OperationCanceledException)
     Console.WriteLine("Operation timed out or was canceled.");
 }
 ```
+
+If the token is already canceled, `Prompt.Bind` throws before any prompt is shown. Prompts wait for keys through `IConsoleDriver.ReadKey(CancellationToken)`, which custom console drivers can override when their input source supports cancellation natively. See [Canceling from code](/configuration#canceling-from-code) for details.

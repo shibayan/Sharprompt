@@ -92,7 +92,7 @@ Sharprompt は `<IsAotCompatible>true</IsAotCompatible>` に対応しており�
 
 Sharprompt は Roslyn インクリメンタルソースジェネレーターを利用してコンパイル時にコードを生成し、実行時のリフレクションを排除しています:
 
-1. **`[PromptBindable]` ジェネレーター**: `[PromptBindable]` 属性が付与されたクラスを解析し、C# の `[ModuleInitializer]` 経由で登録される型安全なモデルバインダーコードを生成します。`Prompt.Bind<T>()` の呼び出し時、リフレクションなしで事前コンパイルされたバインダーが直接実行されます。
+1. **`[PromptBindable]` ジェネレーター**: `[PromptBindable]` 属性が付与されたクラスやレコードを解析し、C# の `[ModuleInitializer]` 経由で登録される型安全なモデルバインダーコードを生成します。`Prompt.Bind<T>()` の呼び出し時、リフレクションなしで事前コンパイルされたバインダーが直接実行されます。
 2. **Enum メタデータジェネレーター**: プロジェクト内の enum 宣言を解析し、値の一覧や `[Display]` 属性（表示名・並び順）を `[ModuleInitializer]` 経由で登録するコードを生成します。
 
 ### プロジェクト構成と発行
@@ -159,3 +159,5 @@ catch (OperationCanceledException)
     Console.WriteLine("操作がタイムアウトまたはキャンセルされました。");
 }
 ```
+
+トークンがキャンセル済みの場合、`Prompt.Bind` はプロンプトを表示する前に例外をスローします。プロンプトは `IConsoleDriver.ReadKey(CancellationToken)` を通じてキー入力を待機します。入力ソース自体がキャンセルに対応しているカスタムコンソールドライバーでは、このメソッドをオーバーライドできます。詳細は [コードからのキャンセル](/ja/configuration#コードからのキャンセル) を参照してください。

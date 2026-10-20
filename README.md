@@ -118,7 +118,7 @@ Console.WriteLine($"You picked {string.Join(", ", value)}");
 
 ### Bind (Model-based prompts)
 
-Bind automatically generates a sequence of prompts from a model class. The model must be a `class` with a public parameterless constructor and accessible property setters, annotated with `[PromptBindable]`:
+Bind automatically generates a sequence of prompts from a model annotated with `[PromptBindable]`. The model can be a `class` or a `record` (`record class`) with a public parameterless constructor and settable properties (init-only properties are skipped with a `SHARP002` warning). Properties with `[Display(Order)]` are prompted first, in ascending order, followed by the rest in declaration order:
 
 ```csharp
 using System.Collections.Generic;
