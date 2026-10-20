@@ -957,4 +957,62 @@ public class FormInteractionTests
 
         Assert.Equal(new[] { "one" }, form.Start());
     }
+
+    [Fact]
+    public void SelectForm_CursorBelowWindowInScrollbackBuffer_RedrawsInPlace()
+    {
+        // Windows conhost: a tall scrollback buffer, with the prompt starting far below the
+        // first window's worth of rows. Cursor rows are buffer-relative there.
+        var driver = new FakeConsoleDriver { BufferHeight = 9001, WindowHeight = 30, CursorTop = 100 };
+
+        var configuration = new PromptConfiguration
+        {
+            ThrowExceptionOnCancel = true,
+            ConsoleDriverFactory = () => driver
+        };
+
+        driver.EnqueueKey(ConsoleKey.DownArrow);
+        driver.EnqueueEnter();
+
+        var options = new SelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana", "cherry"]
+        };
+
+        using var form = new SelectForm<string>(options, configuration);
+
+        Assert.Equal("apple", form.Start());
+
+        // The prompt occupies rows 100-103, so redraws must clear only those rows.
+        Assert.All(driver.ClearedLines, top => Assert.InRange(top, 100, 103));
+    }
+
+    [Fact]
+    public void SelectForm_CursorBeyondShrunkBuffer_ClampsClearedLines()
+    {
+        // Unix terminals and Windows Terminal: the buffer is the window, so after the window
+        // shrinks the previous cursor row can lie past its last row.
+        var driver = new FakeConsoleDriver { BufferHeight = 10, WindowHeight = 10, CursorTop = 20 };
+
+        var configuration = new PromptConfiguration
+        {
+            ThrowExceptionOnCancel = true,
+            ConsoleDriverFactory = () => driver
+        };
+
+        driver.EnqueueEnter();
+
+        var options = new SelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple"]
+        };
+
+        using var form = new SelectForm<string>(options, configuration);
+
+        Assert.Equal("apple", form.Start());
+
+        Assert.All(driver.ClearedLines, top => Assert.InRange(top, 0, 9));
+    }
 }
