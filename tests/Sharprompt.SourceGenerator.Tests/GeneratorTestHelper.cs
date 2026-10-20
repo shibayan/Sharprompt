@@ -69,10 +69,12 @@ internal sealed record GeneratorTestResult(SourceText Input, string? Source, Imm
         return Source;
     }
 
-    // Generator diagnostics carry a file location (path + span) rather than a syntax tree, so resolve it against the input text.
+    // Generator diagnostics must be bound to the input syntax tree (not just a file path), otherwise
+    // #pragma warning disable and other source suppressions cannot apply to them.
     public string GetLocationText(Diagnostic diagnostic)
     {
-        Assert.Equal("Model.cs", diagnostic.Location.GetLineSpan().Path);
+        Assert.True(diagnostic.Location.IsInSource);
+        Assert.Equal("Model.cs", diagnostic.Location.SourceTree!.FilePath);
 
         return Input.ToString(diagnostic.Location.SourceSpan);
     }

@@ -19,6 +19,8 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
 
     internal const string TransformTrackingName = "PromptBindable.Transform";
 
+    internal const string SourceTrackingName = "PromptBindable.Source";
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var provider = context.SyntaxProvider
@@ -28,16 +30,34 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
                 transform: static (syntaxContext, cancellationToken) => Transform(syntaxContext, cancellationToken))
             .WithTrackingName(TransformTrackingName);
 
-        context.RegisterSourceOutput(provider, static (productionContext, result) =>
-        {
-            foreach (var diagnostic in result.Diagnostics)
-            {
-                productionContext.ReportDiagnostic(diagnostic.ToDiagnostic());
-            }
+        var sources = provider
+            .Select(static (result, _) => (result.HintName, result.Source))
+            .WithTrackingName(SourceTrackingName);
 
-            if (result.Source.Length > 0)
+        context.RegisterSourceOutput(sources, static (productionContext, source) =>
+        {
+            if (source.Source.Length > 0)
             {
-                productionContext.AddSource(result.HintName, result.Source);
+                productionContext.AddSource(source.HintName, source.Source);
+            }
+        });
+
+        // Diagnostics need a location bound to the current syntax tree so that #pragma warning disable
+        // and other suppressions apply, so resolve them against the compilation only when reporting.
+        // This keeps the source output above independent of the compilation and fully cached.
+        var diagnostics = provider
+            .Select(static (result, _) => result.Diagnostics)
+            .Where(static diagnostics => diagnostics.Length > 0)
+            .Collect()
+            .Combine(context.CompilationProvider);
+
+        context.RegisterSourceOutput(diagnostics, static (productionContext, pair) =>
+        {
+            var (diagnosticGroups, compilation) = pair;
+
+            foreach (var diagnostic in diagnosticGroups.SelectMany(static group => group))
+            {
+                productionContext.ReportDiagnostic(diagnostic.ToDiagnostic(compilation));
             }
         });
     }

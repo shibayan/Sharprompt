@@ -16,9 +16,9 @@ internal sealed record DiagnosticInfo(DiagnosticDescriptor Descriptor, LocationI
         return new DiagnosticInfo(descriptor, LocationInfo.From(location), new EquatableArray<string>(messageArgs));
     }
 
-    public Diagnostic ToDiagnostic()
+    public Diagnostic ToDiagnostic(Compilation compilation)
     {
-        return Diagnostic.Create(Descriptor, Location?.ToLocation() ?? Microsoft.CodeAnalysis.Location.None, MessageArgs.Cast<object>().ToArray());
+        return Diagnostic.Create(Descriptor, Location?.ToLocation(compilation) ?? Microsoft.CodeAnalysis.Location.None, MessageArgs.Cast<object>().ToArray());
     }
 }
 
@@ -34,5 +34,18 @@ internal sealed record LocationInfo(string FilePath, TextSpan TextSpan, LinePosi
         return new LocationInfo(location.SourceTree!.FilePath, location.SourceSpan, location.GetLineSpan().Span);
     }
 
-    public Location ToLocation() => Location.Create(FilePath, TextSpan, LineSpan);
+    public Location ToLocation(Compilation compilation)
+    {
+        // A file-path location has no SourceTree, which stops #pragma warning disable from applying,
+        // so bind the location back to the matching syntax tree whenever it is still part of the compilation.
+        foreach (var syntaxTree in compilation.SyntaxTrees)
+        {
+            if (syntaxTree.FilePath == FilePath && TextSpan.End <= syntaxTree.Length)
+            {
+                return Location.Create(syntaxTree, TextSpan);
+            }
+        }
+
+        return Location.Create(FilePath, TextSpan, LineSpan);
+    }
 }

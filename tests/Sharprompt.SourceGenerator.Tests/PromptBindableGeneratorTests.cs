@@ -407,8 +407,42 @@ public class PromptBindableGeneratorTests
         Assert.All(
             secondRun.TrackedSteps[PromptBindableGenerator.TransformTrackingName].SelectMany(step => step.Outputs),
             output => Assert.Equal(IncrementalStepRunReason.Unchanged, output.Reason));
+
+        // Only the diagnostics output depends on the compilation (to bind locations to the new tree);
+        // the generated source must stay cached.
         Assert.All(
-            secondRun.TrackedOutputSteps.SelectMany(pair => pair.Value).SelectMany(step => step.Outputs),
+            secondRun.TrackedSteps[PromptBindableGenerator.SourceTrackingName].SelectMany(step => step.Outputs),
             output => Assert.Equal(IncrementalStepRunReason.Cached, output.Reason));
+        Assert.All(secondRun.Diagnostics, diagnostic => Assert.Same(newTree, diagnostic.Location.SourceTree));
+    }
+
+    [Fact]
+    public void Diagnostics_AreBoundToSyntaxTree_SoPragmaSuppressionApplies()
+    {
+        const string source = Usings + """
+            [PromptBindable]
+            public class Model
+            {
+            #pragma warning disable SHARP002
+                public string Id { get; init; } = "";
+            #pragma warning restore SHARP002
+
+                public string Name { get; init; } = "";
+            }
+            """;
+
+        var compilation = GeneratorTestHelper.CreateCompilation(source);
+        var tree = compilation.SyntaxTrees.Single();
+
+        GeneratorTestHelper.CreateDriver().RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
+
+        // GeneratorDriver returns diagnostics before suppression; the compiler then filters them by
+        // looking up the #pragma state in Location.SourceTree. A file-path location has no SourceTree,
+        // so it could never be suppressed. Binding to the input tree is what makes suppression work.
+        Assert.Equal(2, diagnostics.Length);
+        Assert.All(diagnostics, diagnostic => Assert.Same(tree, diagnostic.Location.SourceTree));
+        Assert.Equal(
+            new[] { "Id", "Name" },
+            diagnostics.Select(diagnostic => tree.GetText().ToString(diagnostic.Location.SourceSpan)).Order());
     }
 }
