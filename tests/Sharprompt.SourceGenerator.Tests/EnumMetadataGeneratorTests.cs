@@ -258,6 +258,81 @@ public class EnumMetadataGeneratorTests
         Assert.Null(result.Source);
     }
 
+    // The generated top-level class cannot name these enums, so they must be skipped (and left to the
+    // runtime fallback) instead of breaking the consumer's build with CS0122, CS0246 or CS0400.
+    [Theory]
+    [InlineData("public class Outer { private enum Sample { A } }")]
+    [InlineData("public class Outer { protected enum Sample { A } }")]
+    [InlineData("public class Outer { private protected enum Sample { A } }")]
+    [InlineData("public class Outer { private class Middle { public enum Sample { A } } }")]
+    [InlineData("public class Outer<T> { public enum Sample { A } }")]
+    [InlineData("public class Outer<T> { public class Middle { public enum Sample { A } } }")]
+    [InlineData("file enum Sample { A }")]
+    [InlineData("file class Outer { public enum Sample { A } }")]
+    public void InaccessibleEnum_GeneratesNothing(string declaration)
+    {
+        var result = GeneratorTestHelper.Run(Usings + declaration, new EnumMetadataGenerator());
+
+        Assert.Empty(result.GeneratorDiagnostics);
+        Assert.Empty(result.CompileErrors);
+        Assert.Null(result.Source);
+    }
+
+    [Fact]
+    public void AccessibleNestedEnums_AreGenerated()
+    {
+        var (hintNames, errors) = RunAll(Usings + """
+            public class Outer
+            {
+                public enum PublicSample { A }
+
+                internal enum InternalSample { A }
+
+                protected internal enum ProtectedInternalSample { A }
+
+                internal class Middle
+                {
+                    public enum Sample { A }
+                }
+            }
+            """);
+
+        Assert.Empty(errors);
+        Assert.Equal(4, hintNames.Length);
+
+        foreach (var name in new[] { "TestApp.Outer+PublicSample.", "TestApp.Outer+InternalSample.", "TestApp.Outer+ProtectedInternalSample.", "TestApp.Outer+Middle+Sample." })
+        {
+            Assert.Contains(hintNames, hintName => hintName.StartsWith(name, StringComparison.Ordinal));
+        }
+    }
+
+    [Fact]
+    public void EnumsWithSimilarNames_GetDistinctHintNames()
+    {
+        // These all mapped to one hint name before ('.' replaced with '_'), or differ only in case, which
+        // hint names ignore; AddSource then threw and the generator reported CS8785 instead of any output.
+        var (hintNames, errors) = RunAll("""
+            namespace A
+            {
+                public enum B_C { X }
+
+                public class B { public enum C { X } }
+
+                public enum Sample { X }
+
+                public enum sample { X }
+            }
+
+            namespace A_B
+            {
+                public enum C { X }
+            }
+            """);
+
+        Assert.Empty(errors);
+        Assert.Equal(5, hintNames.Distinct(StringComparer.OrdinalIgnoreCase).Count());
+    }
+
     [Fact]
     public void UnrelatedEdit_KeepsPipelineOutputCached()
     {
@@ -287,6 +362,21 @@ public class EnumMetadataGeneratorTests
         Assert.All(
             secondRun.TrackedSteps[EnumMetadataGenerator.TransformTrackingName].SelectMany(step => step.Outputs),
             output => Assert.Contains(output.Reason, new[] { IncrementalStepRunReason.Cached, IncrementalStepRunReason.Unchanged }));
+    }
+
+    private static (string[] HintNames, Diagnostic[] Errors) RunAll(string source)
+    {
+        var compilation = GeneratorTestHelper.CreateCompilation(source);
+
+        Assert.Empty(compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error));
+
+        var driver = GeneratorTestHelper.CreateDriver(new EnumMetadataGenerator()).RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
+
+        Assert.Empty(generatorDiagnostics);
+
+        return (
+            driver.GetRunResult().Results.Single().GeneratedSources.Select(generated => generated.HintName).ToArray(),
+            outputCompilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToArray());
     }
 
     private static EnumMetadataSnapshot AssertMatchesFallback(string declaration, long[]? extraValues = null)
