@@ -52,7 +52,7 @@ To work with source-generated binding (including Native AOT):
 - The model must be declared as a `class` or a `record` (`record class`). Structs, including `record struct`, are not supported.
 - The model must have the `[PromptBindable]` attribute so the Roslyn source generator generates a binder at compile time.
 - The model must have a public parameterless constructor when using `Prompt.Bind<T>()`. Alternatively, pass an existing instance to `Prompt.Bind(model)`.
-- Bound properties must be public instance properties with accessible `get` and `set` accessors (`public`, `internal`, or `protected internal`). Read-only properties are skipped. Properties without an accessible getter are skipped with a `SHARP010` warning, because the current value is used as the default.
+- Bound properties must be public instance properties with accessible `get` and `set` accessors (`public`, `internal`, or `protected internal`). Read-only properties are skipped. Properties without an accessible getter are skipped with a `SHARP010` warning, because the current value is used as the default. Password properties have no default, so they do not need a getter.
 - Init-only properties are skipped with a `SHARP002` warning. This includes the properties generated from positional record parameters, so declare bound properties with `{ get; set; }` in the record body.
 - Collection properties must be `T[]`, `List<T>`, `HashSet<T>`, `IEnumerable<T>`, or an interface one of them implements (such as `IList<T>` or `IReadOnlyCollection<T>`). Other collection types are skipped with a `SHARP003` warning.
 - Properties bound with `Input` or `List` are converted from text, so their type must have a `TypeConverter`. See [Type Conversion & Custom Types](/advanced#type-conversion-custom-types) for the supported types.
@@ -111,7 +111,7 @@ The source generator reports these warnings for `[PromptBindable]` models, at th
 | `SHARP007` | A value in `[InlineItems]` is `null` or not of the property's item type (for example `1` for a `long` property; write `1L`). The items provider is ignored. |
 | `SHARP008` | An items attribute has no effect: `[MemberItems]` together with `[InlineItems]`, or items on a property bound with Confirm (`bool`) or Password. The attribute is ignored. |
 | `SHARP009` | `[DataType(DataType.Password)]` is applied to a property that is not a `string`. The property is skipped. |
-| `SHARP010` | The property has no `public` or `internal` getter. The property is skipped. |
+| `SHARP010` | The property has no `public` or `internal` getter, which the binder needs to read the default value (Password properties excepted). The property is skipped. |
 | `SHARP011` | The property's type is a ref struct (such as `Span<T>`) or a pointer, which prompts cannot return. The property is skipped. |
 | `SHARP012` | The property is read as text, but its type has no `TypeConverter` that converts from string, so every input would be rejected. The property is still bound, in case a converter is registered at runtime. |
 | `SHARP013` | A validation attribute, or a type in its arguments, is not accessible from other files in the assembly. The validator is skipped. |

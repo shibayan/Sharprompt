@@ -79,11 +79,12 @@ public class PromptBindableDiagnosticsTests
     }
 
     [Theory]
-    [InlineData("int", "\"a\", \"b\"", "\"a\"")]
-    [InlineData("long", "1, 2", "1")]
+    [InlineData("int", "\"a\", \"b\"", "\"a\" of type 'string'")]
+    [InlineData("long", "1, 2", "1 of type 'int'")]
     [InlineData("int", "1, null", "null")]
-    [InlineData("MyEnum", "0", "0")]
-    [InlineData("List<int>", "1, \"b\"", "\"b\"")]
+    [InlineData("MyEnum", "0", "0 of type 'int'")]
+    [InlineData("List<int>", "1, \"b\"", "\"b\" of type 'string'")]
+    [InlineData("List<int?>", "1L, 2L", "1 of type 'long'")]
     public void InlineItemsWithIncompatibleValue_ReportsDiagnosticAndIgnoresItems(string propertyType, string items, string invalidValue)
     {
         var result = GeneratorTestHelper.Run(Usings + $$"""
@@ -109,6 +110,8 @@ public class PromptBindableDiagnosticsTests
     [InlineData("object", "1, \"a\"")]
     [InlineData("MyEnum?", "MyEnum.A, MyEnum.B")]
     [InlineData("HashSet<string>", "\"a\", \"b\"")]
+    [InlineData("List<int?>", "1, 2")]
+    [InlineData("int?[]", "1, 2")]
     public void InlineItemsWithCompatibleValues_GeneratesItems(string propertyType, string items)
     {
         var result = GeneratorTestHelper.Run(Usings + $$"""
@@ -237,6 +240,103 @@ public class PromptBindableDiagnosticsTests
     }
 
     [Theory]
+    [InlineData("public string Secret { set { } }")]
+    [InlineData("public string Secret { private get; set; } = \"\";")]
+    public void PasswordPropertyWithoutAccessibleGetter_IsBound(string declaration)
+    {
+        // A Password prompt has no default value, so the binder never reads the property.
+        var result = GeneratorTestHelper.Run(Usings + $$"""
+            [PromptBindable]
+            public class Model
+            {
+                [DataType(DataType.Password)]
+                {{declaration}}
+            }
+            """);
+
+        var source = result.AssertGeneratedAndCompiles();
+
+        Assert.Empty(result.GeneratorDiagnostics);
+        Assert.Contains("model.Secret = global::Sharprompt.Prompt.Password(", source);
+    }
+
+    [Fact]
+    public void InlineItemsWithNullArray_ReportsDiagnosticAndIgnoresItems()
+    {
+        // [InlineItems(null)] passes a null params array, not an array containing null.
+        var result = GeneratorTestHelper.Run(Usings + """
+            [PromptBindable]
+            public class Model
+            {
+                public string Name { get; set; } = "";
+
+                [InlineItems(null!)]
+                public string Value { get; set; } = "";
+            }
+            """);
+
+        var source = result.AssertGeneratedAndCompiles();
+
+        var diagnostic = Assert.Single(result.GeneratorDiagnostics);
+        Assert.Equal("SHARP007", diagnostic.Id);
+        Assert.StartsWith("The value null in [InlineItems]", diagnostic.GetMessage(CultureInfo.InvariantCulture));
+        Assert.Contains("model.Name =", source);
+        Assert.Contains("model.Value = global::Sharprompt.Prompt.Input<string>(", source);
+    }
+
+    [Theory]
+    [InlineData("typeof(List<>)")]
+    [InlineData("typeof(Dictionary<,>)")]
+    [InlineData("new MyEnum[] { }")]
+    public void ValidationAttributeWithAccessibleArguments_IsUsed(string argument)
+    {
+        var result = GeneratorTestHelper.Run(Usings + $$"""
+            public sealed class CheckAttribute(object value) : ValidationAttribute
+            {
+                public object Value { get; } = value;
+            }
+
+            [PromptBindable]
+            public class Model
+            {
+                [Check({{argument}})]
+                public string Value { get; set; } = "";
+            }
+            """);
+
+        var source = result.AssertGeneratedAndCompiles();
+
+        Assert.Empty(result.GeneratorDiagnostics);
+        Assert.Contains("new global::TestApp.CheckAttribute(", source);
+    }
+
+    [Fact]
+    public void ValidationAttributeWithEmptyArrayOfInaccessibleType_ReportsDiagnostic()
+    {
+        var result = GeneratorTestHelper.Run(Usings + """
+            public sealed class CheckAttribute(object value) : ValidationAttribute
+            {
+                public object Value { get; } = value;
+            }
+
+            [PromptBindable]
+            public class Model
+            {
+                [Check(new Hidden[] { })]
+                public string Value { get; set; } = "";
+
+                private enum Hidden { A }
+            }
+            """);
+
+        var source = result.AssertGeneratedAndCompiles();
+
+        var diagnostic = Assert.Single(result.GeneratorDiagnostics);
+        Assert.Equal("SHARP013", diagnostic.Id);
+        Assert.DoesNotContain("Hidden", source);
+    }
+
+    [Theory]
     [InlineData("System.Span<char>")]
     [InlineData("System.ReadOnlySpan<int>")]
     public void RefStructProperty_ReportsDiagnosticAndIsSkipped(string propertyType)
@@ -299,6 +399,9 @@ public class PromptBindableDiagnosticsTests
     [InlineData("Temperature")]
     [InlineData("Celsius")]
     [InlineData("Temperature?")]
+    [InlineData("System.Version?")]
+    [InlineData("Degree?")]
+    [InlineData("List<System.Uri?>")]
     public void TypeWithConverter_DoesNotReportDiagnostic(string propertyType)
     {
         var result = GeneratorTestHelper.Run(Usings + $$"""
