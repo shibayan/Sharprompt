@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Sharprompt.NativeAot.ExternalEnums;
+namespace Sharprompt.NativeAot.External;
 
 // Mirrors LocalPriority in the app, so both enum metadata paths can be checked against the same expectations.
 public enum ExternalPriority

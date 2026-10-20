@@ -161,9 +161,56 @@ EnumMetadataRegistry.Register<DayOfWeek>(
 
 ### Type Conversion & Custom Types
 
-Prompts rely on `TypeDescriptor` converters to parse user input. Built-in intrinsic converters (such as `string`, numeric types, `bool`, `char`, `Guid`, `DateTime`, and enums) are fully preserved under Native AOT.
+`Input` and `List` convert typed text with `TypeDescriptor` converters, always using the invariant culture. Default value hints, the text that <kbd>Tab</kbd> inserts, and answers are formatted the same way, so any value a prompt shows can be typed back as input. For example, `1.5` is shown as `1.5` even when the current culture formats it as `1,5`.
 
-If using custom types annotated with `[TypeConverter]`, ensure your application preserves the converter type from trimming (for example, using `[DynamicallyAccessedMembers]` or trimming configuration).
+The following types are supported, including their `Nullable<T>` forms. Each one is verified in CI by publishing and running a Native AOT application against the Sharprompt package:
+
+| Category | Types |
+| --- | --- |
+| Text | `string`, `char` |
+| Boolean | `bool` |
+| Integers | `byte`, `sbyte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `Int128` |
+| Floating point | `Half`, `float`, `double`, `decimal` |
+| Date and time | `DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `TimeSpan` |
+| Other | `Guid`, `Uri`, `Version`, enums |
+
+Enum input accepts member names (case-insensitive) and numeric values. A value without a named member is shown as its number.
+
+#### Custom Types
+
+To use your own type, annotate it with `[TypeConverter]` and implement conversion from and to `string`:
+
+```csharp
+var temperature = Prompt.Input<Temperature>("Target temperature");
+
+[TypeConverter(typeof(TemperatureConverter))]
+public readonly record struct Temperature(double Celsius);
+
+public sealed class TemperatureConverter : TypeConverter
+{
+    public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
+        => sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
+
+    public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+        => value is string text && text.EndsWith('C')
+            ? new Temperature(double.Parse(text[..^1], culture))
+            : base.ConvertFrom(context, culture, value);
+
+    public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
+        => value is Temperature temperature && destinationType == typeof(string)
+            ? temperature.Celsius.ToString(culture) + "C"
+            : base.ConvertTo(context, culture, value, destinationType);
+}
+```
+
+Sharprompt passes `CultureInfo.InvariantCulture` as `culture`. Implement `ConvertTo` as well, so that default values and answers are shown in a format `ConvertFrom` accepts.
+
+Under Native AOT, the converter that `[TypeConverter]` names keeps its constructor, and CI verifies custom converters declared in the application and in a trimmable library. Trim analysis cannot prove this lookup safe in general, so Sharprompt suppresses that warning in one place. Check your converter with your own published application as well.
+
+**Limitations**
+
+- A type without a `TypeConverter` cannot be converted, even if it implements `IParsable<T>`. `BigInteger` is one such type. Input for these types is rejected with an error message.
+- Conversion always uses the invariant culture. To accept culture-specific input, convert it yourself with a custom converter, or prompt for a `string` and parse it.
 
 ### Cancellation
 

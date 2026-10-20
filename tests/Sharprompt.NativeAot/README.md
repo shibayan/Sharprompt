@@ -19,8 +19,8 @@ The `native-aot` job in [build.yml](../../.github/workflows/build.yml) runs it o
 
 | Area | Scenarios |
 | --- | --- |
-| `Input<T>` conversion | `string`, `int`, `long?`, `double`, `decimal`, `bool`, `char`, `Guid`, `DateTime`, `DateTimeOffset`, `TimeSpan`, and enums from both metadata paths |
-| `Input<T>` behavior | Empty input for nullable types, conversion errors, default values, and editing the default value with Tab (formatting and parsing it again) |
+| `Input<T>` conversion | Every type listed as supported in the [Type Conversion & Custom Types](../../docs/en/advanced.md#type-conversion--custom-types) documentation, enums from both metadata paths, and custom types with `[TypeConverter]`. `Temperature` is declared in the app, and `ExternalTemperature` in the trimmable `Sharprompt.NativeAot.External` library. |
+| `Input<T>` behavior | Empty input for nullable types, conversion errors, default values, editing the default value with Tab (formatting and parsing it again), and showing default values and answers in the invariant format under a non-invariant culture |
 | Other prompts | `Password`, `Confirm`, `Select`, `MultiSelect`, and `List` |
 | Enum metadata | `LocalPriority`, declared in the app, uses the generated metadata. `ExternalPriority`, declared in a separate assembly that does not reference Sharprompt, and `DayOfWeek` use the reflection fallback. Both custom enums declare the same aliases, `Display.Name`, and `Display.Order`, and must produce the same items in the same order. |
 | `Bind<T>` | A `[PromptBindable]` model with `[Required]`, `[StringLength]`, `[Range]`, `[DataType(DataType.Password)]`, `[InlineItems]`, enums from both metadata paths, an array, a `List<T>`, and a `bool` |

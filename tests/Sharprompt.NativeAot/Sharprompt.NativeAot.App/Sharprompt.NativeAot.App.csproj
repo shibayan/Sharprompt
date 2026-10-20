@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Sharprompt.NativeAot.ExternalEnums\Sharprompt.NativeAot.ExternalEnums.csproj" />
+    <ProjectReference Include="..\Sharprompt.NativeAot.External\Sharprompt.NativeAot.External.csproj" />
   </ItemGroup>
 
 </Project>
