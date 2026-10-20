@@ -10,7 +10,11 @@ internal class RenderScope : IDisposable
     {
         _offscreenBuffer = offscreenBuffer;
         _consoleDriver = consoleDriver;
-        _cursorBottom = Math.Min(cursorBottom, _consoleDriver.WindowHeight - 1);
+        // Cursor rows are buffer-relative, so clamp to the buffer rather than the window: on
+        // Windows conhost the scrollback buffer is far taller than the window, and clamping to the
+        // window would redraw over scrollback instead of the prompt. Where the buffer is the window
+        // (Unix terminals, Windows Terminal) this still handles the window shrinking.
+        _cursorBottom = Math.Min(cursorBottom, _consoleDriver.BufferHeight - 1);
         _writtenLineCount = Math.Min(writtenLineCount, _consoleDriver.WindowHeight - 1);
 
         _offscreenBuffer.ClearBuffer();

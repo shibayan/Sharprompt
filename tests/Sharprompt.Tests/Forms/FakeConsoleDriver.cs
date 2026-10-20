@@ -44,7 +44,14 @@ internal sealed class FakeConsoleDriver : IConsoleDriver
     {
     }
 
-    public void ClearLine(int top) => SetCursorPosition(0, top);
+    public List<int> ClearedLines { get; } = [];
+
+    public void ClearLine(int top)
+    {
+        ClearedLines.Add(top);
+
+        SetCursorPosition(0, top);
+    }
 
     public ConsoleKeyInfo ReadKey()
         => _keys.Count > 0 ? _keys.Dequeue() : throw new InvalidOperationException("No more keys are queued. The form is still waiting for input.");
@@ -106,15 +113,21 @@ internal sealed class FakeConsoleDriver : IConsoleDriver
 
     public int CursorLeft => _cursorLeft;
 
-    public int CursorTop => _cursorTop;
+    public int CursorTop
+    {
+        get => _cursorTop;
+        init => _cursorTop = value;
+    }
 
     public int BufferWidth => 80;
 
-    public int BufferHeight => 300;
+    // Buffer and window sizes differ on Windows conhost, whose scrollback makes the
+    // buffer much taller than the window and cursor rows buffer-relative.
+    public int BufferHeight { get; init; } = 300;
 
     public int WindowWidth => 80;
 
-    public int WindowHeight => 300;
+    public int WindowHeight { get; init; } = 300;
 
     public Action CancellationCallback { get; set; } = () => { };
 }
