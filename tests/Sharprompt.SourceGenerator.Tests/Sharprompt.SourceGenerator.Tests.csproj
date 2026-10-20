@@ -17,6 +17,16 @@
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
 
+  <!--
+    Tests run the trim analyzer (IL2026) over generated code. Only its analyzer assembly is used, so the
+    package assets are excluded and the test project itself is not trim analyzed. The 8.0 analyzer is
+    built against a Roslyn version that the Microsoft.CodeAnalysis.CSharp reference above can load.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.ILLink.Tasks" VersionOverride="8.0.32" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
+    <None Include="$(PkgMicrosoft_NET_ILLink_Tasks)\analyzers\dotnet\cs\ILLink.RoslynAnalyzer.dll" Link="ILLink\ILLink.RoslynAnalyzer.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Sharprompt\Sharprompt.csproj" />
     <ProjectReference Include="..\..\src\Sharprompt.SourceGenerator\Sharprompt.SourceGenerator.csproj" />
