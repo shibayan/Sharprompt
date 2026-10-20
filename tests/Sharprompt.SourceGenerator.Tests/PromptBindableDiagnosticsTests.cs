@@ -312,6 +312,8 @@ public class PromptBindableDiagnosticsTests
     }
 
     [Theory]
+    [InlineData("typeof(List<dynamic>)")]
+    [InlineData("typeof(Dictionary<string, dynamic[]>)")]
     [InlineData("typeof(List<>)")]
     [InlineData("typeof(Dictionary<,>)")]
     [InlineData("new MyEnum[] { }")]
@@ -552,6 +554,33 @@ public class PromptBindableDiagnosticsTests
         Assert.Equal("SHARP011", diagnostic.Id);
         Assert.Equal("Value", result.GetLocationText(diagnostic));
         Assert.DoesNotContain("model.Value", source);
+    }
+
+    [Theory]
+    [InlineData("int*")]
+    [InlineData("int*[]")]
+    [InlineData("int*[][]")]
+    [InlineData("delegate*<void>[]")]
+    public void PointerProperty_ReportsDiagnosticAndIsSkipped(string propertyType)
+    {
+        // An array's element type is also used as a type argument (List and MultiSelect are generic over it).
+        var result = GeneratorTestHelper.Run(Usings + $$"""
+            [PromptBindable]
+            public unsafe class Model
+            {
+                public string Name { get; set; } = "";
+
+                public {{propertyType}} Value { get; set; }
+            }
+            """);
+
+        var source = result.AssertGeneratedAndCompiles();
+
+        var diagnostic = Assert.Single(result.GeneratorDiagnostics);
+        Assert.Equal("SHARP011", diagnostic.Id);
+        Assert.Equal("Value", result.GetLocationText(diagnostic));
+        Assert.DoesNotContain("model.Value", source);
+        Assert.Contains("model.Name =", source);
     }
 
     [Theory]

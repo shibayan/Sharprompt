@@ -49,7 +49,7 @@ internal static class GeneratorTestHelper
             "GeneratorTest",
             sources.Select(source => CSharpSyntaxTree.ParseText(source, s_parseOptions, path: "Model.cs")),
             s_references.Value,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable));
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable, allowUnsafe: true));
     }
 
     public static GeneratorDriver CreateDriver(IIncrementalGenerator? generator = null)

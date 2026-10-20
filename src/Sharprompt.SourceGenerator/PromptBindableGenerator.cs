@@ -227,7 +227,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         var propertyType = property.Type;
 
         // Every prompt method is generic over the property type (or its element type).
-        if (propertyType.IsRefLikeType || propertyType is IPointerTypeSymbol or IFunctionPointerTypeSymbol)
+        if (!CanBeTypeArgument(propertyType))
         {
             diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.UnsupportedPropertyType, GetPropertyLocation(property, typeLocation), property.Name, propertyType.ToDisplayString()));
             return null;
@@ -694,10 +694,26 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
 
                 return true;
 
+            // dynamic can appear as a type argument, such as typeof(List<dynamic>), which is valid anywhere.
+            case IDynamicTypeSymbol:
+                return true;
+
             default:
                 // Type parameters, pointers and error types cannot be referenced from the generated file.
                 return false;
         }
+    }
+
+    // Ref structs and pointers cannot be type arguments, and neither can an array element that is one,
+    // because List and MultiSelect are generic over the element type of an array property.
+    private static bool CanBeTypeArgument(ITypeSymbol type)
+    {
+        while (type is IArrayTypeSymbol arrayType)
+        {
+            type = arrayType.ElementType;
+        }
+
+        return !type.IsRefLikeType && type is not (IPointerTypeSymbol or IFunctionPointerTypeSymbol);
     }
 
     // Attribute arguments are emitted as typeof(T) and enum casts, so the types they name must be visible too.
