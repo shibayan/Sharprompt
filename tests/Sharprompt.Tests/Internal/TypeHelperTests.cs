@@ -103,6 +103,13 @@ public class TypeHelperTests
         AssertRoundTrips<int?>(42);
         AssertRoundTrips((DayOfWeek)7);
         AssertRoundTrips<DayOfWeek?>((DayOfWeek)7);
+
+        // The date and time converters format these as an empty string; TimeOnly.MinValue is midnight.
+        AssertRoundTrips(DateTime.MinValue);
+        AssertRoundTrips(DateTimeOffset.MinValue);
+        AssertRoundTrips(DateOnly.MinValue);
+        AssertRoundTrips(TimeOnly.MinValue);
+        AssertRoundTrips<TimeOnly?>(TimeOnly.MinValue);
     }
 
     [Fact]
@@ -116,6 +123,10 @@ public class TypeHelperTests
 
     private static void AssertRoundTrips<T>(T value)
     {
-        Assert.Equal(value, TypeHelper<T>.ConvertTo(TypeHelper<T>.ConvertToString(value)));
+        var text = TypeHelper<T>.ConvertToString(value);
+
+        // An empty text would hide the value and parse back as no input at all.
+        Assert.NotEqual("", text);
+        Assert.Equal(value, TypeHelper<T>.ConvertTo(text));
     }
 }

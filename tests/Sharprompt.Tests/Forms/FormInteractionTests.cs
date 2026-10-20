@@ -648,6 +648,28 @@ public class FormInteractionTests
     }
 
     [Fact]
+    public void InputForm_MidnightDefaultValue_IsShownAndEditable()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.Tab, keyChar: '\t');
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<TimeOnly>
+        {
+            Message = "message",
+            DefaultValue = TimeOnly.MinValue
+        };
+
+        using var form = new InputForm<TimeOnly>(options, configuration);
+
+        // TimeOnlyConverter formats midnight as "", which would hide the hint and leave Tab nothing to insert.
+        Assert.Equal(TimeOnly.MinValue, form.Start());
+        Assert.Contains("(00:00)", driver.Output);
+        Assert.Contains("message: 00:00", driver.Output);
+    }
+
+    [Fact]
     public void ListForm_UnnamedEnumValue_RendersAsNumber()
     {
         var (driver, configuration) = CreateTestContext();

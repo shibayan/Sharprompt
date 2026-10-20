@@ -78,6 +78,8 @@ EditsDefaultValue("DateTime", new DateTime(2026, 10, 21, 9, 30, 0));
 EditsDefaultValue("DateTimeOffset", new DateTimeOffset(2026, 10, 21, 9, 30, 0, TimeSpan.FromHours(9)));
 EditsDefaultValue("DateOnly", new DateOnly(2026, 10, 21));
 EditsDefaultValue("TimeSpan", new TimeSpan(1, 2, 3));
+EditsDefaultValue("TimeOnly", TimeOnly.MinValue); // midnight, which TimeOnlyConverter formats as ""
+EditsDefaultValue("DateTime", DateTime.MinValue); // also formatted as "" by its converter
 EditsDefaultValue("LocalPriority", LocalPriority.Medium);
 EditsDefaultValue("ExternalPriority?", (ExternalPriority?)(ExternalPriority)99);
 EditsDefaultValue("Temperature", new Temperature(21.5));
@@ -250,7 +252,7 @@ void InputConverts<T>(string typeName, string text, T expected)
 
 void EditsDefaultValue<T>(string typeName, T defaultValue)
 {
-    runner.Run($"Input<{typeName}> round-trips the default value edited with Tab", driver =>
+    runner.Run($"Input<{typeName}> round-trips the default value {defaultValue} edited with Tab", driver =>
     {
         driver.Tab().Enter();
 

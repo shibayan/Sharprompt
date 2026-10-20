@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 
 namespace Sharprompt.Internal;
 
@@ -27,7 +28,16 @@ internal static class TypeHelper<T>
             return value.ToString()!;
         }
 
-        return converter.ConvertToInvariantString(value) ?? "";
+        var text = converter.ConvertToInvariantString(value);
+
+        // The date and time converters format their MinValue as an empty string (TimeOnly.MinValue is midnight),
+        // which would hide the value and parse back as no input. The value's own invariant format parses back.
+        if (string.IsNullOrEmpty(text) && value is IFormattable formattable)
+        {
+            return formattable.ToString(null, CultureInfo.InvariantCulture);
+        }
+
+        return text ?? "";
     }
 
     // T cannot carry DynamicallyAccessedMembers without that annotation flowing into every public Prompt API,
