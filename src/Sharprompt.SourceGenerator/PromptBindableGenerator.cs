@@ -99,12 +99,12 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             return new BinderResult(hintName, "", new EquatableArray<DiagnosticInfo>(diagnostics.ToArray()));
         }
 
-        var source = GenerateSource(typeSymbol, syntaxContext.SemanticModel.Compilation, diagnostics, cancellationToken);
+        var source = GenerateSource(typeSymbol, syntaxContext.SemanticModel.Compilation, diagnostics, location, cancellationToken);
 
         return new BinderResult(hintName, source ?? "", new EquatableArray<DiagnosticInfo>(diagnostics.ToArray()));
     }
 
-    private static string? GenerateSource(INamedTypeSymbol typeSymbol, Compilation compilation, List<DiagnosticInfo> diagnostics, CancellationToken cancellationToken)
+    private static string? GenerateSource(INamedTypeSymbol typeSymbol, Compilation compilation, List<DiagnosticInfo> diagnostics, Location typeLocation, CancellationToken cancellationToken)
     {
         var properties = new List<PropertyMetadata>();
 
@@ -128,6 +128,13 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
                 continue;
             }
 
+            // The binder passes the current value as the default, so it has to read the property too.
+            if (property.GetMethod?.DeclaredAccessibility is not (Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal))
+            {
+                diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.PropertyNotReadable, property.Locations.FirstOrDefault(), property.Name));
+                continue;
+            }
+
             var metadata = Analyze(property, typeSymbol, compilation, diagnostics, cancellationToken);
 
             if (metadata is null)
@@ -139,8 +146,11 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             properties.Add(metadata);
         }
 
+        // Without a binder Prompt.Bind throws, which is safer than silently prompting for nothing.
         if (properties.Count == 0)
         {
+            diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.NoBindableProperties, typeLocation, typeSymbol.ToDisplayString()));
+
             return null;
         }
 
@@ -214,6 +224,13 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
     {
         var metadata = new PropertyMetadata { Name = property.Name, Identifier = EscapeIdentifier(property.Name) };
         var propertyType = property.Type;
+
+        // Every prompt method is generic over the property type (or its element type).
+        if (propertyType.IsRefLikeType || propertyType is IPointerTypeSymbol or IFunctionPointerTypeSymbol)
+        {
+            diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.UnsupportedPropertyType, property.Locations.FirstOrDefault(), property.Name, propertyType.ToDisplayString()));
+            return null;
+        }
 
         metadata.FullTypeName = propertyType.ToDisplayString(s_fullyQualifiedFormat);
 
@@ -298,14 +315,31 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             }
         }
 
+        // A Password prompt returns string, which cannot be assigned to any other property type.
+        if (metadata.IsPassword && propertyType.SpecialType != SpecialType.System_String)
+        {
+            diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.PasswordRequiresString, property.Locations.FirstOrDefault(), property.Name, propertyType.ToDisplayString()));
+            return null;
+        }
+
         // Validation attributes
         foreach (var attribute in property.GetAttributes())
         {
             if (attribute.AttributeClass != null && IsValidationAttribute(attribute.AttributeClass))
             {
+                // The generated binder recreates the attribute, so every type it names must be visible from there.
+                if (!IsAccessibleFromOtherFiles(attribute.AttributeClass) || !attribute.ConstructorArguments.Concat(attribute.NamedArguments.Select(static argument => argument.Value)).All(IsAccessibleFromOtherFiles))
+                {
+                    diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.InaccessibleValidationAttribute, GetAttributeLocation(attribute, property, cancellationToken), attribute.AttributeClass.ToDisplayString(), property.Name));
+                    continue;
+                }
+
                 metadata.Validators.Add(GenerateNewExpression(attribute));
             }
         }
+
+        // The type of each item: Select and MultiSelect take items of the property type or its element type.
+        var itemType = elementType ?? metadata.UnderlyingType;
 
         // Items provider: InlineItems
         var inlineAttribute = GetAttribute(property, "Sharprompt.InlineItemsAttribute");
@@ -314,57 +348,94 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             var arrayConstant = inlineAttribute.ConstructorArguments[0];
             if (arrayConstant.Kind == TypedConstantKind.Array)
             {
-                var items = string.Join(", ", arrayConstant.Values.Select(FormatTypedConstant));
-                var castType = metadata.ElementTypeName ?? metadata.UnderlyingTypeName;
-                metadata.ItemsExpression = "global::System.Linq.Enumerable.Cast<" + castType + ">(new object[] { " + items + " })";
-                metadata.HasItemsProvider = true;
+                // Enumerable.Cast unboxes each item, which throws at runtime unless it is exactly of the item type
+                // (or converts to it by reference), so 1 for a long property or "a" for an int property would fail.
+                var invalidValues = arrayConstant.Values.Where(value => !IsInlineItemCompatible(compilation, value, itemType)).ToArray();
+
+                if (invalidValues.Length > 0)
+                {
+                    diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.InlineItemsIncompatibleValue, GetAttributeLocation(inlineAttribute, property, cancellationToken), invalidValues[0].ToCSharpString(), property.Name, itemType.ToDisplayString()));
+                }
+                else
+                {
+                    var items = string.Join(", ", arrayConstant.Values.Select(FormatTypedConstant));
+                    var castType = metadata.ElementTypeName ?? metadata.UnderlyingTypeName;
+                    metadata.ItemsExpression = "global::System.Linq.Enumerable.Cast<" + castType + ">(new object[] { " + items + " })";
+                    metadata.HasItemsProvider = true;
+                    metadata.ItemsAttribute = inlineAttribute;
+                }
             }
         }
 
         // Items provider: MemberItems
-        if (!metadata.HasItemsProvider)
+        var memberAttribute = GetAttribute(property, "Sharprompt.MemberItemsAttribute");
+
+        if (memberAttribute is not null && inlineAttribute is not null)
         {
-            var memberAttribute = GetAttribute(property, "Sharprompt.MemberItemsAttribute");
-            if (memberAttribute is { ConstructorArguments.Length: > 0 })
+            diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.ItemsProviderIgnored, GetAttributeLocation(memberAttribute, property, cancellationToken), "MemberItems", property.Name, "[InlineItems] is also applied"));
+        }
+        else if (memberAttribute is { ConstructorArguments.Length: > 0 })
+        {
+            var memberName = memberAttribute.ConstructorArguments[0].Value as string;
+            ITypeSymbol targetType = containingType;
+
+            if (memberAttribute.ConstructorArguments.Length > 1 &&
+                memberAttribute.ConstructorArguments[1].Value is INamedTypeSymbol specifiedType)
             {
-                var memberName = memberAttribute.ConstructorArguments[0].Value as string;
-                ITypeSymbol targetType = containingType;
+                targetType = specifiedType;
+            }
 
-                if (memberAttribute.ConstructorArguments.Length > 1 &&
-                    memberAttribute.ConstructorArguments[1].Value is INamedTypeSymbol specifiedType)
+            if (memberName != null)
+            {
+                var location = GetAttributeLocation(memberAttribute, property, cancellationToken);
+                var targetFullName = targetType.ToDisplayString(s_fullyQualifiedFormat);
+
+                // A property also needs a getter the binder can call.
+                var firstMember = targetType.GetMembers(memberName)
+                    .FirstOrDefault(m => m.IsStatic && m.DeclaredAccessibility == Accessibility.Public &&
+                                         m is IPropertySymbol { GetMethod.DeclaredAccessibility: Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal } or IMethodSymbol { Parameters.Length: 0, TypeParameters.Length: 0 } &&
+                                         IsAccessibleFromOtherFiles(m.ContainingType));
+
+                var memberType = firstMember switch
                 {
-                    targetType = specifiedType;
+                    IPropertySymbol memberProperty => memberProperty.Type,
+                    IMethodSymbol memberMethod => memberMethod.ReturnType,
+                    _ => null
+                };
+
+                if (firstMember is null || memberType is null)
+                {
+                    diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.MemberItemsNotFound, location, memberName, property.Name, targetType.ToDisplayString()));
                 }
-
-                if (memberName != null)
+                else if (!IsItemsCompatible(compilation, memberType, itemType))
                 {
-                    var targetFullName = targetType.ToDisplayString(s_fullyQualifiedFormat);
-                    var firstMember = targetType.GetMembers(memberName)
-                        .FirstOrDefault(m => m.IsStatic && m.DeclaredAccessibility == Accessibility.Public &&
-                                             m is IPropertySymbol or IMethodSymbol { Parameters.Length: 0, TypeParameters.Length: 0 } &&
-                                             IsAccessibleFromOtherFiles(m.ContainingType));
-
-                    if (firstMember is IPropertySymbol)
-                    {
-                        metadata.ItemsExpression = targetFullName + "." + EscapeIdentifier(memberName);
-                        metadata.HasItemsProvider = true;
-                    }
-                    else if (firstMember is IMethodSymbol)
-                    {
-                        metadata.ItemsExpression = targetFullName + "." + EscapeIdentifier(memberName) + "()";
-                        metadata.HasItemsProvider = true;
-                    }
-                    else
-                    {
-                        var location = memberAttribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? property.Locations.FirstOrDefault();
-                        diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.MemberItemsNotFound, location, memberName, property.Name, targetType.ToDisplayString()));
-                    }
+                    diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.MemberItemsIncompatibleType, location, memberName, property.Name, memberType.ToDisplayString(), itemType.ToDisplayString()));
+                }
+                else
+                {
+                    metadata.ItemsExpression = targetFullName + "." + EscapeIdentifier(memberName) + (firstMember is IMethodSymbol ? "()" : "");
+                    metadata.HasItemsProvider = true;
+                    metadata.ItemsAttribute = memberAttribute;
                 }
             }
         }
 
         // Determine form type
         metadata.FormType = DetermineFormType(metadata);
+
+        // Confirm and Password prompts take no items, so a valid items provider would be dropped silently.
+        if (metadata.ItemsAttribute is not null && metadata.FormType is FormKind.Confirm or FormKind.Password)
+        {
+            var reason = metadata.FormType == FormKind.Confirm ? "the property is bound with a Confirm prompt" : "the property is bound with a Password prompt";
+            diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.ItemsProviderIgnored, GetAttributeLocation(metadata.ItemsAttribute, property, cancellationToken), metadata.ItemsAttribute.AttributeClass!.Name.Replace("Attribute", ""), property.Name, reason));
+        }
+
+        // Input and List convert typed text with the type's TypeConverter. Without one, binding still compiles
+        // (a converter can be registered at runtime), but every input would be rejected.
+        if (metadata.FormType is FormKind.Input or FormKind.List && !HasConverterFromString(itemType))
+        {
+            diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.NoTypeConverter, property.Locations.FirstOrDefault(), property.Name, itemType.ToDisplayString()));
+        }
 
         // Determine type argument for generic Prompt methods
         metadata.TypeArg = metadata.FormType switch
@@ -629,6 +700,99 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
                 return false;
         }
     }
+
+    // Attribute arguments are emitted as typeof(T) and enum casts, so the types they name must be visible too.
+    private static bool IsAccessibleFromOtherFiles(TypedConstant constant)
+    {
+        return constant.Kind switch
+        {
+            TypedConstantKind.Type => constant.Value is not ITypeSymbol type || IsAccessibleFromOtherFiles(type),
+            TypedConstantKind.Enum => IsAccessibleFromOtherFiles(constant.Type!),
+            TypedConstantKind.Array => constant.IsNull || constant.Values.All(IsAccessibleFromOtherFiles),
+            _ => true
+        };
+    }
+
+    private static Location? GetAttributeLocation(AttributeData attribute, IPropertySymbol property, CancellationToken cancellationToken)
+    {
+        return attribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? property.Locations.FirstOrDefault();
+    }
+
+    // InlineItems values are boxed into object[] and unboxed with Enumerable.Cast, which only succeeds when
+    // a value already is of the item type: an identity, boxing or implicit reference conversion.
+    private static bool IsInlineItemCompatible(Compilation compilation, TypedConstant value, ITypeSymbol itemType)
+    {
+        if (value.IsNull || value.Kind == TypedConstantKind.Error || value.Type is null)
+        {
+            return false;
+        }
+
+        var conversion = compilation.ClassifyConversion(value.Type, itemType);
+
+        return conversion.IsIdentity || conversion.IsImplicit && (conversion.IsReference || conversion.IsBoxing);
+    }
+
+    // The member is assigned to SelectOptions<T>.Items or MultiSelectOptions<T>.Items, which are IEnumerable<T>.
+    private static bool IsItemsCompatible(Compilation compilation, ITypeSymbol memberType, ITypeSymbol itemType)
+    {
+        var itemsType = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(itemType);
+
+        return compilation.ClassifyConversion(memberType, itemsType).IsImplicit;
+    }
+
+    // Mirrors the converters TypeDescriptor finds for a type: the intrinsic ones for these BCL types and
+    // enums, or one named by [TypeConverter] on the type or a base type. A converter registered at runtime
+    // through TypeDescriptor is not visible here, which is why the result is only a warning.
+    private static bool HasConverterFromString(ITypeSymbol type)
+    {
+        // TypeDescriptor uses NullableConverter, which converts through the underlying type's converter.
+        if (type is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } nullableType)
+        {
+            type = nullableType.TypeArguments[0];
+        }
+
+        if (type.TypeKind == TypeKind.Enum)
+        {
+            return true;
+        }
+
+        for (var current = type; current != null; current = current.BaseType)
+        {
+            if (current.SpecialType is SpecialType.System_Boolean or SpecialType.System_Char or SpecialType.System_String or SpecialType.System_DateTime or SpecialType.System_Decimal or
+                SpecialType.System_SByte or SpecialType.System_Byte or SpecialType.System_Int16 or SpecialType.System_UInt16 or SpecialType.System_Int32 or SpecialType.System_UInt32 or
+                SpecialType.System_Int64 or SpecialType.System_UInt64 or SpecialType.System_Single or SpecialType.System_Double)
+            {
+                return true;
+            }
+
+            if (s_intrinsicConverterTypes.Contains(current.ToDisplayString()))
+            {
+                return true;
+            }
+
+            if (HasAttribute(current, "System.ComponentModel.TypeConverterAttribute"))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static readonly HashSet<string> s_intrinsicConverterTypes =
+    [
+        "System.DateOnly",
+        "System.DateTimeOffset",
+        "System.Globalization.CultureInfo",
+        "System.Guid",
+        "System.Half",
+        "System.Int128",
+        "System.TimeOnly",
+        "System.TimeSpan",
+        "System.UInt128",
+        "System.Uri",
+        "System.Version"
+    ];
 
     // Members named after a C# keyword (e.g. "@class") must be escaped when emitted as identifiers.
     private static string EscapeIdentifier(string name)
@@ -944,6 +1108,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         public List<string> Validators { get; set; } = [];
         public string? ItemsExpression { get; set; }
         public bool HasItemsProvider { get; set; }
+        public AttributeData? ItemsAttribute { get; set; }
     }
 
     #endregion
