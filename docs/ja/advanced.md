@@ -181,6 +181,8 @@ enum の入力では、メンバー名（大文字と小文字を区別しない
 独自の型を使う場合は、`[TypeConverter]` 属性を付け、`string` との相互変換を実装します。
 
 ```csharp
+var temperature = Prompt.Input<Temperature>("Target temperature");
+
 [TypeConverter(typeof(TemperatureConverter))]
 public readonly record struct Temperature(double Celsius);
 
@@ -199,8 +201,6 @@ public sealed class TemperatureConverter : TypeConverter
             ? temperature.Celsius.ToString(culture) + "C"
             : base.ConvertTo(context, culture, value, destinationType);
 }
-
-var temperature = Prompt.Input<Temperature>("Target temperature");
 ```
 
 Sharprompt は `culture` に `CultureInfo.InvariantCulture` を渡します。デフォルト値や回答を `ConvertFrom` が受け付ける形式で表示できるよう、`ConvertTo` も実装してください。

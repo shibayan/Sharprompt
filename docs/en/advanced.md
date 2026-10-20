@@ -181,6 +181,8 @@ Enum input accepts member names (case-insensitive) and numeric values. A value w
 To use your own type, annotate it with `[TypeConverter]` and implement conversion from and to `string`:
 
 ```csharp
+var temperature = Prompt.Input<Temperature>("Target temperature");
+
 [TypeConverter(typeof(TemperatureConverter))]
 public readonly record struct Temperature(double Celsius);
 
@@ -199,8 +201,6 @@ public sealed class TemperatureConverter : TypeConverter
             ? temperature.Celsius.ToString(culture) + "C"
             : base.ConvertTo(context, culture, value, destinationType);
 }
-
-var temperature = Prompt.Input<Temperature>("Target temperature");
 ```
 
 Sharprompt passes `CultureInfo.InvariantCulture` as `culture`. Implement `ConvertTo` as well, so that default values and answers are shown in a format `ConvertFrom` accepts.
