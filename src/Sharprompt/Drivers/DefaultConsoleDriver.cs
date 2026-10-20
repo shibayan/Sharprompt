@@ -9,13 +9,10 @@ namespace Sharprompt.Drivers;
 
 public sealed class DefaultConsoleDriver : IConsoleDriver
 {
+    // Must never throw: an exception here would surface as TypeInitializationException
+    // and make the type unusable for the rest of the process.
     static DefaultConsoleDriver()
     {
-        if (Console.IsInputRedirected || Console.IsOutputRedirected)
-        {
-            throw new InvalidOperationException(Resource.Message_NotSupportedEnvironment);
-        }
-
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             var hConsole = NativeMethods.GetStdHandle(NativeMethods.STD_OUTPUT_HANDLE);
@@ -31,6 +28,11 @@ public sealed class DefaultConsoleDriver : IConsoleDriver
 
     public DefaultConsoleDriver()
     {
+        if (Console.IsInputRedirected || Console.IsOutputRedirected)
+        {
+            throw new InvalidOperationException(Resource.Message_NotSupportedEnvironment);
+        }
+
         _previousTreatControlCAsInput = Console.TreatControlCAsInput;
 
         try

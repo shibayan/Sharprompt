@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Threading;
 
 using Sharprompt.Forms;
+using Sharprompt.Strings;
 
 using Xunit;
 
@@ -289,6 +290,148 @@ public class FormInteractionTests
     }
 
     [Fact]
+    public void SelectForm_EmptyItems_RendersWithoutThrowing()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.DownArrow);
+        driver.EnqueueKey(ConsoleKey.UpArrow);
+        driver.EnqueueEnter();
+        driver.EnqueueKey(ConsoleKey.Escape);
+
+        var options = new SelectOptions<string>
+        {
+            Message = "message",
+            Items = []
+        };
+
+        using var form = new SelectForm<string>(options, configuration);
+
+        // Nothing can be selected, so Enter keeps prompting until the user cancels.
+        Assert.Throws<PromptCanceledException>(() => form.Start());
+    }
+
+    [Fact]
+    public void SelectForm_DefaultValueOfCompatibleType_SelectsItem()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueEnter();
+
+        var options = new SelectOptions<long>
+        {
+            Message = "message",
+            Items = [1L, 2L, 3L],
+            DefaultValue = 2
+        };
+
+        using var form = new SelectForm<long>(options, configuration);
+
+        Assert.Equal(2L, form.Start());
+    }
+
+    [Fact]
+    public void MultiSelectForm_EmptyItemsWithZeroMinimum_ReturnsEmpty()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.DownArrow);
+        driver.EnqueueKey(ConsoleKey.Spacebar, keyChar: ' ');
+        driver.EnqueueEnter();
+
+        var options = new MultiSelectOptions<string>
+        {
+            Message = "message",
+            Items = [],
+            Minimum = 0
+        };
+
+        using var form = new MultiSelectForm<string>(options, configuration);
+
+        Assert.Empty(form.Start());
+    }
+
+    [Fact]
+    public void MultiSelectForm_DefaultValuesNotInItems_AreIgnored()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        // The first Enter must fail Minimum because "zebra" is not a selectable item.
+        driver.EnqueueEnter();
+        driver.EnqueueKey(ConsoleKey.DownArrow);
+        driver.EnqueueKey(ConsoleKey.Spacebar, keyChar: ' ');
+        driver.EnqueueEnter();
+
+        var options = new MultiSelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana"],
+            DefaultValues = ["zebra"],
+            Minimum = 1
+        };
+
+        using var form = new MultiSelectForm<string>(options, configuration);
+
+        Assert.Equal(new[] { "apple" }, form.Start());
+    }
+
+    [Fact]
+    public void MultiSelectForm_DefaultValuesExceedingMaximum_RequireDeselection()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueEnter();
+        driver.EnqueueKey(ConsoleKey.DownArrow);
+        driver.EnqueueKey(ConsoleKey.Spacebar, keyChar: ' ');
+        driver.EnqueueKey(ConsoleKey.DownArrow);
+        driver.EnqueueKey(ConsoleKey.Spacebar, keyChar: ' ');
+        driver.EnqueueEnter();
+
+        var options = new MultiSelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana", "cherry"],
+            DefaultValues = ["apple", "banana", "cherry"],
+            Maximum = 1
+        };
+
+        using var form = new MultiSelectForm<string>(options, configuration);
+
+        Assert.Equal(new[] { "cherry" }, form.Start());
+    }
+
+    [Fact]
+    public void MultiSelectForm_ItemsEnumeratedOnce()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.DownArrow);
+        driver.EnqueueKey(ConsoleKey.Spacebar, keyChar: ' ');
+        driver.EnqueueEnter();
+
+        var enumerationCount = 0;
+
+        IEnumerable<string> Items()
+        {
+            enumerationCount++;
+
+            yield return "apple";
+            yield return "banana";
+        }
+
+        var options = new MultiSelectOptions<string>
+        {
+            Message = "message",
+            Items = Items()
+        };
+
+        using var form = new MultiSelectForm<string>(options, configuration);
+
+        Assert.Equal(new[] { "apple" }, form.Start());
+        Assert.Equal(1, enumerationCount);
+    }
+
+    [Fact]
     public void InputForm_TypedText_ReturnsConvertedValue()
     {
         var (driver, configuration) = CreateTestContext();
@@ -460,6 +603,60 @@ public class FormInteractionTests
     }
 
     [Fact]
+    public void InputForm_DefaultValueOfCompatibleType_IsConverted()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<long>
+        {
+            Message = "message",
+            DefaultValue = 1
+        };
+
+        using var form = new InputForm<long>(options, configuration);
+
+        Assert.Equal(1L, form.Start());
+    }
+
+    [Fact]
+    public void InputForm_IncompatibleDefaultValue_ThrowsArgumentException()
+    {
+        var (_, configuration) = CreateTestContext();
+
+        var options = new InputOptions<int>
+        {
+            Message = "message",
+            DefaultValue = new object()
+        };
+
+        var exception = Assert.Throws<ArgumentException>(() => new InputForm<int>(options, configuration));
+
+        Assert.Equal(nameof(InputOptions<int>.DefaultValue), exception.ParamName);
+    }
+
+    [Fact]
+    public void InputForm_EmptyStringDefaultValue_RendersNoHintAndReturnsEmpty()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<string>
+        {
+            Message = "message",
+            DefaultValue = ""
+        };
+
+        using var form = new InputForm<string>(options, configuration);
+
+        // The empty default is still applied on Enter, but no "()" hint is rendered.
+        Assert.Equal("", form.Start());
+        Assert.DoesNotContain("()", driver.Output);
+    }
+
+    [Fact]
     public void ConfirmForm_EmptyInputWithDefaultValue_ReturnsDefaultValue()
     {
         var (driver, configuration) = CreateTestContext();
@@ -532,6 +729,7 @@ public class FormInteractionTests
         var exception = Assert.Throws<OperationCanceledException>(() => form.Start(cts.Token));
 
         Assert.Equal(cts.Token, exception.CancellationToken);
+        Assert.Equal(Resource.Message_PromptCanceled, exception.Message);
         Assert.False(driver.KeyAvailable);
         Assert.Contains("abc", driver.Output);
     }
@@ -549,6 +747,67 @@ public class FormInteractionTests
         using var form = new InputForm<string>(new InputOptions<string> { Message = "message" }, configuration);
 
         Assert.Equal("abc", form.Start(cts.Token));
+    }
+
+    [Fact]
+    public void DriverOverridingReadKeyWithToken_CancelableToken_ReturnsResultWithoutKeyAvailable()
+    {
+        var driver = new CancelableConsoleDriver();
+        var configuration = new PromptConfiguration { ThrowExceptionOnCancel = true, ConsoleDriverFactory = () => driver };
+
+        driver.Inner.EnqueueText("abc");
+        driver.Inner.EnqueueEnter();
+
+        using var cts = new CancellationTokenSource();
+
+        using var form = new InputForm<string>(new InputOptions<string> { Message = "message" }, configuration);
+
+        Assert.Equal("abc", form.Start(cts.Token));
+        Assert.Equal(4, driver.ReadKeyWithTokenCount);
+    }
+
+    [Fact]
+    public void DriverOverridingReadKeyWithToken_CanceledWhileWaiting_CancelsFormAndThrows()
+    {
+        var driver = new CancelableConsoleDriver();
+        var configuration = new PromptConfiguration { ThrowExceptionOnCancel = true, ConsoleDriverFactory = () => driver };
+
+        driver.Inner.EnqueueText("abc");
+
+        using var cts = new CancellationTokenSource();
+
+        driver.Inner.KeysExhausted = cts.Cancel;
+
+        using var form = new InputForm<string>(new InputOptions<string> { Message = "message" }, configuration);
+
+        var exception = Assert.Throws<OperationCanceledException>(() => form.Start(cts.Token));
+
+        Assert.Equal(cts.Token, exception.CancellationToken);
+        Assert.Equal(Resource.Message_PromptCanceled, exception.Message);
+        Assert.IsType<OperationCanceledException>(exception.InnerException);
+        Assert.True(driver.ResetCalled);
+    }
+
+    [Fact]
+    public void DriverThrowsForDifferentToken_PropagatesExceptionUnchanged()
+    {
+        var driver = new CancelableConsoleDriver();
+        var configuration = new PromptConfiguration { ThrowExceptionOnCancel = true, ConsoleDriverFactory = () => driver };
+
+        using var cts = new CancellationTokenSource();
+        using var otherCts = new CancellationTokenSource();
+
+        var thrown = new OperationCanceledException(otherCts.Token);
+
+        driver.CanceledExceptionFactory = _ => thrown;
+        driver.Inner.KeysExhausted = cts.Cancel;
+
+        using var form = new InputForm<string>(new InputOptions<string> { Message = "message" }, configuration);
+
+        var exception = Assert.Throws<OperationCanceledException>(() => form.Start(cts.Token));
+
+        Assert.Same(thrown, exception);
+        Assert.False(driver.ResetCalled);
     }
 
     [Fact]

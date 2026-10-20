@@ -16,11 +16,20 @@ internal class MultiSelectForm<T> : SelectFormBase<T, IEnumerable<T>> where T : 
 
         _options = options;
 
-        InitializePaginator(options.Items, options.PageSize, Optional<T>.Empty, options.TextSelector, options.LoopingSelection);
+        _items = options.Items.ToArray();
+
+        InitializePaginator(_items, options.PageSize, Optional<T>.Empty, options.TextSelector, options.LoopingSelection);
+
+        // Default values that are not in Items can never be returned, so ignore them
+        // instead of letting them count towards Minimum.
+        var items = new HashSet<T>(_items);
 
         foreach (var defaultValue in options.DefaultValues)
         {
-            _selectedItems.Add(defaultValue);
+            if (items.Contains(defaultValue))
+            {
+                _selectedItems.Add(defaultValue);
+            }
         }
 
         KeyHandlerMaps[new ConsoleKeyBinding(ConsoleKey.Spacebar)] = HandleSpacebar;
@@ -29,6 +38,7 @@ internal class MultiSelectForm<T> : SelectFormBase<T, IEnumerable<T>> where T : 
     }
 
     private readonly MultiSelectOptions<T> _options;
+    private readonly T[] _items;
 
     private readonly HashSet<T> _selectedItems = [];
 
@@ -84,20 +94,28 @@ internal class MultiSelectForm<T> : SelectFormBase<T, IEnumerable<T>> where T : 
 
     protected override bool HandleEnter([NotNullWhen(true)] out IEnumerable<T>? result)
     {
-        if (_selectedItems.Count >= _options.Minimum)
+        if (_selectedItems.Count < _options.Minimum)
         {
-            result = _options.Items
-                             .Where(x => _selectedItems.Contains(x))
-                             .ToArray();
+            SetError(string.Format(Resource.Validation_Minimum_SelectionRequired, _options.Minimum));
 
-            return true;
+            result = default;
+
+            return false;
         }
 
-        SetError(string.Format(Resource.Validation_Minimum_SelectionRequired, _options.Minimum));
+        // DefaultValues can preselect more items than Maximum allows.
+        if (_selectedItems.Count > _options.Maximum)
+        {
+            SetError(string.Format(Resource.Validation_Maximum_SelectionRequired, _options.Maximum));
 
-        result = default;
+            result = default;
 
-        return false;
+            return false;
+        }
+
+        result = _items.Where(_selectedItems.Contains).ToArray();
+
+        return true;
     }
 
     private bool HandleSpacebar()

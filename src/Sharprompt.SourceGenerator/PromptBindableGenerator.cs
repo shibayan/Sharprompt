@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -15,22 +17,52 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
 
     private static readonly SymbolDisplayFormat s_fullyQualifiedFormat = SymbolDisplayFormat.FullyQualifiedFormat;
 
+    internal const string TransformTrackingName = "PromptBindable.Transform";
+
+    internal const string SourceTrackingName = "PromptBindable.Source";
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var provider = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 "Sharprompt.PromptBindableAttribute",
-                predicate: static (node, _) => node is ClassDeclarationSyntax,
+                predicate: static (node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax,
                 transform: static (syntaxContext, cancellationToken) => Transform(syntaxContext, cancellationToken))
-            .Where(static x => x.Source.Length > 0);
+            .WithTrackingName(TransformTrackingName);
 
-        context.RegisterSourceOutput(provider, static (productionContext, file) =>
+        var sources = provider
+            .Select(static (result, _) => (result.HintName, result.Source))
+            .WithTrackingName(SourceTrackingName);
+
+        context.RegisterSourceOutput(sources, static (productionContext, source) =>
         {
-            productionContext.AddSource(file.HintName, file.Source);
+            if (source.Source.Length > 0)
+            {
+                productionContext.AddSource(source.HintName, source.Source);
+            }
+        });
+
+        // Diagnostics need a location bound to the current syntax tree so that #pragma warning disable
+        // and other suppressions apply, so resolve them against the compilation only when reporting.
+        // This keeps the source output above independent of the compilation and fully cached.
+        var diagnostics = provider
+            .Select(static (result, _) => result.Diagnostics)
+            .Where(static diagnostics => diagnostics.Length > 0)
+            .Collect()
+            .Combine(context.CompilationProvider);
+
+        context.RegisterSourceOutput(diagnostics, static (productionContext, pair) =>
+        {
+            var (diagnosticGroups, compilation) = pair;
+
+            foreach (var diagnostic in diagnosticGroups.SelectMany(static group => group))
+            {
+                productionContext.ReportDiagnostic(diagnostic.ToDiagnostic(compilation));
+            }
         });
     }
 
-    private static (string HintName, string Source) Transform(GeneratorAttributeSyntaxContext syntaxContext, CancellationToken cancellationToken)
+    private static BinderResult Transform(GeneratorAttributeSyntaxContext syntaxContext, CancellationToken cancellationToken)
     {
         var typeSymbol = (INamedTypeSymbol)syntaxContext.TargetSymbol;
         var hintName = typeSymbol.ToDisplayString()
@@ -41,11 +73,19 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             .Replace('.', '_')
             + ".Binder.g.cs";
 
-        var source = GenerateSource(typeSymbol, cancellationToken);
-        return (hintName, source ?? "");
+        // [PromptBindable] only applies to classes (including record classes); a record struct is already a compile error.
+        if (typeSymbol.TypeKind != TypeKind.Class)
+        {
+            return new BinderResult(hintName, "", new EquatableArray<DiagnosticInfo>([]));
+        }
+
+        var diagnostics = new List<DiagnosticInfo>();
+        var source = GenerateSource(typeSymbol, syntaxContext.SemanticModel.Compilation, diagnostics, cancellationToken);
+
+        return new BinderResult(hintName, source ?? "", new EquatableArray<DiagnosticInfo>(diagnostics.ToArray()));
     }
 
-    private static string? GenerateSource(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken)
+    private static string? GenerateSource(INamedTypeSymbol typeSymbol, Compilation compilation, List<DiagnosticInfo> diagnostics, CancellationToken cancellationToken)
     {
         var properties = new List<PropertyMetadata>();
 
@@ -53,17 +93,31 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (property.SetMethod?.DeclaredAccessibility is not (Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal))
-            {
-                continue;
-            }
-
             if (HasAttribute(property, "Sharprompt.BindIgnoreAttribute"))
             {
                 continue;
             }
 
-            properties.Add(Analyze(property, typeSymbol));
+            if (property.SetMethod?.DeclaredAccessibility is not (Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal))
+            {
+                continue;
+            }
+
+            if (property.SetMethod.IsInitOnly)
+            {
+                diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.InitOnlyProperty, property.Locations.FirstOrDefault(), property.Name));
+                continue;
+            }
+
+            var metadata = Analyze(property, typeSymbol, compilation, diagnostics, cancellationToken);
+
+            if (metadata is null)
+            {
+                continue;
+            }
+
+            metadata.Index = properties.Count;
+            properties.Add(metadata);
         }
 
         if (properties.Count == 0)
@@ -71,7 +125,13 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             return null;
         }
 
-        properties = properties.OrderBy(p => p.Order).ToList();
+        // Members without [Display(Order)] come last, in declaration order. Sort on whether an Order is
+        // present first, so they also come after members that explicitly use Order = int.MaxValue.
+        properties = properties
+            .OrderBy(p => p.Order is null)
+            .ThenBy(p => p.Order)
+            .ThenBy(p => p.Index)
+            .ToList();
 
         var fullTypeName = typeSymbol.ToDisplayString(s_fullyQualifiedFormat);
 
@@ -124,7 +184,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         }
     }
 
-    private static PropertyMetadata Analyze(IPropertySymbol property, INamedTypeSymbol containingType)
+    private static PropertyMetadata? Analyze(IPropertySymbol property, INamedTypeSymbol containingType, Compilation compilation, List<DiagnosticInfo> diagnostics, CancellationToken cancellationToken)
     {
         var metadata = new PropertyMetadata { Name = property.Name };
         var propertyType = property.Type;
@@ -151,6 +211,17 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         {
             metadata.ElementTypeName = elementType.ToDisplayString(s_fullyQualifiedFormat);
             metadata.IsElementEnum = elementType.TypeKind == TypeKind.Enum;
+
+            // List and MultiSelect return IEnumerable<T>, so it has to be converted to the property type.
+            var conversion = GetCollectionConversion(compilation, propertyType, elementType);
+
+            if (conversion is null)
+            {
+                diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.UnsupportedCollectionType, property.Locations.FirstOrDefault(), property.Name, propertyType.ToDisplayString()));
+                return null;
+            }
+
+            metadata.CollectionConversion = conversion.Value;
         }
 
         // Enum check
@@ -240,17 +311,23 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
                 {
                     var targetFullName = targetType.ToDisplayString(s_fullyQualifiedFormat);
                     var firstMember = targetType.GetMembers(memberName)
-                        .FirstOrDefault(m => m.IsStatic && m.DeclaredAccessibility == Accessibility.Public);
+                        .FirstOrDefault(m => m.IsStatic && m.DeclaredAccessibility == Accessibility.Public &&
+                                             m is IPropertySymbol or IMethodSymbol { Parameters.Length: 0, TypeParameters.Length: 0 });
 
                     if (firstMember is IPropertySymbol)
                     {
                         metadata.ItemsExpression = targetFullName + "." + memberName;
                         metadata.HasItemsProvider = true;
                     }
-                    else if (firstMember is IMethodSymbol { Parameters.Length: 0 })
+                    else if (firstMember is IMethodSymbol)
                     {
                         metadata.ItemsExpression = targetFullName + "." + memberName + "()";
                         metadata.HasItemsProvider = true;
+                    }
+                    else
+                    {
+                        var location = memberAttribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken).GetLocation() ?? property.Locations.FirstOrDefault();
+                        diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.MemberItemsNotFound, location, memberName, property.Name, targetType.ToDisplayString()));
                     }
                 }
             }
@@ -377,7 +454,9 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
 
     private static void EmitMultiSelect(StringBuilder builder, PropertyMetadata property, string indent)
     {
-        builder.AppendLine(indent + "model." + property.Name + " = global::Sharprompt.Prompt.MultiSelect<" + property.TypeArg + ">(options =>");
+        var (prefix, suffix) = GetCollectionConversionWrapper(property);
+
+        builder.AppendLine(indent + "model." + property.Name + " = " + prefix + "global::Sharprompt.Prompt.MultiSelect<" + property.TypeArg + ">(options =>");
         builder.AppendLine(indent + "{");
         builder.AppendLine(indent + "    options.Message = " + Quote(property.Message) + ";");
 
@@ -386,18 +465,41 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             builder.AppendLine(indent + "    options.Items = " + property.ItemsExpression + ";");
         }
 
-        builder.AppendLine(indent + "    options.DefaultValues = model." + property.Name + " ?? global::System.Array.Empty<" + property.TypeArg + ">();");
-        builder.AppendLine(indent + "}, cancellationToken);");
+        builder.AppendLine(indent + "    options.DefaultValues = " + GetDefaultValuesExpression(property) + ";");
+        builder.AppendLine(indent + "}, cancellationToken)" + suffix + ";");
     }
 
     private static void EmitList(StringBuilder builder, PropertyMetadata property, string indent)
     {
-        builder.AppendLine(indent + "model." + property.Name + " = global::Sharprompt.Prompt.List<" + property.TypeArg + ">(options =>");
+        var (prefix, suffix) = GetCollectionConversionWrapper(property);
+
+        builder.AppendLine(indent + "model." + property.Name + " = " + prefix + "global::Sharprompt.Prompt.List<" + property.TypeArg + ">(options =>");
         builder.AppendLine(indent + "{");
         builder.AppendLine(indent + "    options.Message = " + Quote(property.Message) + ";");
-        builder.AppendLine(indent + "    options.DefaultValues = model." + property.Name + " ?? global::System.Array.Empty<" + property.TypeArg + ">();");
+        builder.AppendLine(indent + "    options.DefaultValues = " + GetDefaultValuesExpression(property) + ";");
         EmitValidators(builder, property, indent);
-        builder.AppendLine(indent + "}, cancellationToken);");
+        builder.AppendLine(indent + "}, cancellationToken)" + suffix + ";");
+    }
+
+    private static (string Prefix, string Suffix) GetCollectionConversionWrapper(PropertyMetadata property)
+    {
+        return property.CollectionConversion switch
+        {
+            CollectionConversion.ToArray => ("global::System.Linq.Enumerable.ToArray(", ")"),
+            CollectionConversion.ToList => ("global::System.Linq.Enumerable.ToList(", ")"),
+            CollectionConversion.ToHashSet => ("new global::System.Collections.Generic.HashSet<" + property.TypeArg + ">(", ")"),
+            _ => ("", "")
+        };
+    }
+
+    private static string GetDefaultValuesExpression(PropertyMetadata property)
+    {
+        // Cast concrete collection types to IEnumerable<T> so that '??' has a common type with the empty array.
+        var value = property.CollectionConversion == CollectionConversion.None
+            ? "model." + property.Name
+            : "((global::System.Collections.Generic.IEnumerable<" + property.TypeArg + ">?)model." + property.Name + ")";
+
+        return value + " ?? global::System.Array.Empty<" + property.TypeArg + ">()";
     }
 
     private static void EmitValidators(StringBuilder builder, PropertyMetadata property, string indent)
@@ -472,6 +574,42 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         return (false, null);
     }
 
+    private static CollectionConversion? GetCollectionConversion(Compilation compilation, ITypeSymbol propertyType, ITypeSymbol elementType)
+    {
+        var enumerableType = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(elementType);
+
+        if (compilation.HasImplicitConversion(enumerableType, propertyType))
+        {
+            return CollectionConversion.None;
+        }
+
+        if (propertyType is IArrayTypeSymbol { IsSZArray: true } arrayType && SymbolEqualityComparer.Default.Equals(arrayType.ElementType, elementType))
+        {
+            return CollectionConversion.ToArray;
+        }
+
+        // List<T> also covers IList<T>, ICollection<T>, IReadOnlyList<T> and IReadOnlyCollection<T>.
+        if (IsAssignableFromConstructedType(compilation, "System.Collections.Generic.List`1", elementType, propertyType))
+        {
+            return CollectionConversion.ToList;
+        }
+
+        // HashSet<T> also covers ISet<T> and IReadOnlySet<T>.
+        if (IsAssignableFromConstructedType(compilation, "System.Collections.Generic.HashSet`1", elementType, propertyType))
+        {
+            return CollectionConversion.ToHashSet;
+        }
+
+        return null;
+    }
+
+    private static bool IsAssignableFromConstructedType(Compilation compilation, string metadataName, ITypeSymbol typeArgument, ITypeSymbol destination)
+    {
+        var definition = compilation.GetTypeByMetadataName(metadataName);
+
+        return definition != null && compilation.HasImplicitConversion(definition.Construct(typeArgument), destination);
+    }
+
     private static string GenerateNewExpression(AttributeData attribute)
     {
         var builder = new StringBuilder();
@@ -528,16 +666,16 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
                     string s => Quote(s),
                     bool b => b ? "true" : "false",
                     char c => "'" + EscapeChar(c) + "'",
-                    float => typedConstant.Value + "f",
-                    double => typedConstant.Value + "d",
-                    decimal => typedConstant.Value + "m",
-                    long => typedConstant.Value + "L",
-                    ulong => typedConstant.Value + "UL",
-                    _ => typedConstant.Value?.ToString() ?? "null"
+                    float f => FormatSingle(f),
+                    double d => FormatDouble(d),
+                    decimal m => m.ToString(CultureInfo.InvariantCulture) + "m",
+                    long l => l.ToString(CultureInfo.InvariantCulture) + "L",
+                    ulong ul => ul.ToString(CultureInfo.InvariantCulture) + "UL",
+                    _ => FormatInvariant(typedConstant.Value)
                 };
 
             case TypedConstantKind.Enum:
-                return "(" + typedConstant.Type!.ToDisplayString(s_fullyQualifiedFormat) + ")" + typedConstant.Value;
+                return "(" + typedConstant.Type!.ToDisplayString(s_fullyQualifiedFormat) + ")(" + FormatInvariant(typedConstant.Value) + ")";
 
             case TypedConstantKind.Type:
                 return "typeof(" + ((ITypeSymbol)typedConstant.Value!).ToDisplayString(s_fullyQualifiedFormat) + ")";
@@ -549,6 +687,57 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             default:
                 return typedConstant.Value?.ToString() ?? "null";
         }
+    }
+
+    // Numeric literals must not depend on the culture of the build machine (e.g. "0,5" on de-DE).
+    private static string FormatInvariant(object? value)
+    {
+        return value switch
+        {
+            null => "null",
+            IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+            _ => value.ToString()
+        };
+    }
+
+    private static string FormatSingle(float value)
+    {
+        if (float.IsNaN(value))
+        {
+            return "float.NaN";
+        }
+
+        if (float.IsPositiveInfinity(value))
+        {
+            return "float.PositiveInfinity";
+        }
+
+        if (float.IsNegativeInfinity(value))
+        {
+            return "float.NegativeInfinity";
+        }
+
+        return value.ToString("R", CultureInfo.InvariantCulture) + "f";
+    }
+
+    private static string FormatDouble(double value)
+    {
+        if (double.IsNaN(value))
+        {
+            return "double.NaN";
+        }
+
+        if (double.IsPositiveInfinity(value))
+        {
+            return "double.PositiveInfinity";
+        }
+
+        if (double.IsNegativeInfinity(value))
+        {
+            return "double.NegativeInfinity";
+        }
+
+        return value.ToString("R", CultureInfo.InvariantCulture) + "d";
     }
 
     private static string Quote(string text)
@@ -595,9 +784,21 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         List
     }
 
+    private enum CollectionConversion
+    {
+        None,
+        ToArray,
+        ToList,
+        ToHashSet
+    }
+
+    private sealed record BinderResult(string HintName, string Source, EquatableArray<DiagnosticInfo> Diagnostics);
+
     private sealed class PropertyMetadata
     {
         public string Name { get; set; } = "";
+        public int Index { get; set; }
+        public CollectionConversion CollectionConversion { get; set; }
         public string FullTypeName { get; set; } = "";
         public ITypeSymbol? UnderlyingType { get; set; }
         public string UnderlyingTypeName { get; set; } = "";

@@ -14,7 +14,7 @@ internal class InputForm<T> : TextFormBase<T>
 
         _options = options;
 
-        _defaultValue = Optional<T>.Create(options.DefaultValue);
+        _defaultValue = Optional<T>.Create(options.DefaultValue, nameof(options.DefaultValue));
 
         KeyHandlerMaps[new ConsoleKeyBinding(ConsoleKey.Tab)] = HandleTab;
     }
@@ -26,9 +26,13 @@ internal class InputForm<T> : TextFormBase<T>
     {
         offscreenBuffer.WritePrompt(_options.Message);
 
-        if (_defaultValue.HasValue)
+        // A default value that renders as empty text (e.g. "") is still used on Enter,
+        // but showing it would only print empty parentheses.
+        var defaultValueText = _defaultValue.HasValue ? _defaultValue.Value?.ToString() : null;
+
+        if (!string.IsNullOrEmpty(defaultValueText))
         {
-            offscreenBuffer.WriteHint($"({_defaultValue.Value}) ");
+            offscreenBuffer.WriteHint($"({defaultValueText}) ");
         }
 
         if (InputBuffer.Length == 0 && !string.IsNullOrEmpty(_options.Placeholder))

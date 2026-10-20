@@ -86,6 +86,10 @@ catch (OperationCanceledException)
 }
 ```
 
+If the token is already canceled when the prompt is called, `OperationCanceledException` is thrown before the console driver is created.
+
+For custom console driver authors: prompts wait for keys through `IConsoleDriver.ReadKey(CancellationToken)`. Its default implementation polls `KeyAvailable` while the token can be canceled, so your driver must report `KeyAvailable` accurately. If your input source supports cancellation natively, or cannot report `KeyAvailable`, override `ReadKey(CancellationToken)` and throw `OperationCanceledException` for the given token when it is canceled.
+
 ## Culture
 
 Set the culture for localized messages:

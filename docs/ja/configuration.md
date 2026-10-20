@@ -86,6 +86,10 @@ catch (OperationCanceledException)
 }
 ```
 
+プロンプトを呼び出した時点でトークンがキャンセル済みの場合は、コンソールドライバーを作成する前に `OperationCanceledException` をスローします。
+
+カスタムコンソールドライバーを実装する場合: プロンプトは `IConsoleDriver.ReadKey(CancellationToken)` を通じてキー入力を待機します。トークンがキャンセル可能な場合、既定の実装は `KeyAvailable` をポーリングするため、ドライバーは `KeyAvailable` を正しく返す必要があります。入力ソース自体がキャンセルに対応している場合や `KeyAvailable` を提供できない場合は、`ReadKey(CancellationToken)` をオーバーライドし、トークンがキャンセルされたらそのトークンを指定した `OperationCanceledException` をスローしてください。
+
 ## カルチャ
 
 ローカライズされたメッセージのカルチャを設定します:
