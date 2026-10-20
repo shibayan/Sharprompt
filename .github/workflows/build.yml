@@ -8,6 +8,7 @@ on:
       - '*.md'
       - 'LICENSE'
       - '.github/workflows/docs.yml'
+      - '.github/workflows/docs-ci.yml'
       - '.github/workflows/publish.yml'
   pull_request:
     branches: [ master ]
@@ -16,6 +17,7 @@ on:
       - '*.md'
       - 'LICENSE'
       - '.github/workflows/docs.yml'
+      - '.github/workflows/docs-ci.yml'
       - '.github/workflows/publish.yml'
 
 permissions:
