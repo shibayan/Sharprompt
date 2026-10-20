@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Sharprompt.SourceGenerator;
@@ -80,6 +81,24 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         }
 
         var diagnostics = new List<DiagnosticInfo>();
+        var location = ((TypeDeclarationSyntax)syntaxContext.TargetNode).Identifier.GetLocation();
+
+        // The binder is registered for a closed type from another file, so generic types (including
+        // types nested in a generic type) and types that file cannot see are reported instead.
+        if (IsGenericOrNestedInGeneric(typeSymbol))
+        {
+            diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.GenericType, location, typeSymbol.ToDisplayString()));
+
+            return new BinderResult(hintName, "", new EquatableArray<DiagnosticInfo>(diagnostics.ToArray()));
+        }
+
+        if (!IsAccessibleFromOtherFiles(typeSymbol))
+        {
+            diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.InaccessibleType, location, typeSymbol.ToDisplayString()));
+
+            return new BinderResult(hintName, "", new EquatableArray<DiagnosticInfo>(diagnostics.ToArray()));
+        }
+
         var source = GenerateSource(typeSymbol, syntaxContext.SemanticModel.Compilation, diagnostics, cancellationToken);
 
         return new BinderResult(hintName, source ?? "", new EquatableArray<DiagnosticInfo>(diagnostics.ToArray()));
@@ -159,6 +178,13 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
 
         builder.AppendLine("        });");
         builder.AppendLine("    }");
+
+        if (properties.Any(p => p.Validators.Count > 0))
+        {
+            builder.AppendLine();
+            EmitCreateValidationContext(builder, HasTrimSafeValidationContextConstructor(compilation));
+        }
+
         builder.AppendLine("}");
 
         return builder.ToString();
@@ -173,7 +199,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         {
             foreach (var member in current.GetMembers())
             {
-                if (member is IPropertySymbol { IsStatic: false, DeclaredAccessibility: Accessibility.Public } property &&
+                if (member is IPropertySymbol { IsStatic: false, IsIndexer: false, DeclaredAccessibility: Accessibility.Public } property &&
                     seen.Add(property.Name))
                 {
                     yield return property;
@@ -186,7 +212,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
 
     private static PropertyMetadata? Analyze(IPropertySymbol property, INamedTypeSymbol containingType, Compilation compilation, List<DiagnosticInfo> diagnostics, CancellationToken cancellationToken)
     {
-        var metadata = new PropertyMetadata { Name = property.Name };
+        var metadata = new PropertyMetadata { Name = property.Name, Identifier = EscapeIdentifier(property.Name) };
         var propertyType = property.Type;
 
         metadata.FullTypeName = propertyType.ToDisplayString(s_fullyQualifiedFormat);
@@ -253,10 +279,13 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             }
 
             metadata.Message = name ?? description ?? property.Name;
+            // ValidationContext rejects an empty display name.
+            metadata.DisplayName = string.IsNullOrEmpty(name) ? property.Name : name!;
         }
         else
         {
             metadata.Message = property.Name;
+            metadata.DisplayName = property.Name;
         }
 
         // DataType attribute
@@ -312,16 +341,17 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
                     var targetFullName = targetType.ToDisplayString(s_fullyQualifiedFormat);
                     var firstMember = targetType.GetMembers(memberName)
                         .FirstOrDefault(m => m.IsStatic && m.DeclaredAccessibility == Accessibility.Public &&
-                                             m is IPropertySymbol or IMethodSymbol { Parameters.Length: 0, TypeParameters.Length: 0 });
+                                             m is IPropertySymbol or IMethodSymbol { Parameters.Length: 0, TypeParameters.Length: 0 } &&
+                                             IsAccessibleFromOtherFiles(m.ContainingType));
 
                     if (firstMember is IPropertySymbol)
                     {
-                        metadata.ItemsExpression = targetFullName + "." + memberName;
+                        metadata.ItemsExpression = targetFullName + "." + EscapeIdentifier(memberName);
                         metadata.HasItemsProvider = true;
                     }
                     else if (firstMember is IMethodSymbol)
                     {
-                        metadata.ItemsExpression = targetFullName + "." + memberName + "()";
+                        metadata.ItemsExpression = targetFullName + "." + EscapeIdentifier(memberName) + "()";
                         metadata.HasItemsProvider = true;
                     }
                     else
@@ -399,7 +429,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
 
     private static void EmitInput(StringBuilder builder, PropertyMetadata property, string indent)
     {
-        builder.AppendLine(indent + "model." + property.Name + " = global::Sharprompt.Prompt.Input<" + property.TypeArg + ">(options =>");
+        builder.AppendLine(indent + "model." + property.Identifier + " = global::Sharprompt.Prompt.Input<" + property.TypeArg + ">(options =>");
         builder.AppendLine(indent + "{");
         builder.AppendLine(indent + "    options.Message = " + Quote(property.Message) + ";");
 
@@ -408,14 +438,14 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             builder.AppendLine(indent + "    options.Placeholder = " + Quote(property.Placeholder) + ";");
         }
 
-        builder.AppendLine(indent + "    options.DefaultValue = model." + property.Name + ";");
+        builder.AppendLine(indent + "    options.DefaultValue = model." + property.Identifier + ";");
         EmitValidators(builder, property, indent);
         builder.AppendLine(indent + "}, cancellationToken);");
     }
 
     private static void EmitPassword(StringBuilder builder, PropertyMetadata property, string indent)
     {
-        builder.AppendLine(indent + "model." + property.Name + " = global::Sharprompt.Prompt.Password(options =>");
+        builder.AppendLine(indent + "model." + property.Identifier + " = global::Sharprompt.Prompt.Password(options =>");
         builder.AppendLine(indent + "{");
         builder.AppendLine(indent + "    options.Message = " + Quote(property.Message) + ";");
 
@@ -430,16 +460,16 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
 
     private static void EmitConfirm(StringBuilder builder, PropertyMetadata property, string indent)
     {
-        builder.AppendLine(indent + "model." + property.Name + " = global::Sharprompt.Prompt.Confirm(options =>");
+        builder.AppendLine(indent + "model." + property.Identifier + " = global::Sharprompt.Prompt.Confirm(options =>");
         builder.AppendLine(indent + "{");
         builder.AppendLine(indent + "    options.Message = " + Quote(property.Message) + ";");
-        builder.AppendLine(indent + "    options.DefaultValue = model." + property.Name + ";");
+        builder.AppendLine(indent + "    options.DefaultValue = model." + property.Identifier + ";");
         builder.AppendLine(indent + "}, cancellationToken);");
     }
 
     private static void EmitSelect(StringBuilder builder, PropertyMetadata property, string indent)
     {
-        builder.AppendLine(indent + "model." + property.Name + " = global::Sharprompt.Prompt.Select<" + property.TypeArg + ">(options =>");
+        builder.AppendLine(indent + "model." + property.Identifier + " = global::Sharprompt.Prompt.Select<" + property.TypeArg + ">(options =>");
         builder.AppendLine(indent + "{");
         builder.AppendLine(indent + "    options.Message = " + Quote(property.Message) + ";");
 
@@ -448,7 +478,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             builder.AppendLine(indent + "    options.Items = " + property.ItemsExpression + ";");
         }
 
-        builder.AppendLine(indent + "    options.DefaultValue = model." + property.Name + ";");
+        builder.AppendLine(indent + "    options.DefaultValue = model." + property.Identifier + ";");
         builder.AppendLine(indent + "}, cancellationToken);");
     }
 
@@ -456,7 +486,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
     {
         var (prefix, suffix) = GetCollectionConversionWrapper(property);
 
-        builder.AppendLine(indent + "model." + property.Name + " = " + prefix + "global::Sharprompt.Prompt.MultiSelect<" + property.TypeArg + ">(options =>");
+        builder.AppendLine(indent + "model." + property.Identifier + " = " + prefix + "global::Sharprompt.Prompt.MultiSelect<" + property.TypeArg + ">(options =>");
         builder.AppendLine(indent + "{");
         builder.AppendLine(indent + "    options.Message = " + Quote(property.Message) + ";");
 
@@ -473,7 +503,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
     {
         var (prefix, suffix) = GetCollectionConversionWrapper(property);
 
-        builder.AppendLine(indent + "model." + property.Name + " = " + prefix + "global::Sharprompt.Prompt.List<" + property.TypeArg + ">(options =>");
+        builder.AppendLine(indent + "model." + property.Identifier + " = " + prefix + "global::Sharprompt.Prompt.List<" + property.TypeArg + ">(options =>");
         builder.AppendLine(indent + "{");
         builder.AppendLine(indent + "    options.Message = " + Quote(property.Message) + ";");
         builder.AppendLine(indent + "    options.DefaultValues = " + GetDefaultValuesExpression(property) + ";");
@@ -496,8 +526,8 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
     {
         // Cast concrete collection types to IEnumerable<T> so that '??' has a common type with the empty array.
         var value = property.CollectionConversion == CollectionConversion.None
-            ? "model." + property.Name
-            : "((global::System.Collections.Generic.IEnumerable<" + property.TypeArg + ">?)model." + property.Name + ")";
+            ? "model." + property.Identifier
+            : "((global::System.Collections.Generic.IEnumerable<" + property.TypeArg + ">?)model." + property.Identifier + ")";
 
         return value + " ?? global::System.Array.Empty<" + property.TypeArg + ">()";
     }
@@ -508,13 +538,103 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         {
             builder.AppendLine(indent + "    {");
             builder.AppendLine(indent + "        var __v = " + validator + ";");
-            builder.AppendLine(indent + "        var __c = new global::System.ComponentModel.DataAnnotations.ValidationContext(model) { DisplayName = " + Quote(property.Name) + ", MemberName = " + Quote(property.Name) + " };");
+            builder.AppendLine(indent + "        var __c = CreateValidationContext(model, " + Quote(property.DisplayName) + ", " + Quote(property.Name) + ");");
             builder.AppendLine(indent + "        options.Validators.Add(input => __v.GetValidationResult(input, __c));");
             builder.AppendLine(indent + "    }");
         }
     }
 
+    // ValidationContext reflects over the instance to look up the display name, so its constructors that
+    // do not take one are [RequiresUnreferencedCode] (IL2026 in trimmed and AOT apps). .NET 10 adds a
+    // trim-safe constructor that takes the display name. Before .NET 10, setting DisplayName up front
+    // skips that same lookup, which is what the suppression relies on.
+    private static void EmitCreateValidationContext(StringBuilder builder, bool hasTrimSafeConstructor)
+    {
+        const string validationContext = "global::System.ComponentModel.DataAnnotations.ValidationContext";
+
+        if (!hasTrimSafeConstructor)
+        {
+            builder.AppendLine("    [global::System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(\"Trimming\", \"IL2026:RequiresUnreferencedCode\", Justification = \"DisplayName is set explicitly, so ValidationContext does not use reflection to resolve it.\")]");
+        }
+
+        builder.AppendLine("    private static " + validationContext + " CreateValidationContext(object model, string displayName, string memberName)");
+        builder.AppendLine("    {");
+
+        if (hasTrimSafeConstructor)
+        {
+            builder.AppendLine("        return new " + validationContext + "(model, displayName, null, null) { MemberName = memberName };");
+        }
+        else
+        {
+            builder.AppendLine("        return new " + validationContext + "(model) { DisplayName = displayName, MemberName = memberName };");
+        }
+
+        builder.AppendLine("    }");
+    }
+
     #region Helpers
+
+    private static bool HasTrimSafeValidationContextConstructor(Compilation compilation)
+    {
+        var type = compilation.GetTypeByMetadataName("System.ComponentModel.DataAnnotations.ValidationContext");
+
+        return type != null && type.InstanceConstructors.Any(constructor =>
+            constructor.DeclaredAccessibility == Accessibility.Public &&
+            constructor.Parameters.Length == 4 &&
+            constructor.Parameters[1].Type.SpecialType == SpecialType.System_String);
+    }
+
+    private static bool IsGenericOrNestedInGeneric(INamedTypeSymbol type)
+    {
+        for (var current = type; current != null; current = current.ContainingType)
+        {
+            if (current.TypeParameters.Length > 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // The generated binder is a file-local class at the top level of another file in the same assembly,
+    // so the type, its containing types and all of their type arguments must be visible from there.
+    private static bool IsAccessibleFromOtherFiles(ITypeSymbol type)
+    {
+        switch (type)
+        {
+            case IArrayTypeSymbol arrayType:
+                return IsAccessibleFromOtherFiles(arrayType.ElementType);
+
+            case INamedTypeSymbol namedType:
+                for (var current = namedType; current != null; current = current.ContainingType)
+                {
+                    if (current.IsFileLocal ||
+                        current.DeclaredAccessibility is not (Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal))
+                    {
+                        return false;
+                    }
+
+                    // Unbound type arguments (typeof(Provider<>)) are error types and are rejected below.
+                    if (current.TypeArguments.Any(typeArgument => !IsAccessibleFromOtherFiles(typeArgument)))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+
+            default:
+                // Type parameters, pointers and error types cannot be referenced from the generated file.
+                return false;
+        }
+    }
+
+    // Members named after a C# keyword (e.g. "@class") must be escaped when emitted as identifiers.
+    private static string EscapeIdentifier(string name)
+    {
+        return SyntaxFacts.GetKeywordKind(name) != SyntaxKind.None ? "@" + name : name;
+    }
 
     private static bool HasAttribute(ISymbol symbol, string fullName)
     {
@@ -640,7 +760,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
                     builder.Append(", ");
                 }
 
-                builder.Append(attribute.NamedArguments[i].Key);
+                builder.Append(EscapeIdentifier(attribute.NamedArguments[i].Key));
                 builder.Append(" = ");
                 builder.Append(FormatTypedConstant(attribute.NamedArguments[i].Value));
             }
@@ -671,6 +791,13 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
                     decimal m => m.ToString(CultureInfo.InvariantCulture) + "m",
                     long l => l.ToString(CultureInfo.InvariantCulture) + "L",
                     ulong ul => ul.ToString(CultureInfo.InvariantCulture) + "UL",
+                    uint ui => ui.ToString(CultureInfo.InvariantCulture) + "U",
+                    // These have no literal suffix. Without a cast the value would be boxed as int
+                    // (e.g. in InlineItems' object[]), and unboxing it as the original type would throw.
+                    byte by => "(byte)" + by.ToString(CultureInfo.InvariantCulture),
+                    sbyte sb => "(sbyte)" + sb.ToString(CultureInfo.InvariantCulture),
+                    short sh => "(short)" + sh.ToString(CultureInfo.InvariantCulture),
+                    ushort us => "(ushort)" + us.ToString(CultureInfo.InvariantCulture),
                     _ => FormatInvariant(typedConstant.Value)
                 };
 
@@ -797,6 +924,8 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
     private sealed class PropertyMetadata
     {
         public string Name { get; set; } = "";
+        public string Identifier { get; set; } = "";
+        public string DisplayName { get; set; } = "";
         public int Index { get; set; }
         public CollectionConversion CollectionConversion { get; set; }
         public string FullTypeName { get; set; } = "";
