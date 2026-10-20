@@ -184,7 +184,7 @@ public class PromptBindableGeneratorTests
 
         Assert.Empty(result.CompileErrors);
         Assert.Null(result.Source);
-        Assert.Equal(new[] { "SHARP002", "SHARP002" }, result.GeneratorDiagnostics.Select(d => d.Id));
+        Assert.Equal(new[] { "SHARP002", "SHARP002", "SHARP014" }, result.GeneratorDiagnostics.Select(d => d.Id));
     }
 
     [Fact]
@@ -330,6 +330,8 @@ public class PromptBindableGeneratorTests
     [InlineData("public IEnumerable<string> Items => new[] { \"a\" };")]
     [InlineData("public static IEnumerable<string> Items(int count) => new[] { \"a\" };")]
     [InlineData("public static readonly string[] Items = { \"a\" };")]
+    [InlineData("public static IEnumerable<string> Items { set { } }")]
+    [InlineData("public static IEnumerable<string> Items { private get => new[] { \"a\" }; set { } }")]
     public void MemberItemsWithoutUsableMember_ReportsDiagnostic(string member)
     {
         var result = GeneratorTestHelper.Run(Usings + $$"""
@@ -494,7 +496,7 @@ public class PromptBindableGeneratorTests
     }
 
     [Fact]
-    public void IndexerOnly_GeneratesNothing()
+    public void IndexerOnly_ReportsNoBindablePropertiesAndGeneratesNothing()
     {
         var result = GeneratorTestHelper.Run(Usings + """
             [PromptBindable]
@@ -509,7 +511,7 @@ public class PromptBindableGeneratorTests
             """);
 
         Assert.Empty(result.CompileErrors);
-        Assert.Empty(result.GeneratorDiagnostics);
+        Assert.Equal("SHARP014", Assert.Single(result.GeneratorDiagnostics).Id);
         Assert.Null(result.Source);
     }
 
@@ -883,6 +885,8 @@ public class PromptBindableGeneratorTests
             #pragma warning restore SHARP002
 
                 public string Name { get; init; } = "";
+
+                public string Other { get; set; } = "";
             }
             """;
 

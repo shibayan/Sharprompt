@@ -26,7 +26,7 @@ public static partial class Prompt
     {
         if (!ModelBinderRegistry.TryGetBinder<T>(out var binder))
         {
-            throw new InvalidOperationException($"No SourceGenerator-based binder is registered for type '{typeof(T).FullName}'. Apply [PromptBindable] attribute to the type.");
+            throw new InvalidOperationException($"No SourceGenerator-based binder is registered for type '{typeof(T).FullName}'. Apply [PromptBindable] attribute to the type. If it is already applied, check the SHARP warnings that the Sharprompt source generator reported for the type, such as SHARP014 when it has no bindable properties.");
         }
 
         cancellationToken.ThrowIfCancellationRequested();
