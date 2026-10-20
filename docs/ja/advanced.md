@@ -161,9 +161,56 @@ EnumMetadataRegistry.Register<DayOfWeek>(
 
 ### 型変換とカスタム型
 
-プロンプト入力の型変換は `TypeDescriptor` コンバーターを利用しています。組み込みの標準コンバーター（`string`、数値型、`bool`、`char`、`Guid`、`DateTime`、enum、およびこれらの Nullable）は Native AOT 環境でも完全に保持されます。
+`Input` と `List` は、入力されたテキストを `TypeDescriptor` のコンバーターで変換します。変換には常にインバリアントカルチャを使います。デフォルト値のヒント、<kbd>Tab</kbd> で挿入されるテキスト、回答の表示も同じ形式で書式化されるため、プロンプトに表示された値はそのまま入力し直せます。たとえば `1.5` は、現在のカルチャが `1,5` と書式化する場合でも `1.5` と表示されます。
 
-`[TypeConverter]` 属性を持つ独自のカスタム型を使用する場合は、トリミングによってコンバーター型が削除されないよう、アプリケーション側で型を保持する設定（`[DynamicallyAccessedMembers]` やトリマー記述ファイルなど）を行ってください。
+次の型（およびその `Nullable<T>`）をサポートしています。いずれも、Sharprompt パッケージを参照する Native AOT アプリケーションを CI で発行・実行して検証しています。
+
+| 分類 | 型 |
+| --- | --- |
+| テキスト | `string`、`char` |
+| 真偽値 | `bool` |
+| 整数 | `byte`、`sbyte`、`short`、`ushort`、`int`、`uint`、`long`、`ulong`、`Int128` |
+| 浮動小数点数 | `Half`、`float`、`double`、`decimal` |
+| 日付と時刻 | `DateTime`、`DateTimeOffset`、`DateOnly`、`TimeOnly`、`TimeSpan` |
+| その他 | `Guid`、`Uri`、`Version`、enum |
+
+enum の入力では、メンバー名（大文字と小文字を区別しない）と数値を受け付けます。
+
+#### カスタム型
+
+独自の型を使う場合は、`[TypeConverter]` 属性を付け、`string` との相互変換を実装します。
+
+```csharp
+[TypeConverter(typeof(TemperatureConverter))]
+public readonly record struct Temperature(double Celsius);
+
+public sealed class TemperatureConverter : TypeConverter
+{
+    public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
+        => sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
+
+    public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+        => value is string text && text.EndsWith('C')
+            ? new Temperature(double.Parse(text[..^1], culture))
+            : base.ConvertFrom(context, culture, value);
+
+    public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
+        => value is Temperature temperature && destinationType == typeof(string)
+            ? temperature.Celsius.ToString(culture) + "C"
+            : base.ConvertTo(context, culture, value, destinationType);
+}
+
+var temperature = Prompt.Input<Temperature>("Target temperature");
+```
+
+Sharprompt は `culture` に `CultureInfo.InvariantCulture` を渡します。デフォルト値や回答を `ConvertFrom` が受け付ける形式で表示できるよう、`ConvertTo` も実装してください。
+
+Native AOT では、`[TypeConverter]` が指定するコンバーターのコンストラクターが保持されます。アプリケーション内と、トリミング対象のライブラリ内で宣言したカスタムコンバーターの両方を CI で検証しています。ただし、この参照が安全であることはトリミング解析では一般には証明できないため、Sharprompt はその警告を 1 か所で抑制しています。お使いのコンバーターは、発行したアプリケーションでも確認してください。
+
+**制限事項**
+
+- `TypeConverter` を持たない型は、`IParsable<T>` を実装していても変換できません（`BigInteger` など）。これらの型への入力はエラーメッセージを表示して拒否されます。
+- 変換には常にインバリアントカルチャを使います。カルチャ固有の形式で入力を受け付けたい場合は、カスタムコンバーターで変換するか、`string` で入力を受け取ってから解析してください。
 
 ### キャンセル
 

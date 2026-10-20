@@ -4,7 +4,7 @@ using System.Threading;
 
 using Sharprompt;
 using Sharprompt.NativeAot;
-using Sharprompt.NativeAot.ExternalEnums;
+using Sharprompt.NativeAot.External;
 
 // Fix the culture so the assertions do not depend on the machine running them.
 CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
@@ -14,20 +14,38 @@ Prompt.ThrowExceptionOnCancel = true;
 
 var runner = new ScenarioRunner();
 
-// Input: conversion of typed text goes through TypeDescriptor converters.
+// Input: typed text is converted through TypeDescriptor converters with the invariant culture.
+// These are the types the documentation lists as supported.
 InputConverts("string", "Sharprompt", "Sharprompt");
-InputConverts("int", "42", 42);
-InputConverts("long?", "9000000000", (long?)9_000_000_000);
-InputConverts("double", "1.5", 1.5);
-InputConverts("decimal", "0.1", 0.1m);
 InputConverts("bool", "true", true);
 InputConverts("char", "x", 'x');
+InputConverts("byte", "255", (byte)255);
+InputConverts("sbyte", "-128", (sbyte)-128);
+InputConverts("short", "-3", (short)-3);
+InputConverts("ushort", "3", (ushort)3);
+InputConverts("int", "42", 42);
+InputConverts("uint", "3", 3u);
+InputConverts("long?", "9000000000", (long?)9_000_000_000);
+InputConverts("ulong", "18446744073709551615", ulong.MaxValue);
+InputConverts("Int128", "170141183460469231731687303715884105727", Int128.MaxValue);
+InputConverts("Half", "1.5", (Half)1.5);
+InputConverts("float", "1.25", 1.25f);
+InputConverts("double", "1.5", 1.5);
+InputConverts("decimal", "0.1", 0.1m);
 InputConverts("Guid", "8f2c1b9e-3d4a-4e5f-9a6b-7c8d9e0f1a2b", new Guid("8f2c1b9e-3d4a-4e5f-9a6b-7c8d9e0f1a2b"));
 InputConverts("DateTime", "2026-10-21T09:30:00", new DateTime(2026, 10, 21, 9, 30, 0));
 InputConverts("DateTimeOffset", "2026-10-21T09:30:00+09:00", new DateTimeOffset(2026, 10, 21, 9, 30, 0, TimeSpan.FromHours(9)));
+InputConverts("DateOnly", "2026-10-21", new DateOnly(2026, 10, 21));
+InputConverts("TimeOnly", "09:30", new TimeOnly(9, 30));
 InputConverts("TimeSpan", "01:02:03", new TimeSpan(1, 2, 3));
+InputConverts("Uri", "https://example.com/", new Uri("https://example.com/"));
+InputConverts("Version", "1.2.3", new Version(1, 2, 3));
 InputConverts("LocalPriority", "High", LocalPriority.High);
 InputConverts("ExternalPriority", "Medium", ExternalPriority.Medium);
+
+// Custom types rely on the converter named by [TypeConverter], in the app and in a trimmable library.
+InputConverts("Temperature", "21.5C", new Temperature(21.5));
+InputConverts("ExternalTemperature", "3C", new ExternalTemperature(3));
 
 runner.Run("Input<int?> returns null for empty input", driver =>
 {
@@ -52,10 +70,38 @@ runner.Run("Input<int> returns the default value on Enter", driver =>
 });
 
 // Tab inserts the default value as text, so formatting and parsing it again must round-trip.
-EditsDefaultValue("double", 1.5);
+EditsDefaultValue("float", 0.1f);
+EditsDefaultValue("double", 0.1 + 0.2);
 EditsDefaultValue("decimal", 12.34m);
 EditsDefaultValue("DateTime", new DateTime(2026, 10, 21, 9, 30, 0));
+EditsDefaultValue("DateTimeOffset", new DateTimeOffset(2026, 10, 21, 9, 30, 0, TimeSpan.FromHours(9)));
+EditsDefaultValue("DateOnly", new DateOnly(2026, 10, 21));
+EditsDefaultValue("TimeSpan", new TimeSpan(1, 2, 3));
 EditsDefaultValue("LocalPriority", LocalPriority.Medium);
+EditsDefaultValue("Temperature", new Temperature(21.5));
+EditsDefaultValue("ExternalTemperature", new ExternalTemperature(3));
+
+runner.Run("Input<double> shows the default value and answer in the format it parses", driver =>
+{
+    var culture = CultureInfo.CurrentCulture;
+
+    // de-DE formats 1.5 as "1,5", which input parsing (invariant culture) would not accept.
+    CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+
+    try
+    {
+        driver.Enter();
+
+        Check.Equal(1.5, Prompt.Input<double>("Value", defaultValue: 1.5));
+        Check.Contains("(1.5)", driver.Output);
+        Check.Contains("Value: 1.5", driver.Output);
+        Check.DoesNotContain("1,5", driver.Output);
+    }
+    finally
+    {
+        CultureInfo.CurrentCulture = culture;
+    }
+});
 
 runner.Run("Input runs Validators.Required", driver =>
 {

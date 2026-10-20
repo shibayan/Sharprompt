@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <!-- Does not reference Sharprompt, so the source generator never sees these enums and they go through the reflection fallback. -->
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <IsAotCompatible>true</IsAotCompatible>
-  </PropertyGroup>
-
-</Project>

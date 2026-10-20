@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-using Sharprompt.NativeAot.ExternalEnums;
+using Sharprompt.NativeAot.External;
 
 namespace Sharprompt.NativeAot;
 

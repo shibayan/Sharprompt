@@ -26,9 +26,10 @@ internal class InputForm<T> : TextFormBase<T>
     {
         offscreenBuffer.WritePrompt(_options.Message);
 
+        // Show the default value in the same invariant format that Tab inserts and Enter parses.
         // A default value that renders as empty text (e.g. "") is still used on Enter,
         // but showing it would only print empty parentheses.
-        var defaultValueText = _defaultValue.HasValue ? _defaultValue.Value?.ToString() : null;
+        var defaultValueText = _defaultValue.HasValue && _defaultValue.Value is not null ? TypeHelper<T>.ConvertToString(_defaultValue.Value) : null;
 
         if (!string.IsNullOrEmpty(defaultValueText))
         {
@@ -50,7 +51,7 @@ internal class InputForm<T> : TextFormBase<T>
 
         if (result is not null)
         {
-            offscreenBuffer.WriteAnswer(result.ToString()!);
+            offscreenBuffer.WriteAnswer(TypeHelper<T>.ConvertToString(result));
         }
     }
 

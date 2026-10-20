@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 using Sharprompt.Internal;
 using Sharprompt.Strings;
@@ -31,14 +32,14 @@ internal class ListForm<T> : TextFormBase<IEnumerable<T>> where T : notnull
         foreach (var inputItem in _inputItems)
         {
             offscreenBuffer.WriteLine();
-            offscreenBuffer.Write($"  {inputItem}");
+            offscreenBuffer.Write($"  {TypeHelper<T>.ConvertToString(inputItem)}");
         }
     }
 
     protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, IEnumerable<T> result)
     {
         offscreenBuffer.WriteDone(_options.Message);
-        offscreenBuffer.WriteAnswer(string.Join(", ", result));
+        offscreenBuffer.WriteAnswer(string.Join(", ", result.Select(TypeHelper<T>.ConvertToString)));
     }
 
     protected override bool HandleEnter([NotNullWhen(true)] out IEnumerable<T>? result)

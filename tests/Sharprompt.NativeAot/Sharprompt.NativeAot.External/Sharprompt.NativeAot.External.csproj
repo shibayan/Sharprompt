@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Does not reference Sharprompt, so the source generator never sees these types: enums go through the reflection fallback, and custom types rely on their [TypeConverter] in a trimmable library. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+</Project>

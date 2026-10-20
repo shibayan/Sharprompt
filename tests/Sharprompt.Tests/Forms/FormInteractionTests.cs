@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Threading;
 
@@ -517,6 +518,108 @@ public class FormInteractionTests
         {
             CultureInfo.CurrentCulture = previousCulture;
         }
+    }
+
+    [Fact]
+    public void InputForm_DefaultValueAndAnswer_UseInvariantFormatUnderNonInvariantCulture()
+    {
+        var previousCulture = CultureInfo.CurrentCulture;
+
+        try
+        {
+            // The hint and the answer must show text that can be typed back as input,
+            // which is parsed with the invariant culture.
+            CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+
+            var (driver, configuration) = CreateTestContext();
+
+            driver.EnqueueEnter();
+
+            var options = new InputOptions<double>
+            {
+                Message = "message",
+                DefaultValue = 1.5
+            };
+
+            using var form = new InputForm<double>(options, configuration);
+
+            Assert.Equal(1.5, form.Start());
+            Assert.Contains("(1.5)", driver.Output);
+            Assert.Contains("message: 1.5", driver.Output);
+            Assert.DoesNotContain("1,5", driver.Output);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previousCulture;
+        }
+    }
+
+    [Fact]
+    public void InputForm_CustomTypeConverter_ConvertsInputAndDefaultValue()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("30C");
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<Temperature>
+        {
+            Message = "message",
+            DefaultValue = new Temperature(21)
+        };
+
+        using var form = new InputForm<Temperature>(options, configuration);
+
+        Assert.Equal(new Temperature(30), form.Start());
+        Assert.Contains("(21C)", driver.Output);
+        Assert.Contains("message: 30C", driver.Output);
+    }
+
+    [Fact]
+    public void ListForm_Items_UseInvariantFormatUnderNonInvariantCulture()
+    {
+        var previousCulture = CultureInfo.CurrentCulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+
+            var (driver, configuration) = CreateTestContext();
+
+            driver.EnqueueText("1.5");
+            driver.EnqueueEnter();
+            driver.EnqueueEnter();
+
+            var options = new ListOptions<double>
+            {
+                Message = "message"
+            };
+
+            using var form = new ListForm<double>(options, configuration);
+
+            Assert.Equal(new[] { 1.5 }, form.Start());
+            Assert.Contains("  1.5", driver.Output);
+            Assert.Contains("message: 1.5", driver.Output);
+            Assert.DoesNotContain("1,5", driver.Output);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previousCulture;
+        }
+    }
+
+    [TypeConverter(typeof(TemperatureConverter))]
+    private readonly record struct Temperature(double Celsius);
+
+    private sealed class TemperatureConverter : TypeConverter
+    {
+        public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType) => sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
+
+        public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+            => value is string text && text.EndsWith('C') ? new Temperature(double.Parse(text[..^1], culture)) : base.ConvertFrom(context, culture, value);
+
+        public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
+            => value is Temperature temperature && destinationType == typeof(string) ? temperature.Celsius.ToString(culture) + "C" : base.ConvertTo(context, culture, value, destinationType);
     }
 
     [Fact]
