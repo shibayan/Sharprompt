@@ -308,6 +308,12 @@ public class EnumMetadataGeneratorTests
     [InlineData("public static class Strings { public static int Low => 1; }")]
     [InlineData("public class Strings { public string Low => \"Low\"; }")]
     [InlineData("public static class Strings { }")]
+    [InlineData("public static class Strings { [Obsolete(\"Old\", true)] public static string Low => \"Low\"; }")]
+    [InlineData("public static class Strings { [Obsolete(\"Old\")] public static string Low => \"Low\"; }")]
+    [InlineData("public static class Strings { private static string s_low = \"Low\"; public static ref string Low => ref s_low; }")]
+    [InlineData("public static class Strings { private static string s_low = \"Low\"; public static ref readonly string Low => ref s_low; }")]
+    [InlineData("public interface Strings { static abstract string Low { get; } }")]
+    [InlineData("public interface Strings { static virtual string Low => \"Low\"; }")]
     public void UnusableResourceProperty_LeavesEnumToFallback(string resourceType)
     {
         var result = GeneratorTestHelper.Run(Usings + resourceType + """
@@ -322,6 +328,27 @@ public class EnumMetadataGeneratorTests
         Assert.Empty(result.GeneratorDiagnostics);
         Assert.Empty(result.CompileErrors);
         Assert.Null(result.Source);
+    }
+
+    // A resource type that is not a named type has no resource property, so GetName throws for it,
+    // while a null ResourceType means no resource at all.
+    [Theory]
+    [InlineData("typeof(string[])", false)]
+    [InlineData("typeof(int*)", false)]
+    [InlineData("null", true)]
+    public void NonNamedResourceType_LeavesEnumToFallback(string resourceType, bool generated)
+    {
+        var result = GeneratorTestHelper.Run(Usings + $$"""
+            public enum Sample
+            {
+                [Display(Name = "Low", ResourceType = {{resourceType}})]
+                Low
+            }
+            """, new EnumMetadataGenerator());
+
+        Assert.Empty(result.GeneratorDiagnostics);
+        Assert.Empty(result.CompileErrors);
+        Assert.Equal(generated, result.Source is not null);
     }
 
     [Fact]

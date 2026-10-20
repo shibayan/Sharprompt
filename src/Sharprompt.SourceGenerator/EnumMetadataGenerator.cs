@@ -187,7 +187,7 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
     private static EnumMemberMetadata? AnalyzeMember(IFieldSymbol field, int index)
     {
         string? displayName = null;
-        INamedTypeSymbol? resourceType = null;
+        ITypeSymbol? resourceType = null;
         int? order = null;
 
         var displayAttribute = field.GetAttributes()
@@ -205,8 +205,9 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
                 {
                     order = value;
                 }
-                else if (namedArgument.Key == "ResourceType" && namedArgument.Value.Value is INamedTypeSymbol type)
+                else if (namedArgument.Key == "ResourceType" && namedArgument.Value.Value is ITypeSymbol type)
                 {
+                    // Any non-null type counts, including arrays and pointers, for which GetName throws.
                     resourceType = type;
                 }
             }
@@ -220,7 +221,7 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
 
         // With one, Name is a property of the resource type, which DisplayAttribute.GetName reads on every call,
         // so the current UI culture applies. Read the same property each time an item is shown.
-        var resourceProperty = GetResourceProperty(resourceType, displayName);
+        var resourceProperty = resourceType is INamedTypeSymbol namedResourceType ? GetResourceProperty(namedResourceType, displayName) : null;
 
         if (resourceProperty is null)
         {
@@ -233,7 +234,10 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
     }
 
     // DisplayAttribute only accepts a public static string property with a public getter on a public resource type.
-    // Anything else (a missing or inaccessible property, which makes GetName throw) is left to the fallback.
+    // Anything else (a missing or inaccessible property, which makes GetName throw) is left to the fallback, and so
+    // are properties that reflection can read but the generated code should not name directly: ref returns (whose
+    // reflected type is string&, which GetName rejects), static abstract or virtual interface members (CS8926), and
+    // obsolete properties (CS0619, or a warning that fails a warnings-as-errors build).
     private static IPropertySymbol? GetResourceProperty(INamedTypeSymbol resourceType, string name)
     {
         for (var current = resourceType; current != null; current = current.ContainingType)
@@ -246,7 +250,8 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
 
         return resourceType.GetMembers(name)
             .OfType<IPropertySymbol>()
-            .FirstOrDefault(property => property is { IsStatic: true, IsIndexer: false, DeclaredAccessibility: Accessibility.Public, GetMethod.DeclaredAccessibility: Accessibility.Public, Type.SpecialType: SpecialType.System_String });
+            .FirstOrDefault(property => property is { IsStatic: true, IsIndexer: false, IsAbstract: false, IsVirtual: false, ReturnsByRef: false, ReturnsByRefReadonly: false, DeclaredAccessibility: Accessibility.Public, GetMethod.DeclaredAccessibility: Accessibility.Public, Type.SpecialType: SpecialType.System_String } &&
+                                        !property.GetAttributes().Any(attribute => attribute.AttributeClass?.ToDisplayString() == "System.ObsoleteAttribute"));
     }
 
     private static string EscapeIdentifier(string name)
