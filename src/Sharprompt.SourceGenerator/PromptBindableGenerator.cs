@@ -774,10 +774,11 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             return false;
         }
 
-        // A boxed value unboxes into Nullable<T> of its own type too, so 1 is a valid int? item (but 1L is not).
+        // Unboxing into Nullable<T> requires a boxed T exactly: 1 is a valid int? item, but 1L,
+        // an enum member or an int for an enum? item throw at runtime.
         if (itemType is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } nullableType)
         {
-            itemType = nullableType.TypeArguments[0];
+            return SymbolEqualityComparer.Default.Equals(value.Type, nullableType.TypeArguments[0]);
         }
 
         var conversion = compilation.ClassifyConversion(value.Type, itemType);
@@ -787,12 +788,12 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             return true;
         }
 
-        // The runtime also unboxes an enum as its underlying type and the other way around, so 0 is a valid
-        // item for an int-based enum, and an enum member for its underlying integer type (but not wider ones).
-        return SymbolEqualityComparer.Default.Equals(GetEnumUnderlyingTypeOrSelf(value.Type), GetEnumUnderlyingTypeOrSelf(itemType)) &&
-               (value.Type.TypeKind == TypeKind.Enum) != (itemType.TypeKind == TypeKind.Enum);
+        // Unboxing into a non-nullable value type only compares underlying types for enums, so an enum
+        // member, its underlying integer and a member of another enum with that underlying type are all
+        // interchangeable (but a wider integer, such as 0L for an int-based enum, is not).
+        return (value.Type.TypeKind == TypeKind.Enum || itemType.TypeKind == TypeKind.Enum) &&
+               SymbolEqualityComparer.Default.Equals(GetEnumUnderlyingTypeOrSelf(value.Type), GetEnumUnderlyingTypeOrSelf(itemType));
     }
-
     private static ITypeSymbol GetEnumUnderlyingTypeOrSelf(ITypeSymbol type)
     {
         return type is INamedTypeSymbol { EnumUnderlyingType: { } underlyingType } ? underlyingType : type;

@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 using Microsoft.CodeAnalysis;
@@ -24,6 +26,8 @@ public class PromptBindableDiagnosticsTests
         namespace TestApp;
 
         public enum MyEnum { A, B, C }
+
+        public enum OtherEnum { X, Y, Z }
 
         """;
 
@@ -81,14 +85,17 @@ public class PromptBindableDiagnosticsTests
     }
 
     [Theory]
-    [InlineData("int", "\"a\", \"b\"", "\"a\" of type 'string'")]
-    [InlineData("long", "1, 2", "1 of type 'int'")]
-    [InlineData("int", "1, null", "null")]
-    [InlineData("MyEnum", "0L", "0 of type 'long'")]
-    [InlineData("long", "MyEnum.A", "TestApp.MyEnum.A of type 'TestApp.MyEnum'")]
-    [InlineData("List<int>", "1, \"b\"", "\"b\" of type 'string'")]
-    [InlineData("List<int?>", "1L, 2L", "1 of type 'long'")]
-    public void InlineItemsWithIncompatibleValue_ReportsDiagnosticAndIgnoresItems(string propertyType, string items, string invalidValue)
+    [InlineData("int", "\"a\", \"b\"", "\"a\" of type 'string'", "int")]
+    [InlineData("long", "1, 2", "1 of type 'int'", "long")]
+    [InlineData("int", "1, null", "null", "int")]
+    [InlineData("MyEnum", "0L", "0 of type 'long'", "TestApp.MyEnum")]
+    [InlineData("long", "MyEnum.A", "TestApp.MyEnum.A of type 'TestApp.MyEnum'", "long")]
+    [InlineData("List<int?>", "MyEnum.A", "TestApp.MyEnum.A of type 'TestApp.MyEnum'", "int?")]
+    [InlineData("List<MyEnum?>", "0", "0 of type 'int'", "TestApp.MyEnum?")]
+    [InlineData("OtherEnum?[]", "MyEnum.A", "TestApp.MyEnum.A of type 'TestApp.MyEnum'", "TestApp.OtherEnum?")]
+    [InlineData("List<int>", "1, \"b\"", "\"b\" of type 'string'", "int")]
+    [InlineData("List<int?>", "1L, 2L", "1 of type 'long'", "int?")]
+    public void InlineItemsWithIncompatibleValue_ReportsDiagnosticAndIgnoresItems(string propertyType, string items, string invalidValue, string castType)
     {
         var result = GeneratorTestHelper.Run(Usings + $$"""
             [PromptBindable]
@@ -106,6 +113,10 @@ public class PromptBindableDiagnosticsTests
         Assert.Equal($"InlineItems({items})", result.GetLocationText(diagnostic));
         Assert.StartsWith($"The value {invalidValue} in [InlineItems]", diagnostic.GetMessage(CultureInfo.InvariantCulture));
         Assert.DoesNotContain("options.Items", source);
+
+        // The items expression the binder would have emitted really does fail at runtime.
+        var exception = Assert.ThrowsAny<TargetInvocationException>(() => result.Evaluate($"return System.Linq.Enumerable.ToList(System.Linq.Enumerable.Cast<{castType}>(new object[] {{ {items.Replace("MyEnum.", "TestApp.MyEnum.")} }}));"));
+        Assert.True(exception.InnerException is InvalidCastException or NullReferenceException, exception.InnerException?.ToString());
     }
 
     [Theory]
@@ -120,6 +131,9 @@ public class PromptBindableDiagnosticsTests
     [InlineData("List<MyEnum>", "0, MyEnum.B")]
     [InlineData("int", "MyEnum.A, MyEnum.C")]
     [InlineData("int?", "MyEnum.B")]
+    [InlineData("OtherEnum", "MyEnum.A, MyEnum.B")]
+    [InlineData("List<OtherEnum>", "MyEnum.C")]
+    [InlineData("List<MyEnum?>", "MyEnum.A")]
     public void InlineItemsWithCompatibleValues_GeneratesItems(string propertyType, string items)
     {
         var result = GeneratorTestHelper.Run(Usings + $$"""
