@@ -38,21 +38,73 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
             return null;
         }
 
+        // Enums the generated code cannot name are left to EnumMetadataRegistry.CreateFallbackMetadata.
+        if (!IsReferenceable(enumSymbol))
+        {
+            return null;
+        }
+
         var source = GenerateSource(enumSymbol);
         if (source.Length == 0)
         {
             return null;
         }
 
-        var hintName = enumSymbol.ToDisplayString()
-            .Replace('<', '_')
-            .Replace('>', '_')
-            .Replace(',', '_')
-            .Replace(' ', '_')
-            .Replace('.', '_')
-            + ".EnumMetadata.g.cs";
+        return new EnumMetadataResult(CreateHintName(enumSymbol), source);
+    }
 
-        return new EnumMetadataResult(hintName, source);
+    private static bool IsReferenceable(INamedTypeSymbol enumSymbol)
+    {
+        // The generated top-level file class can only name a type that is accessible from anywhere in the
+        // assembly, is not file-local to another file, and has no type parameter in scope (the open
+        // generic type parameters of an enclosing type cannot be supplied).
+        for (var type = enumSymbol; type is not null; type = type.ContainingType)
+        {
+            if (type.DeclaredAccessibility is not (Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal))
+            {
+                return false;
+            }
+
+            if (type.IsFileLocal || type.TypeParameters.Length > 0)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static string CreateHintName(INamedTypeSymbol enumSymbol)
+    {
+        // Namespaces are joined with '.' and nested types with '+', neither of which can appear in an
+        // identifier, so distinct enums get distinct names. Hint names are compared case-insensitively,
+        // so a hash of the case-sensitive name tells apart enums that differ only in case.
+        var name = enumSymbol.MetadataName;
+
+        for (var type = enumSymbol.ContainingType; type is not null; type = type.ContainingType)
+        {
+            name = type.MetadataName + "+" + name;
+        }
+
+        for (var ns = enumSymbol.ContainingNamespace; ns is { IsGlobalNamespace: false }; ns = ns.ContainingNamespace)
+        {
+            name = ns.MetadataName + "." + name;
+        }
+
+        return name + "." + ComputeStableHash(name).ToString("x16", CultureInfo.InvariantCulture) + ".EnumMetadata.g.cs";
+    }
+
+    private static ulong ComputeStableHash(string text)
+    {
+        // 64-bit FNV-1a; string.GetHashCode is randomized per process, so it cannot be used for hint names.
+        var hash = 14695981039346656037UL;
+
+        foreach (var c in text)
+        {
+            hash = (hash ^ c) * 1099511628211UL;
+        }
+
+        return hash;
     }
 
     private static string GenerateSource(INamedTypeSymbol enumSymbol)
