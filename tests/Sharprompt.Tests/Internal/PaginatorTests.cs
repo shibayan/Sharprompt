@@ -381,4 +381,24 @@ public class PaginatorTests
 
         Assert.False(selected);
     }
+
+    [Fact]
+    public void EmptyItems_HasSingleEmptyPage()
+    {
+        var paginator = new Paginator<string>([], 5, Optional<string>.Empty, x => x);
+
+        Assert.Equal(1, paginator.PageCount);
+        Assert.Equal(0, paginator.Count);
+        Assert.True(paginator.CurrentItems.IsEmpty);
+
+        paginator.NextItem();
+        paginator.PreviousItem();
+        paginator.NextPage();
+        paginator.PreviousPage();
+        paginator.UpdatePageSize(10);
+        paginator.UpdateFilter("x");
+
+        Assert.Equal(1, paginator.PageCount);
+        Assert.False(paginator.TryGetSelectedItem(out _));
+    }
 }

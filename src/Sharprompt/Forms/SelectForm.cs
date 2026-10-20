@@ -15,7 +15,7 @@ internal class SelectForm<T> : SelectFormBase<T, T> where T : notnull
 
         _options = options;
 
-        InitializePaginator(options.Items, options.PageSize, Optional<T>.Create(options.DefaultValue), options.TextSelector, options.LoopingSelection);
+        InitializePaginator(options.Items, options.PageSize, Optional<T>.Create(options.DefaultValue, nameof(options.DefaultValue)), options.TextSelector, options.LoopingSelection);
     }
 
     private readonly SelectOptions<T> _options;
