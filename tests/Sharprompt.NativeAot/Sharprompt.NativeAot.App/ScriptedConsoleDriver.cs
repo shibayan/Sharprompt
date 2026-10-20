@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 using Sharprompt.Drivers;
 
@@ -80,6 +81,14 @@ internal sealed class ScriptedConsoleDriver : IConsoleDriver
     public ConsoleKeyInfo ReadKey()
         => _keys.Count > 0 ? _keys.Dequeue() : throw new VerificationException("No more scripted keys. The prompt is still waiting for input.");
 
+    // The default implementation polls KeyAvailable, which is always false here.
+    public ConsoleKeyInfo ReadKey(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return ReadKey();
+    }
+
     public void Write(string value, ConsoleColor color)
     {
         _output.Append(value);
@@ -102,7 +111,10 @@ internal sealed class ScriptedConsoleDriver : IConsoleDriver
         _cursorTop = top;
     }
 
-    public bool KeyAvailable => _keys.Count > 0;
+    // Forms keep reading while a key is available and render only afterwards. Reporting none
+    // makes them render after every key, as with interactive typing, so the output includes
+    // every intermediate state (such as a masked password before Enter).
+    public bool KeyAvailable => false;
 
     public bool CursorVisible { set { } }
 

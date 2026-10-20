@@ -70,6 +70,8 @@ runner.Run("Password masks the typed text", driver =>
     driver.Type("hunter2").Enter();
 
     Check.Equal("hunter2", Prompt.Password("Password"));
+    // The input template ("?") with the whole password typed; the finished answer ("✔") is masked as well.
+    Check.Contains("? Password: *******", driver.Output);
     Check.DoesNotContain("hunter2", driver.Output);
 });
 
@@ -145,6 +147,7 @@ runner.Run("Bind<SignupModel> uses the generated binder and validation attribute
     Check.Equal(true, model.Subscribe);
     Check.Contains("The Name field is required.", driver.Output);
     Check.Contains("The field Age must be between 0 and 150.", driver.Output);
+    Check.Contains("? Secret: *******", driver.Output);
     Check.DoesNotContain("hunter2", driver.Output);
 });
 

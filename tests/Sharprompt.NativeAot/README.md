@@ -13,7 +13,7 @@ The `native-aot` job in [build.yml](../../.github/workflows/build.yml) runs it o
    - [nuget.config](nuget.config) maps the `Sharprompt` package ID to the local folder only, so the published version on nuget.org is never used by mistake.
    - `TreatWarningsAsErrors` and `TrimmerSingleWarn=false` fail the publish on any trim or AOT warning, including warnings inside the Sharprompt package.
 3. Checks the generated sources to confirm that the packaged source generators ran in the consuming project.
-4. Runs the native binary. A scripted `IConsoleDriver` replays key presses, and the process exits with a non-zero code when any scenario fails.
+4. Runs the native binary. A scripted `IConsoleDriver` replays key presses one at a time, so the prompt renders after every key as it does with interactive typing. The process exits with a non-zero code when any scenario fails.
 
 ## Coverage
 
@@ -31,7 +31,7 @@ CI runs on `ubuntu-latest` (`linux-x64`), `windows-latest` (`win-x64`), and `mac
 
 ## Running locally
 
-Install the [Native AOT prerequisites](https://learn.microsoft.com/dotnet/core/deploying/native-aot/#prerequisites) for your platform and PowerShell 7.3 or later, then run from the repository root:
+Install the [Native AOT prerequisites](https://learn.microsoft.com/dotnet/core/deploying/native-aot/#prerequisites) for your platform and PowerShell 7.4 or later, then run from the repository root:
 
 ```sh
 pwsh ./tests/Sharprompt.NativeAot/verify.ps1

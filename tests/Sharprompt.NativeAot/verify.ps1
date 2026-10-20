@@ -1,4 +1,6 @@
-#Requires -Version 7.3
+# 7.4 is the first version where $PSNativeCommandUseErrorActionPreference is not experimental,
+# so a failing dotnet or native binary run stops the script.
+#Requires -Version 7.4
 
 <#
 .SYNOPSIS
