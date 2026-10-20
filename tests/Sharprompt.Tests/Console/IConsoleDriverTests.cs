@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 using Sharprompt.Drivers;
 
@@ -45,6 +46,79 @@ public class IConsoleDriverTests
         var driver = new RecordingConsoleDriver { ReadKeyResult = expected };
 
         var result = ((IConsoleDriver)driver).ReadKey();
+
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void ReadKeyWithToken_DefaultImplementation_TokenNotCanceled_ReturnsQueuedKey()
+    {
+        var fakeDriver = new FakeConsoleDriver();
+        IConsoleDriver driver = fakeDriver;
+
+        fakeDriver.EnqueueText("a");
+
+        using var cts = new CancellationTokenSource();
+
+        var result = driver.ReadKey(cts.Token);
+
+        Assert.Equal('a', result.KeyChar);
+        Assert.False(driver.KeyAvailable);
+    }
+
+    [Fact]
+    public void ReadKeyWithToken_DefaultImplementation_CanceledWhileWaiting_ThrowsOperationCanceledException()
+    {
+        var fakeDriver = new FakeConsoleDriver();
+        IConsoleDriver driver = fakeDriver;
+
+        using var cts = new CancellationTokenSource();
+
+        // Cancel once the default implementation polls KeyAvailable and finds no queued keys.
+        fakeDriver.KeysExhausted = cts.Cancel;
+
+        var exception = Assert.Throws<OperationCanceledException>(() => driver.ReadKey(cts.Token));
+
+        Assert.Equal(cts.Token, exception.CancellationToken);
+    }
+
+    [Fact]
+    public void ReadKeyWithToken_DefaultImplementation_AlreadyCanceled_ThrowsWithoutReadingKey()
+    {
+        var fakeDriver = new FakeConsoleDriver();
+        IConsoleDriver driver = fakeDriver;
+
+        fakeDriver.EnqueueText("a");
+
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var exception = Assert.Throws<OperationCanceledException>(() => driver.ReadKey(cts.Token));
+
+        Assert.Equal(cts.Token, exception.CancellationToken);
+        Assert.True(driver.KeyAvailable);
+    }
+
+    [Fact]
+    public void ReadKeyWithToken_DefaultImplementation_UncancelableToken_ReturnsQueuedKey()
+    {
+        var fakeDriver = new FakeConsoleDriver();
+        IConsoleDriver driver = fakeDriver;
+
+        fakeDriver.EnqueueText("a");
+
+        var result = driver.ReadKey(CancellationToken.None);
+
+        Assert.Equal('a', result.KeyChar);
+    }
+
+    [Fact]
+    public void ReadKeyWithToken_DefaultImplementation_UncancelableToken_DoesNotRequireKeyAvailable()
+    {
+        var expected = new ConsoleKeyInfo('A', ConsoleKey.A, false, false, false);
+        var driver = new RecordingConsoleDriver { ReadKeyResult = expected, KeyAvailableValue = false };
+
+        var result = ((IConsoleDriver)driver).ReadKey(CancellationToken.None);
 
         Assert.Equal(expected, result);
     }

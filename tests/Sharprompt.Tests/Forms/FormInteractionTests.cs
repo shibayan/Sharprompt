@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Threading;
 
 using Sharprompt.Forms;
+using Sharprompt.Strings;
 
 using Xunit;
 
@@ -728,6 +729,7 @@ public class FormInteractionTests
         var exception = Assert.Throws<OperationCanceledException>(() => form.Start(cts.Token));
 
         Assert.Equal(cts.Token, exception.CancellationToken);
+        Assert.Equal(Resource.Message_PromptCanceled, exception.Message);
         Assert.False(driver.KeyAvailable);
         Assert.Contains("abc", driver.Output);
     }
@@ -745,6 +747,67 @@ public class FormInteractionTests
         using var form = new InputForm<string>(new InputOptions<string> { Message = "message" }, configuration);
 
         Assert.Equal("abc", form.Start(cts.Token));
+    }
+
+    [Fact]
+    public void DriverOverridingReadKeyWithToken_CancelableToken_ReturnsResultWithoutKeyAvailable()
+    {
+        var driver = new CancelableConsoleDriver();
+        var configuration = new PromptConfiguration { ThrowExceptionOnCancel = true, ConsoleDriverFactory = () => driver };
+
+        driver.Inner.EnqueueText("abc");
+        driver.Inner.EnqueueEnter();
+
+        using var cts = new CancellationTokenSource();
+
+        using var form = new InputForm<string>(new InputOptions<string> { Message = "message" }, configuration);
+
+        Assert.Equal("abc", form.Start(cts.Token));
+        Assert.Equal(4, driver.ReadKeyWithTokenCount);
+    }
+
+    [Fact]
+    public void DriverOverridingReadKeyWithToken_CanceledWhileWaiting_CancelsFormAndThrows()
+    {
+        var driver = new CancelableConsoleDriver();
+        var configuration = new PromptConfiguration { ThrowExceptionOnCancel = true, ConsoleDriverFactory = () => driver };
+
+        driver.Inner.EnqueueText("abc");
+
+        using var cts = new CancellationTokenSource();
+
+        driver.Inner.KeysExhausted = cts.Cancel;
+
+        using var form = new InputForm<string>(new InputOptions<string> { Message = "message" }, configuration);
+
+        var exception = Assert.Throws<OperationCanceledException>(() => form.Start(cts.Token));
+
+        Assert.Equal(cts.Token, exception.CancellationToken);
+        Assert.Equal(Resource.Message_PromptCanceled, exception.Message);
+        Assert.IsType<OperationCanceledException>(exception.InnerException);
+        Assert.True(driver.ResetCalled);
+    }
+
+    [Fact]
+    public void DriverThrowsForDifferentToken_PropagatesExceptionUnchanged()
+    {
+        var driver = new CancelableConsoleDriver();
+        var configuration = new PromptConfiguration { ThrowExceptionOnCancel = true, ConsoleDriverFactory = () => driver };
+
+        using var cts = new CancellationTokenSource();
+        using var otherCts = new CancellationTokenSource();
+
+        var thrown = new OperationCanceledException(otherCts.Token);
+
+        driver.CanceledExceptionFactory = _ => thrown;
+        driver.Inner.KeysExhausted = cts.Cancel;
+
+        using var form = new InputForm<string>(new InputOptions<string> { Message = "message" }, configuration);
+
+        var exception = Assert.Throws<OperationCanceledException>(() => form.Start(cts.Token));
+
+        Assert.Same(thrown, exception);
+        Assert.False(driver.ResetCalled);
     }
 
     [Fact]

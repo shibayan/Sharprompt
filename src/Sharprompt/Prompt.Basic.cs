@@ -17,6 +17,8 @@ public static partial class Prompt
 
     public static T Input<T>(InputOptions<T> options, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         using var form = new InputForm<T>(options, s_configuration);
 
         return form.Start(cancellationToken);
@@ -55,6 +57,8 @@ public static partial class Prompt
 
     public static string Password(PasswordOptions options, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         using var form = new PasswordForm(options, s_configuration);
 
         return form.Start(cancellationToken);
@@ -93,6 +97,8 @@ public static partial class Prompt
 
     public static bool Confirm(ConfirmOptions options, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         using var form = new ConfirmForm(options, s_configuration);
 
         return form.Start(cancellationToken);
@@ -128,6 +134,8 @@ public static partial class Prompt
 
     public static T Select<T>(SelectOptions<T> options, CancellationToken cancellationToken) where T : notnull
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         using var form = new SelectForm<T>(options, s_configuration);
 
         return form.Start(cancellationToken);
@@ -175,6 +183,8 @@ public static partial class Prompt
 
     public static IEnumerable<T> MultiSelect<T>(MultiSelectOptions<T> options, CancellationToken cancellationToken) where T : notnull
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         using var form = new MultiSelectForm<T>(options, s_configuration);
 
         return form.Start(cancellationToken);
@@ -228,6 +238,8 @@ public static partial class Prompt
 
     public static IEnumerable<T> List<T>(ListOptions<T> options, CancellationToken cancellationToken) where T : notnull
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         using var form = new ListForm<T>(options, s_configuration);
 
         return form.Start(cancellationToken);
