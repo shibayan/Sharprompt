@@ -11,7 +11,7 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
     public Paginator(IEnumerable<T> items, int pageSize, Optional<T> defaultValue, Func<T, string> textSelector)
     {
         _items = items.ToArray();
-        _pageSize = pageSize <= 0 ? _items.Length : Math.Min(pageSize, _items.Length);
+        _pageSize = NormalizePageSize(pageSize);
         _textSelector = textSelector;
 
         InitializeDefaults(defaultValue);
@@ -141,7 +141,7 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
 
     public void UpdatePageSize(int newPageSize)
     {
-        newPageSize = newPageSize <= 0 ? _items.Length : Math.Min(newPageSize, _items.Length);
+        newPageSize = NormalizePageSize(newPageSize);
 
         if (_pageSize == newPageSize)
         {
@@ -158,6 +158,10 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
     public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_filteredItems).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    // Keep the page size at least 1 so an empty item list yields a single empty page
+    // instead of dividing by zero.
+    private int NormalizePageSize(int pageSize) => Math.Max(pageSize <= 0 ? _items.Length : Math.Min(pageSize, _items.Length), 1);
 
     private void UpdateFilteredItems()
     {
@@ -180,7 +184,7 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
             _filteredItems = filteredItems.ToArray();
         }
 
-        PageCount = (_filteredItems.Length - 1) / _pageSize + 1;
+        PageCount = Math.Max((_filteredItems.Length - 1) / _pageSize + 1, 1);
 
         if (CurrentPage >= PageCount)
         {
