@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 using Sharprompt.Drivers;
 
@@ -79,6 +80,52 @@ public class ConsoleDriverFactoryTests
             Prompt.ConsoleDriverFactory = originalFactory;
         }
     }
+
+    public static TheoryData<string, Action<CancellationToken>> PromptEntryPoints => new()
+    {
+        { nameof(Prompt.Input), token => Prompt.Input<string>(new InputOptions<string> { Message = "message" }, token) },
+        { nameof(Prompt.Password), token => Prompt.Password(new PasswordOptions { Message = "message" }, token) },
+        { nameof(Prompt.Confirm), token => Prompt.Confirm(new ConfirmOptions { Message = "message" }, token) },
+        { nameof(Prompt.Select), token => Prompt.Select(new SelectOptions<string> { Message = "message", Items = ["a"] }, token) },
+        { nameof(Prompt.MultiSelect), token => Prompt.MultiSelect(new MultiSelectOptions<string> { Message = "message", Items = ["a"] }, token) },
+        { nameof(Prompt.List), token => Prompt.List(new ListOptions<string> { Message = "message" }, token) },
+        { nameof(Prompt.Bind), token => Prompt.Bind(new PreCanceledBindModel(), token) }
+    };
+
+    [Theory]
+    [MemberData(nameof(PromptEntryPoints))]
+    public void PromptEntryPoint_PreCanceledToken_DoesNotInvokeConsoleDriverFactory(string name, Action<CancellationToken> prompt)
+    {
+        var originalFactory = Prompt.ConsoleDriverFactory;
+        var factoryInvoked = false;
+
+        // Creates the console driver directly, so Bind itself has to observe the pre-canceled token.
+        ModelBinderRegistry.Register<PreCanceledBindModel>((_, _) => Prompt.ConsoleDriverFactory().Dispose());
+
+        try
+        {
+            Prompt.ConsoleDriverFactory = () =>
+            {
+                factoryInvoked = true;
+
+                return new StubConsoleDriver();
+            };
+
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            var exception = Assert.Throws<OperationCanceledException>(() => prompt(cts.Token));
+
+            Assert.Equal(cts.Token, exception.CancellationToken);
+            Assert.False(factoryInvoked, $"Prompt.{name} invoked ConsoleDriverFactory.");
+        }
+        finally
+        {
+            Prompt.ConsoleDriverFactory = originalFactory;
+        }
+    }
+
+    public class PreCanceledBindModel;
 
     private sealed class StubConsoleDriver : IConsoleDriver
     {

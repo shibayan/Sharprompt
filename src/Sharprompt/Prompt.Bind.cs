@@ -29,6 +29,8 @@ public static partial class Prompt
             throw new InvalidOperationException($"No SourceGenerator-based binder is registered for type '{typeof(T).FullName}'. Apply [PromptBindable] attribute to the type.");
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         binder!(model, cancellationToken);
 
         return model;

@@ -27,8 +27,6 @@ internal abstract class FormBase<T> : IDisposable
         };
     }
 
-    private static readonly TimeSpan s_keyPollingInterval = TimeSpan.FromMilliseconds(16);
-
     private readonly IConsoleDriver _consoleDriver;
     private readonly FormRenderer _formRenderer;
     private readonly PromptConfiguration _configuration;
@@ -138,23 +136,15 @@ internal abstract class FormBase<T> : IDisposable
 
     private ConsoleKeyInfo ReadKey(CancellationToken cancellationToken)
     {
-        // ReadKey blocks and cannot be interrupted, so when the token can be canceled
-        // poll for available input while waiting on the token instead.
-        while (true)
+        try
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                _formRenderer.Cancel();
+            return _consoleDriver.ReadKey(cancellationToken);
+        }
+        catch (OperationCanceledException ex) when (ex.CancellationToken == cancellationToken)
+        {
+            _formRenderer.Cancel();
 
-                throw new OperationCanceledException(Resource.Message_PromptCanceled, cancellationToken);
-            }
-
-            if (!cancellationToken.CanBeCanceled || _consoleDriver.KeyAvailable)
-            {
-                return _consoleDriver.ReadKey();
-            }
-
-            cancellationToken.WaitHandle.WaitOne(s_keyPollingInterval);
+            throw new OperationCanceledException(Resource.Message_PromptCanceled, ex, cancellationToken);
         }
     }
 
