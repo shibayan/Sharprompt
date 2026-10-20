@@ -7,6 +7,7 @@
     <Project Path="src/Sharprompt/Sharprompt.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Sharprompt.SourceGenerator.Tests/Sharprompt.SourceGenerator.Tests.csproj" />
     <Project Path="tests/Sharprompt.Tests/Sharprompt.Tests.csproj" />
   </Folder>
 </Solution>
