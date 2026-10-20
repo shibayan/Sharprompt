@@ -59,7 +59,7 @@ var value = Prompt.Select<MyEnum>("Select enum value");
 Console.WriteLine($"You selected {value}");
 ```
 
-詳細は [Enum サポート](/ja/advanced#enum-型のサポート) を参照してください。
+項目は値の順に並び、`[Display(Order)]` を指定したメンバーが先頭になります。正確な規則は [項目の並び順](/ja/advanced#項目の並び順) を、詳細は [Enum サポート](/ja/advanced#enum-型のサポート) を参照してください。
 
 ## Fluent API
 

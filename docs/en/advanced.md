@@ -28,6 +28,28 @@ var values = Prompt.MultiSelect<MyEnum>("Select enum values");
 Console.WriteLine($"You picked {string.Join(", ", values)}");
 ```
 
+### Item Order
+
+Enum items are listed in the same order whether the metadata comes from the Sharprompt source generator or from the reflection fallback (used when the generator did not run, for example for enums in another assembly):
+
+1. Members are ordered by their underlying value, not by declaration order. Negative values come first for signed enums. Composite values of `[Flags]` enums are ordinary members and are sorted with the rest.
+2. Aliases (members that share a value) appear once. The alias whose name sorts first in ordinal order represents the value, and only its `[Display]` attribute is used.
+3. Members with `[Display(Order = ...)]` come first, sorted by `Order`. Members without `Order` come after all of them, even after `Order = int.MaxValue`. Members with the same `Order`, and members without one, keep the value order.
+
+```csharp
+public enum Priority
+{
+    Low = 1,
+    [Display(Name = "High priority", Order = 0)]
+    High = 3,
+    Medium = 2,
+    Normal = 2 // Alias of Medium. "Medium" sorts first, so it represents the value.
+}
+
+// Items: High priority, Low, Medium
+var priority = Prompt.Select<Priority>("Select priority");
+```
+
 ## Unicode Support
 
 Sharprompt supports multi-byte characters and emoji. For best results, set the output encoding to UTF-8:
