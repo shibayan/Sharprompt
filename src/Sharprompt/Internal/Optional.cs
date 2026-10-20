@@ -43,9 +43,13 @@ internal readonly struct Optional<T>
             // since DefaultValue is typed as object and the exact type is easy to miss.
             if (targetType.IsEnum)
             {
-                if (value is not Enum && Type.GetTypeCode(value.GetType()) is >= TypeCode.SByte and <= TypeCode.UInt64)
+                if (value is sbyte or byte or short or ushort or int or uint or long or ulong)
                 {
-                    return new Optional<T>((T)Enum.ToObject(targetType, value));
+                    // Enum.ToObject silently truncates out-of-range values, so convert to the
+                    // underlying type first to surface an OverflowException instead.
+                    var underlyingValue = Convert.ChangeType(value, Enum.GetUnderlyingType(targetType), CultureInfo.InvariantCulture);
+
+                    return new Optional<T>((T)Enum.ToObject(targetType, underlyingValue));
                 }
             }
             else if (value is IConvertible && typeof(IConvertible).IsAssignableFrom(targetType))

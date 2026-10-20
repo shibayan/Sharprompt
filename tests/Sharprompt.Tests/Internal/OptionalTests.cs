@@ -96,6 +96,27 @@ public class OptionalTests
         Assert.Equal(DayOfWeek.Monday, optional.Value);
     }
 
+    [Theory]
+    [InlineData(4294967297L)]
+    [InlineData(-4294967295L)]
+    [InlineData(ulong.MaxValue)]
+    public void Create_FromObject_WithOutOfRangeIntegralValueForEnum_ThrowsArgumentException(object value)
+    {
+        var exception = Assert.Throws<ArgumentException>(() => Optional<DayOfWeek>.Create(value, "DefaultValue"));
+
+        Assert.Equal("DefaultValue", exception.ParamName);
+        Assert.IsType<OverflowException>(exception.InnerException);
+    }
+
+    [Fact]
+    public void Create_FromObject_WithIntegralValueForByteEnum_ConvertsValue()
+    {
+        var optional = Optional<ByteEnum>.Create((object)2L);
+
+        Assert.True(optional.HasValue);
+        Assert.Equal(ByteEnum.B, optional.Value);
+    }
+
     [Fact]
     public void Create_FromObject_WithUnparsableValue_ThrowsArgumentException()
     {
@@ -116,5 +137,11 @@ public class OptionalTests
     public void Create_FromObject_WithOtherEnumForEnum_ThrowsArgumentException()
     {
         Assert.Throws<ArgumentException>(() => Optional<DayOfWeek>.Create((object)ConsoleKey.A, "DefaultValue"));
+    }
+
+    public enum ByteEnum : byte
+    {
+        A = 1,
+        B = 2
     }
 }
