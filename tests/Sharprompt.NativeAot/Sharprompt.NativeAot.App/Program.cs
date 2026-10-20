@@ -167,6 +167,10 @@ runner.Run("MultiSelect<string> returns the checked items", driver =>
 MultiSelectsAllEnumItems("generated metadata", [LocalPriority.High, LocalPriority.Medium, LocalPriority.Low]);
 MultiSelectsAllEnumItems("reflection fallback", [ExternalPriority.High, ExternalPriority.Medium, ExternalPriority.Low]);
 
+// Display names from DisplayAttribute.ResourceType are read each time items are shown, on both metadata paths.
+SelectsLocalizedEnum("generated metadata", LocalTimeOfDay.Evening);
+SelectsLocalizedEnum("reflection fallback", ExternalTimeOfDay.Evening);
+
 runner.Run("List<int> converts each entry", driver =>
 {
     driver.Type("1").Enter().Type("2").Enter().Enter();
@@ -285,5 +289,29 @@ void MultiSelectsAllEnumItems<TEnum>(string metadataSource, TEnum[] expected) wh
         driver.Key(ConsoleKey.A, '\x01', ConsoleModifiers.Control).Enter();
 
         Check.SequenceEqual(expected, Prompt.MultiSelect<TEnum>("Priorities"));
+    });
+}
+
+void SelectsLocalizedEnum<TEnum>(string metadataSource, TEnum expected) where TEnum : struct, Enum
+{
+    runner.Run($"Select<{typeof(TEnum).Name}> reads display names from resources through the {metadataSource}", driver =>
+    {
+        driver.Down(2).Enter().Down(2).Enter();
+
+        Check.Equal(expected, Prompt.Select<TEnum>("Time"));
+        Check.InOrder(driver.Output, "Morning", "Evening");
+
+        var culture = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = new CultureInfo("ja-JP");
+
+        try
+        {
+            Check.Equal(expected, Prompt.Select<TEnum>("Time"));
+            Check.InOrder(driver.Output, "朝", "夜");
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = culture;
+        }
     });
 }

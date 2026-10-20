@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -247,6 +248,80 @@ public class EnumMetadataGeneratorTests
         var metadata = AssertMatchesFallback("public enum Sample : " + underlyingType + " { " + members + " }");
 
         metadata.AssertValues("Min", "Max");
+    }
+
+    [Fact]
+    public void ResourceDisplayNames_AreReadFromResourceTypeOnEveryCall()
+    {
+        const string declaration = """
+            public static class Strings
+            {
+                public static string Low => System.Globalization.CultureInfo.CurrentUICulture.Name == "ja-JP" ? "低" : "Low priority";
+
+                public static string? Missing => null;
+
+                public static string @class => "Class";
+            }
+
+            public enum Sample
+            {
+                [Display(Name = nameof(Strings.Low), ResourceType = typeof(Strings))]
+                Low,
+                [Display(Name = nameof(Strings.Missing), ResourceType = typeof(Strings))]
+                Other,
+                [Display(Name = "class", ResourceType = typeof(Strings))]
+                Keyword,
+                [Display(Name = "Plain")]
+                Plain
+            }
+            """;
+
+        var previousCulture = CultureInfo.CurrentUICulture;
+
+        try
+        {
+            CultureInfo.CurrentUICulture = new CultureInfo("en-US");
+
+            var metadata = AssertMatchesFallback(declaration);
+
+            // A null resource value falls back to the member name, as DisplayAttribute.GetName returns null.
+            Assert.Equal(["Low priority", "Other", "Class", "Plain"], metadata.Texts);
+
+            // The same metadata follows a later change of the UI culture: names are not cached.
+            CultureInfo.CurrentUICulture = new CultureInfo("ja-JP");
+
+            Assert.Equal("低", metadata.TextOf("Low"));
+            AssertMatchesFallback(declaration);
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previousCulture;
+        }
+    }
+
+    // DisplayAttribute.GetName throws for these, so the generator leaves the enum to the fallback
+    // rather than emitting code that would behave differently.
+    [Theory]
+    [InlineData("internal static class Strings { public static string Low => \"Low\"; }")]
+    [InlineData("public static class Strings { internal static string Low => \"Low\"; }")]
+    [InlineData("public static class Strings { public static string Low { private get => \"Low\"; set { } } }")]
+    [InlineData("public static class Strings { public static int Low => 1; }")]
+    [InlineData("public class Strings { public string Low => \"Low\"; }")]
+    [InlineData("public static class Strings { }")]
+    public void UnusableResourceProperty_LeavesEnumToFallback(string resourceType)
+    {
+        var result = GeneratorTestHelper.Run(Usings + resourceType + """
+
+            public enum Sample
+            {
+                [Display(Name = "Low", ResourceType = typeof(Strings))]
+                Low
+            }
+            """, new EnumMetadataGenerator());
+
+        Assert.Empty(result.GeneratorDiagnostics);
+        Assert.Empty(result.CompileErrors);
+        Assert.Null(result.Source);
     }
 
     [Fact]

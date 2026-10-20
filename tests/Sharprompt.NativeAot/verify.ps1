@@ -53,7 +53,7 @@ foreach ($tfm in $Framework) {
 
     # Bind<SignupModel> fails at runtime without a generated binder, but nothing observable distinguishes
     # generated enum metadata from the reflection fallback, so check the generated sources directly.
-    $expectedSources = @('*SignupModel.Binder.g.cs', '*LocalPriority.*.EnumMetadata.g.cs')
+    $expectedSources = @('*SignupModel.Binder.g.cs', '*LocalPriority.*.EnumMetadata.g.cs', '*LocalTimeOfDay.*.EnumMetadata.g.cs')
 
     foreach ($pattern in $expectedSources) {
         if (-not (Get-ChildItem $generatedDirectory -Recurse -Filter $pattern -ErrorAction Ignore)) {
@@ -61,8 +61,8 @@ foreach ($tfm in $Framework) {
         }
     }
 
-    if (Get-ChildItem $generatedDirectory -Recurse -Filter '*ExternalPriority*' -ErrorAction Ignore) {
-        throw "ExternalPriority is expected to use the reflection fallback, but metadata was generated for it."
+    if (Get-ChildItem $generatedDirectory -Recurse -Filter '*External*' -ErrorAction Ignore) {
+        throw "Enums in Sharprompt.NativeAot.External are expected to use the reflection fallback, but metadata was generated for them."
     }
 
     $executable = Join-Path $publishDirectory ($IsWindows ? 'Sharprompt.NativeAot.App.exe' : 'Sharprompt.NativeAot.App')

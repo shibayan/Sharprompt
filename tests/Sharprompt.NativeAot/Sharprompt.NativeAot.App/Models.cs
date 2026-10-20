@@ -55,3 +55,20 @@ public class SignupModel
     [Display(Name = "Subscribe", Order = 8)]
     public bool Subscribe { get; set; }
 }
+
+public static class LocalStrings
+{
+    public static string Morning => System.Globalization.CultureInfo.CurrentUICulture.Name == "ja-JP" ? "朝" : "Morning";
+
+    public static string Evening => System.Globalization.CultureInfo.CurrentUICulture.Name == "ja-JP" ? "夜" : "Evening";
+}
+
+// Display names come from a resource type. ExternalTimeOfDay is the same enum in another assembly.
+public enum LocalTimeOfDay
+{
+    [Display(Name = nameof(LocalStrings.Morning), ResourceType = typeof(LocalStrings))]
+    Morning,
+
+    [Display(Name = nameof(LocalStrings.Evening), ResourceType = typeof(LocalStrings))]
+    Evening
+}

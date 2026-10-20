@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Sharprompt.SourceGenerator;
@@ -114,7 +115,7 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
         // constant value (not declaration order, which reflection cannot observe reliably). Aliased
         // members sharing a value keep one representative, the alias whose name sorts first ordinally;
         // they are indistinguishable at runtime, and duplicate switch arms do not compile (CS8510).
-        var members = enumSymbol.GetMembers()
+        var analyzedMembers = enumSymbol.GetMembers()
             .OfType<IFieldSymbol>()
             .Where(field => field.HasConstantValue)
             .OrderBy(field => field.ConstantValue, Comparer<object?>.Default)
@@ -124,10 +125,14 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
             .Select((field, index) => AnalyzeMember(field, index))
             .ToArray();
 
-        if (members.Length == 0)
+        // A display name the generated code cannot read the same way DisplayAttribute.GetName does is left to
+        // the reflection fallback, which then applies to the whole enum, so the result cannot differ.
+        if (analyzedMembers.Length == 0 || analyzedMembers.Any(member => member is null))
         {
             return string.Empty;
         }
+
+        var members = analyzedMembers.Select(member => member!).ToArray();
 
         // Members without [Display(Order)] come last, in base order. Sort on whether an Order is
         // present first, so they also come after members that explicitly use Order = int.MaxValue.
@@ -168,7 +173,7 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
 
         foreach (var member in members)
         {
-            builder.AppendLine("                (" + enumTypeName + ")(" + member.Value + ") => " + Quote(member.DisplayName) + ", // " + member.Name);
+            builder.AppendLine("                (" + enumTypeName + ")(" + member.Value + ") => " + member.DisplayExpression + ", // " + member.Name);
         }
 
         builder.AppendLine("                _ => value.ToString()");
@@ -179,9 +184,10 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
         return builder.ToString();
     }
 
-    private static EnumMemberMetadata AnalyzeMember(IFieldSymbol field, int index)
+    private static EnumMemberMetadata? AnalyzeMember(IFieldSymbol field, int index)
     {
-        var displayName = field.Name;
+        string? displayName = null;
+        INamedTypeSymbol? resourceType = null;
         int? order = null;
 
         var displayAttribute = field.GetAttributes()
@@ -199,10 +205,53 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
                 {
                     order = value;
                 }
+                else if (namedArgument.Key == "ResourceType" && namedArgument.Value.Value is INamedTypeSymbol type)
+                {
+                    resourceType = type;
+                }
             }
         }
 
-        return new EnumMemberMetadata(field.Name, FormatConstant(field.ConstantValue!), displayName, order, index);
+        // Without a resource type, Name is the display name itself.
+        if (displayName is null || resourceType is null)
+        {
+            return new EnumMemberMetadata(field.Name, FormatConstant(field.ConstantValue!), Quote(displayName ?? field.Name), order, index);
+        }
+
+        // With one, Name is a property of the resource type, which DisplayAttribute.GetName reads on every call,
+        // so the current UI culture applies. Read the same property each time an item is shown.
+        var resourceProperty = GetResourceProperty(resourceType, displayName);
+
+        if (resourceProperty is null)
+        {
+            return null;
+        }
+
+        var propertyAccess = resourceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + "." + EscapeIdentifier(resourceProperty.Name);
+
+        return new EnumMemberMetadata(field.Name, FormatConstant(field.ConstantValue!), "(" + propertyAccess + " ?? " + Quote(field.Name) + ")", order, index);
+    }
+
+    // DisplayAttribute only accepts a public static string property with a public getter on a public resource type.
+    // Anything else (a missing or inaccessible property, which makes GetName throw) is left to the fallback.
+    private static IPropertySymbol? GetResourceProperty(INamedTypeSymbol resourceType, string name)
+    {
+        for (var current = resourceType; current != null; current = current.ContainingType)
+        {
+            if (current.DeclaredAccessibility != Accessibility.Public || current.TypeParameters.Length > 0)
+            {
+                return null;
+            }
+        }
+
+        return resourceType.GetMembers(name)
+            .OfType<IPropertySymbol>()
+            .FirstOrDefault(property => property is { IsStatic: true, IsIndexer: false, DeclaredAccessibility: Accessibility.Public, GetMethod.DeclaredAccessibility: Accessibility.Public, Type.SpecialType: SpecialType.System_String });
+    }
+
+    private static string EscapeIdentifier(string name)
+    {
+        return SyntaxFacts.GetKeywordKind(name) != SyntaxKind.None ? "@" + name : name;
     }
 
     private static string FormatConstant(object value)
@@ -239,18 +288,19 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
 
     private sealed class EnumMemberMetadata
     {
-        public EnumMemberMetadata(string name, string value, string displayName, int? order, int index)
+        public EnumMemberMetadata(string name, string value, string displayExpression, int? order, int index)
         {
             Name = name;
             Value = value;
-            DisplayName = displayName;
+            DisplayExpression = displayExpression;
             Order = order;
             Index = index;
         }
 
         public string Name { get; }
         public string Value { get; }
-        public string DisplayName { get; }
+        // A C# expression for the display name: a string literal, or a resource property access.
+        public string DisplayExpression { get; }
         public int? Order { get; }
         public int Index { get; }
     }

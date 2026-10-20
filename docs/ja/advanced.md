@@ -50,6 +50,29 @@ public enum Priority
 var priority = Prompt.Select<Priority>("Select priority");
 ```
 
+### 表示名とローカライズ
+
+項目のテキストは `[Display(Name = ...)]` で、`Name` がなければメンバー名になります。ローカライズするには `ResourceType` も指定します。このとき `Name` は、通常の `DisplayAttribute` と同じく、その型のプロパティ名を表します。型は `public` で、プロパティは `public static string` である必要があります（`PublicResXFileCodeGenerator` が生成するプロパティなど）。
+
+```csharp
+public enum Priority
+{
+    [Display(Name = nameof(Strings.PriorityLow), ResourceType = typeof(Strings))]
+    Low,
+    [Display(Name = nameof(Strings.PriorityHigh), ResourceType = typeof(Strings))]
+    High
+}
+```
+
+プロパティは項目を表示するたびに読み取られるため、表示名は `CultureInfo.CurrentUICulture`（またはリソースクラスに設定したカルチャ）に従います。`Prompt.Culture` が変更するのは Sharprompt 自身のメッセージだけで、アプリのリソースには影響しません。プロパティが `null` を返した場合はメンバー名を表示します。
+
+### 注意事項と制限
+
+- `[Display]` のうち使われるのは `Name`、`ResourceType`、`Order` だけです。`ShortName`、`Description`、`GroupName`、`Prompt` は無視されます。`[Description]` や `[EnumMember]` などのほかの属性も無視されます。
+- `[Flags]` の Enum では、組み合わせ値のメンバーも含めて各メンバーが別々の項目になります。`MultiSelect` は選択されたメンバーをコレクションで返し、1 つのフラグ値には結合しません。
+- 別アセンブリで宣言された Enum、`private`・`protected`・ジェネリック型の入れ子の Enum、`file` で宣言された Enum については、ソースジェネレーターはメタデータを生成しません。`DisplayAttribute` と同じ方法で `ResourceType` のプロパティを読み取れない Enum も同様です。これらの Enum はリフレクションによるフォールバックを使いますが、適用されるルールは同じです。どちらの場合も、不正なリソース参照は `DisplayAttribute.GetName` と同じく、項目を表示するときに例外をスローします。
+- 項目や表示名を変えたい場合は、起動時に `EnumMetadataRegistry.Register` で Enum を登録してください。登録したメタデータは、どちらの経路のメタデータよりも優先されます。
+
 ## Unicode サポート
 
 Sharprompt はマルチバイト文字と絵文字をサポートしています。最良の結果を得るには、出力エンコーディングを UTF-8 に設定してください:
