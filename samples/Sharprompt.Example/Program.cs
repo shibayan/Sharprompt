@@ -103,10 +103,6 @@ class Program
     private static void RunBindSample()
     {
         var model = Prompt.Bind<MyFormModel>();
-        Console.WriteLine($"Forms OK, {JsonSerializer.Serialize(model, SampleJsonSerializerContext.Default.MyFormModel)}");
+        Console.WriteLine($"Forms OK, {JsonSerializer.Serialize(model)}");
     }
 }
-
-[System.Text.Json.Serialization.JsonSerializable(typeof(MyFormModel))]
-internal partial class SampleJsonSerializerContext : System.Text.Json.Serialization.JsonSerializerContext;
-
