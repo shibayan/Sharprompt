@@ -1,5 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Text;
+using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -11,46 +15,61 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
 {
     private static readonly SymbolDisplayFormat s_fullyQualifiedFormat = SymbolDisplayFormat.FullyQualifiedFormat;
 
+    internal const string TransformTrackingName = "EnumMetadata.Transform";
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        // The transform returns only strings, so an unrelated edit re-runs it but the result
+        // compares equal and the source output stays cached.
         var provider = context.SyntaxProvider
             .CreateSyntaxProvider(
                 predicate: static (node, _) => node is EnumDeclarationSyntax,
-                transform: static (syntaxContext, cancellationToken) => (INamedTypeSymbol?)syntaxContext.SemanticModel.GetDeclaredSymbol((EnumDeclarationSyntax)syntaxContext.Node, cancellationToken))
-            .Where(static symbol => symbol is not null);
+                transform: static (syntaxContext, cancellationToken) => Transform(syntaxContext, cancellationToken))
+            .Where(static result => result is not null)
+            .WithTrackingName(TransformTrackingName);
 
-        context.RegisterSourceOutput(provider, static (productionContext, symbol) =>
+        context.RegisterSourceOutput(provider, static (productionContext, result) => productionContext.AddSource(result!.HintName, result.Source));
+    }
+
+    private static EnumMetadataResult? Transform(GeneratorSyntaxContext syntaxContext, CancellationToken cancellationToken)
+    {
+        if (syntaxContext.SemanticModel.GetDeclaredSymbol((EnumDeclarationSyntax)syntaxContext.Node, cancellationToken) is not INamedTypeSymbol enumSymbol)
         {
-            var enumSymbol = symbol!;
-            var source = GenerateSource(enumSymbol);
-            if (source.Length == 0)
-            {
-                return;
-            }
+            return null;
+        }
 
-            var hintName = enumSymbol.ToDisplayString()
-                .Replace('<', '_')
-                .Replace('>', '_')
-                .Replace(',', '_')
-                .Replace(' ', '_')
-                .Replace('.', '_')
-                + ".EnumMetadata.g.cs";
+        var source = GenerateSource(enumSymbol);
+        if (source.Length == 0)
+        {
+            return null;
+        }
 
-            productionContext.AddSource(hintName, source);
-        });
+        var hintName = enumSymbol.ToDisplayString()
+            .Replace('<', '_')
+            .Replace('>', '_')
+            .Replace(',', '_')
+            .Replace(' ', '_')
+            .Replace('.', '_')
+            + ".EnumMetadata.g.cs";
+
+        return new EnumMetadataResult(hintName, source);
     }
 
     private static string GenerateSource(INamedTypeSymbol enumSymbol)
     {
-        // Deduplicate aliased members (multiple names sharing the same constant
-        // value) keeping the first declaration, since they are indistinguishable
-        // at runtime and duplicate switch arms do not compile (CS8510).
+        // These rules must match EnumMetadataRegistry.CreateFallbackMetadata exactly, so that an enum
+        // lists the same items whether or not the generator ran. The base order is the underlying
+        // constant value (not declaration order, which reflection cannot observe reliably). Aliased
+        // members sharing a value keep one representative, the alias whose name sorts first ordinally;
+        // they are indistinguishable at runtime, and duplicate switch arms do not compile (CS8510).
         var members = enumSymbol.GetMembers()
             .OfType<IFieldSymbol>()
             .Where(field => field.HasConstantValue)
+            .OrderBy(field => field.ConstantValue, Comparer<object?>.Default)
+            .ThenBy(field => field.Name, StringComparer.Ordinal)
             .GroupBy(field => field.ConstantValue)
             .Select(group => group.First())
-            .Select((field, index) => AnalyzeMember(enumSymbol, field, index))
+            .Select((field, index) => AnalyzeMember(field, index))
             .ToArray();
 
         if (members.Length == 0)
@@ -58,8 +77,11 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
             return string.Empty;
         }
 
+        // Members without [Display(Order)] come last, in base order. Sort on whether an Order is
+        // present first, so they also come after members that explicitly use Order = int.MaxValue.
         var orderedMembers = members
-            .OrderBy(member => member.Order ?? int.MaxValue)
+            .OrderBy(member => member.Order is null)
+            .ThenBy(member => member.Order)
             .ThenBy(member => member.Index)
             .ToArray();
 
@@ -79,10 +101,13 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
         builder.AppendLine("            new " + enumTypeName + "[]");
         builder.AppendLine("            {");
 
+        // Values are emitted as casts of their constants rather than as member access: the representative
+        // alias may be [Obsolete] (error-level obsolete references cannot be suppressed, CS0619), and
+        // IFieldSymbol.Name drops the verbatim '@' of keyword names such as @default.
         for (var i = 0; i < orderedMembers.Length; i++)
         {
             var suffix = i == orderedMembers.Length - 1 ? string.Empty : ",";
-            builder.AppendLine("                " + enumTypeName + "." + orderedMembers[i].Name + suffix);
+            builder.AppendLine("                (" + enumTypeName + ")(" + orderedMembers[i].Value + ")" + suffix + " // " + orderedMembers[i].Name);
         }
 
         builder.AppendLine("            },");
@@ -91,7 +116,7 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
 
         foreach (var member in members)
         {
-            builder.AppendLine("                " + enumTypeName + "." + member.Name + " => " + Quote(member.DisplayName) + ",");
+            builder.AppendLine("                (" + enumTypeName + ")(" + member.Value + ") => " + Quote(member.DisplayName) + ", // " + member.Name);
         }
 
         builder.AppendLine("                _ => value.ToString()");
@@ -102,7 +127,7 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
         return builder.ToString();
     }
 
-    private static EnumMemberMetadata AnalyzeMember(INamedTypeSymbol enumSymbol, IFieldSymbol field, int index)
+    private static EnumMemberMetadata AnalyzeMember(IFieldSymbol field, int index)
     {
         var displayName = field.Name;
         int? order = null;
@@ -125,7 +150,20 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
             }
         }
 
-        return new EnumMemberMetadata(field.Name, displayName, order, index);
+        return new EnumMemberMetadata(field.Name, FormatConstant(field.ConstantValue!), displayName, order, index);
+    }
+
+    private static string FormatConstant(object value)
+    {
+        // The literal must be able to hold the full range of the underlying type, so add the matching suffix.
+        return value switch
+        {
+            uint u => u.ToString(CultureInfo.InvariantCulture) + "U",
+            long l => l.ToString(CultureInfo.InvariantCulture) + "L",
+            ulong ul => ul.ToString(CultureInfo.InvariantCulture) + "UL",
+            IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+            _ => value.ToString()!
+        };
     }
 
     private static string Quote(string text)
@@ -145,17 +183,21 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
         return builder.ToString();
     }
 
+    private sealed record EnumMetadataResult(string HintName, string Source);
+
     private sealed class EnumMemberMetadata
     {
-        public EnumMemberMetadata(string name, string displayName, int? order, int index)
+        public EnumMemberMetadata(string name, string value, string displayName, int? order, int index)
         {
             Name = name;
+            Value = value;
             DisplayName = displayName;
             Order = order;
             Index = index;
         }
 
         public string Name { get; }
+        public string Value { get; }
         public string DisplayName { get; }
         public int? Order { get; }
         public int Index { get; }

@@ -56,6 +56,8 @@ var values = Prompt.MultiSelect<MyEnum>("Select enum values", defaultValues: new
 Console.WriteLine($"You picked {string.Join(", ", values)}");
 ```
 
+Items are ordered the same way as for `Select`. See [Item Order](/advanced#item-order).
+
 ## Fluent API
 
 ```csharp

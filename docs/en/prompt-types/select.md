@@ -59,7 +59,7 @@ var value = Prompt.Select<MyEnum>("Select enum value");
 Console.WriteLine($"You selected {value}");
 ```
 
-See [Enum Support](/advanced#enum-type-support) for more details.
+Items are ordered by value, with `[Display(Order)]` members first. See [Item Order](/advanced#item-order) for the exact rules, and [Enum Support](/advanced#enum-type-support) for more details.
 
 ## Fluent API
 
