@@ -206,6 +206,50 @@ public class EnumMetadataGeneratorTests
     }
 
     [Fact]
+    public void ObsoleteMembers_AreNotReferencedByGeneratedCode()
+    {
+        // "Ancient" < "Current" ordinally, so the error-level obsolete alias is the representative; the
+        // generated code must not reference it (CS0619 cannot be suppressed). Warning-level obsolete
+        // members must not produce CS0612/CS0618 either, which would break warnings-as-errors builds.
+        const string declaration = """
+            public enum Sample
+            {
+                Current = 0,
+                [Obsolete("Use Current", true)]
+                Ancient = 0,
+                [Obsolete]
+                Legacy = 1,
+                [Obsolete("Old", false), Display(Name = "Older")]
+                Old = 2
+            }
+            """;
+
+        var result = GeneratorTestHelper.Run(Usings + declaration, new EnumMetadataGenerator());
+
+        // The input never references the obsolete members, so any obsolete diagnostic comes from generated code.
+        Assert.NotNull(result.Source);
+        Assert.DoesNotContain(result.OutputCompilation.GetDiagnostics(), diagnostic => diagnostic.Id is "CS0612" or "CS0618" or "CS0619");
+
+        var metadata = AssertMatchesFallback(declaration);
+
+        Assert.Equal(["Ancient", "Legacy", "Older"], metadata.Texts);
+        Assert.Equal("Ancient", metadata.TextOf("Current"));
+    }
+
+    [Theory]
+    [InlineData("sbyte", "Min = sbyte.MinValue, Max = sbyte.MaxValue")]
+    [InlineData("int", "Min = int.MinValue, Max = int.MaxValue")]
+    [InlineData("uint", "Min = uint.MinValue, Max = uint.MaxValue")]
+    [InlineData("long", "Min = long.MinValue, Max = long.MaxValue")]
+    [InlineData("ulong", "Min = ulong.MinValue, Max = ulong.MaxValue")]
+    public void ExtremeUnderlyingValues_AreEmittedAsValidLiterals(string underlyingType, string members)
+    {
+        var metadata = AssertMatchesFallback("public enum Sample : " + underlyingType + " { " + members + " }");
+
+        metadata.AssertValues("Min", "Max");
+    }
+
+    [Fact]
     public void EmptyEnum_GeneratesNothing()
     {
         var result = GeneratorTestHelper.Run(Usings + "public enum Sample { }", new EnumMetadataGenerator());

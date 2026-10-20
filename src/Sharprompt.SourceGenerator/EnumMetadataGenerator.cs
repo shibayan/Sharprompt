@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Sharprompt.SourceGenerator;
@@ -101,10 +101,13 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
         builder.AppendLine("            new " + enumTypeName + "[]");
         builder.AppendLine("            {");
 
+        // Values are emitted as casts of their constants rather than as member access: the representative
+        // alias may be [Obsolete] (error-level obsolete references cannot be suppressed, CS0619), and
+        // IFieldSymbol.Name drops the verbatim '@' of keyword names such as @default.
         for (var i = 0; i < orderedMembers.Length; i++)
         {
             var suffix = i == orderedMembers.Length - 1 ? string.Empty : ",";
-            builder.AppendLine("                " + enumTypeName + "." + EscapeIdentifier(orderedMembers[i].Name) + suffix);
+            builder.AppendLine("                (" + enumTypeName + ")(" + orderedMembers[i].Value + ")" + suffix + " // " + orderedMembers[i].Name);
         }
 
         builder.AppendLine("            },");
@@ -113,7 +116,7 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
 
         foreach (var member in members)
         {
-            builder.AppendLine("                " + enumTypeName + "." + EscapeIdentifier(member.Name) + " => " + Quote(member.DisplayName) + ",");
+            builder.AppendLine("                (" + enumTypeName + ")(" + member.Value + ") => " + Quote(member.DisplayName) + ", // " + member.Name);
         }
 
         builder.AppendLine("                _ => value.ToString()");
@@ -147,14 +150,20 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
             }
         }
 
-        return new EnumMemberMetadata(field.Name, displayName, order, index);
+        return new EnumMemberMetadata(field.Name, FormatConstant(field.ConstantValue!), displayName, order, index);
     }
 
-    // IFieldSymbol.Name drops the verbatim '@', so members named after a reserved keyword
-    // (for example @default) must be re-escaped to stay valid identifiers in generated code.
-    private static string EscapeIdentifier(string name)
+    private static string FormatConstant(object value)
     {
-        return SyntaxFacts.GetKeywordKind(name) != SyntaxKind.None ? "@" + name : name;
+        // The literal must be able to hold the full range of the underlying type, so add the matching suffix.
+        return value switch
+        {
+            uint u => u.ToString(CultureInfo.InvariantCulture) + "U",
+            long l => l.ToString(CultureInfo.InvariantCulture) + "L",
+            ulong ul => ul.ToString(CultureInfo.InvariantCulture) + "UL",
+            IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+            _ => value.ToString()!
+        };
     }
 
     private static string Quote(string text)
@@ -178,15 +187,17 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
 
     private sealed class EnumMemberMetadata
     {
-        public EnumMemberMetadata(string name, string displayName, int? order, int index)
+        public EnumMemberMetadata(string name, string value, string displayName, int? order, int index)
         {
             Name = name;
+            Value = value;
             DisplayName = displayName;
             Order = order;
             Index = index;
         }
 
         public string Name { get; }
+        public string Value { get; }
         public string DisplayName { get; }
         public int? Order { get; }
         public int Index { get; }
