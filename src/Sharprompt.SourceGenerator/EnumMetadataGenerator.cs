@@ -151,7 +151,7 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
 
     private static string Quote(string text)
     {
-        return "\"" + text.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\n").Replace("\r", "\r") + "\"";
+        return "\"" + text.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r") + "\"";
     }
 
     private static string Sanitize(string name)

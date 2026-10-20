@@ -166,6 +166,26 @@ public class EnumMetadataGeneratorTests
     }
 
     [Fact]
+    public void DisplayNamesWithSpecialCharacters_AreEscapedInGeneratedCode()
+    {
+        // The display names are C# escape sequences in the input, so the generator must re-escape the
+        // resulting characters; a raw line break inside a regular string literal fails with CS1010.
+        var metadata = AssertMatchesFallback("""
+            public enum Sample
+            {
+                [Display(Name = "First\nSecond")]
+                LineFeed,
+                [Display(Name = "First\rSecond")]
+                CarriageReturn,
+                [Display(Name = "Quote \" and backslash \\")]
+                QuoteAndBackslash
+            }
+            """);
+
+        Assert.Equal(["First\nSecond", "First\rSecond", "Quote \" and backslash \\"], metadata.Texts);
+    }
+
+    [Fact]
     public void EmptyEnum_GeneratesNothing()
     {
         var result = GeneratorTestHelper.Run(Usings + "public enum Sample { }", new EnumMetadataGenerator());
