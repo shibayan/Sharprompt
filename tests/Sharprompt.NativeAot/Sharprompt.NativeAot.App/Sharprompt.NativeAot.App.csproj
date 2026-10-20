@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <PublishAot>true</PublishAot>
+    <!-- Report each trim and AOT warning instead of a single IL2104 per package assembly; TreatWarningsAsErrors fails the publish on any of them. -->
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <!-- verify.ps1 checks the generated sources to confirm the packaged source generators ran. -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)generated/$(TargetFramework)</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
+
+  <!-- verify.ps1 always passes SharpromptVersion and tests the packed package. -->
+  <ItemGroup Condition="'$(SharpromptVersion)' != ''">
+    <PackageReference Include="Sharprompt" />
+  </ItemGroup>
+
+  <!-- Without it (an IDE, or tools such as dependency submission that restore every project), reference the source so restore still succeeds. -->
+  <ItemGroup Condition="'$(SharpromptVersion)' == ''">
+    <ProjectReference Include="..\..\..\src\Sharprompt\Sharprompt.csproj" />
+    <ProjectReference Include="..\..\..\src\Sharprompt.SourceGenerator\Sharprompt.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sharprompt.NativeAot.ExternalEnums\Sharprompt.NativeAot.ExternalEnums.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(SharpromptVersion)' != ''">
+    <!-- SharpromptVersion is the version verify.ps1 packed into artifacts/packages. -->
+    <PackageVersion Include="Sharprompt" Version="$(SharpromptVersion)" />
+  </ItemGroup>
+</Project>

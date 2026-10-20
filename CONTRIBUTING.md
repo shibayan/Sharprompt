@@ -31,6 +31,8 @@ dotnet test -c Release --no-build
 dotnet format --verify-no-changes --verbosity detailed --no-restore
 ```
 
+Changes that may affect Native AOT, trimming, resources, or the source generators are also verified in CI by publishing a test application against the packed NuGet package. See [tests/Sharprompt.NativeAot](tests/Sharprompt.NativeAot/README.md) to run it locally.
+
 ## Contribution Guidelines
 
 - Keep changes focused on a single problem or feature.
