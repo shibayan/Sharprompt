@@ -1,0 +1,4 @@
+artifacts/
+
+# The root .gitignore excludes nuget.config, but this one maps Sharprompt to the locally packed package.
+!nuget.config

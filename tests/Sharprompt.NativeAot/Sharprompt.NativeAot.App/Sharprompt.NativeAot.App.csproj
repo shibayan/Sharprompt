@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <PublishAot>true</PublishAot>
+    <!-- Report each trim and AOT warning instead of a single IL2104 per package assembly; TreatWarningsAsErrors fails the publish on any of them. -->
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <!-- verify.ps1 checks the generated sources to confirm the packaged source generators ran. -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)generated/$(TargetFramework)</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Sharprompt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sharprompt.NativeAot.ExternalEnums\Sharprompt.NativeAot.ExternalEnums.csproj" />
+  </ItemGroup>
+
+  <Target Name="_RequireSharpromptVersion" BeforeTargets="CollectPackageReferences" Condition="'$(SharpromptVersion)' == ''">
+    <Error Text="SharpromptVersion is not set. Run verify.ps1, which packs Sharprompt and passes the packed version." />
+  </Target>
+
+</Project>
