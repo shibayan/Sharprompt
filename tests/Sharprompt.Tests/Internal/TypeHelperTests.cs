@@ -101,6 +101,17 @@ public class TypeHelperTests
         AssertRoundTrips(new Version(1, 2, 3));
         AssertRoundTrips(DayOfWeek.Friday);
         AssertRoundTrips<int?>(42);
+        AssertRoundTrips((DayOfWeek)7);
+        AssertRoundTrips<DayOfWeek?>((DayOfWeek)7);
+    }
+
+    [Fact]
+    public void ConvertToString_UnnamedEnumValue_ReturnsNumber()
+    {
+        // EnumConverter parses "7" as DayOfWeek but throws when formatting it back.
+        Assert.Equal("7", TypeHelper<DayOfWeek>.ConvertToString((DayOfWeek)7));
+        Assert.Equal("7", TypeHelper<DayOfWeek?>.ConvertToString((DayOfWeek)7));
+        Assert.Equal("Friday", TypeHelper<DayOfWeek>.ConvertToString(DayOfWeek.Friday));
     }
 
     private static void AssertRoundTrips<T>(T value)

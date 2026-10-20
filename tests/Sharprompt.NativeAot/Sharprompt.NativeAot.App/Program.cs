@@ -42,6 +42,7 @@ InputConverts("Uri", "https://example.com/", new Uri("https://example.com/"));
 InputConverts("Version", "1.2.3", new Version(1, 2, 3));
 InputConverts("LocalPriority", "High", LocalPriority.High);
 InputConverts("ExternalPriority", "Medium", ExternalPriority.Medium);
+InputConverts("LocalPriority", "99", (LocalPriority)99);
 
 // Custom types rely on the converter named by [TypeConverter], in the app and in a trimmable library.
 InputConverts("Temperature", "21.5C", new Temperature(21.5));
@@ -78,6 +79,7 @@ EditsDefaultValue("DateTimeOffset", new DateTimeOffset(2026, 10, 21, 9, 30, 0, T
 EditsDefaultValue("DateOnly", new DateOnly(2026, 10, 21));
 EditsDefaultValue("TimeSpan", new TimeSpan(1, 2, 3));
 EditsDefaultValue("LocalPriority", LocalPriority.Medium);
+EditsDefaultValue("ExternalPriority?", (ExternalPriority?)(ExternalPriority)99);
 EditsDefaultValue("Temperature", new Temperature(21.5));
 EditsDefaultValue("ExternalTemperature", new ExternalTemperature(3));
 

@@ -174,7 +174,7 @@ The following types are supported, including their `Nullable<T>` forms. Each one
 | Date and time | `DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `TimeSpan` |
 | Other | `Guid`, `Uri`, `Version`, enums |
 
-Enum input accepts member names (case-insensitive) and numeric values.
+Enum input accepts member names (case-insensitive) and numeric values. A value without a named member is shown as its number.
 
 #### Custom Types
 

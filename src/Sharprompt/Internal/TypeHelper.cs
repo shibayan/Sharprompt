@@ -15,7 +15,20 @@ internal static class TypeHelper<T>
     // (a default value hint, the inserted default value, the answer) can be typed back as input.
     public static T? ConvertTo(string value) => (T?)GetConverter().ConvertFromInvariantString(value);
 
-    public static string ConvertToString(T value) => GetConverter().ConvertToInvariantString(value) ?? "";
+    public static string ConvertToString(T value)
+    {
+        var converter = GetConverter();
+
+        // EnumConverter parses numeric text into values without a named member (such as "7" for DayOfWeek)
+        // but throws when formatting those values back. Enum.ToString formats named values identically and
+        // unnamed ones as their number, which parses back. A custom converter on an enum is still honored.
+        if (value is Enum && converter.GetType() == typeof(EnumConverter))
+        {
+            return value.ToString()!;
+        }
+
+        return converter.ConvertToInvariantString(value) ?? "";
+    }
 
     // T cannot carry DynamicallyAccessedMembers without that annotation flowing into every public Prompt API,
     // so trim analysis cannot prove the converter lookup safe. It holds in practice for the supported types:

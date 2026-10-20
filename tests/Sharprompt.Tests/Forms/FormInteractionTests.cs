@@ -608,6 +608,66 @@ public class FormInteractionTests
         }
     }
 
+    [Fact]
+    public void InputForm_UnnamedEnumValue_RendersAsNumber()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("7");
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<DayOfWeek>
+        {
+            Message = "message"
+        };
+
+        using var form = new InputForm<DayOfWeek>(options, configuration);
+
+        Assert.Equal((DayOfWeek)7, form.Start());
+        Assert.Contains("message: 7", driver.Output);
+    }
+
+    [Fact]
+    public void InputForm_UnnamedEnumDefaultValue_RendersAsNumber()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.Tab, keyChar: '\t');
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<DayOfWeek?>
+        {
+            Message = "message",
+            DefaultValue = (DayOfWeek)7
+        };
+
+        using var form = new InputForm<DayOfWeek?>(options, configuration);
+
+        Assert.Equal((DayOfWeek)7, form.Start());
+        Assert.Contains("(7)", driver.Output);
+    }
+
+    [Fact]
+    public void ListForm_UnnamedEnumValue_RendersAsNumber()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("7");
+        driver.EnqueueEnter();
+        driver.EnqueueEnter();
+
+        var options = new ListOptions<DayOfWeek>
+        {
+            Message = "message"
+        };
+
+        using var form = new ListForm<DayOfWeek>(options, configuration);
+
+        Assert.Equal(new[] { (DayOfWeek)7 }, form.Start());
+        Assert.Contains("  7", driver.Output);
+        Assert.Contains("message: 7", driver.Output);
+    }
+
     [TypeConverter(typeof(TemperatureConverter))]
     private readonly record struct Temperature(double Celsius);
 

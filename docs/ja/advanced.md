@@ -174,7 +174,7 @@ EnumMetadataRegistry.Register<DayOfWeek>(
 | 日付と時刻 | `DateTime`、`DateTimeOffset`、`DateOnly`、`TimeOnly`、`TimeSpan` |
 | その他 | `Guid`、`Uri`、`Version`、enum |
 
-enum の入力では、メンバー名（大文字と小文字を区別しない）と数値を受け付けます。
+enum の入力では、メンバー名（大文字と小文字を区別しない）と数値を受け付けます。名前付きメンバーのない値は数値で表示されます。
 
 #### カスタム型
 
