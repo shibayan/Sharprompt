@@ -60,9 +60,26 @@ internal static class GeneratorTestHelper
             driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
     }
 
-    public static GeneratorTestResult Run(string source, IIncrementalGenerator? generator = null)
+    // Compiles a separate assembly, for models and providers that come from a referenced library.
+    public static MetadataReference CreateLibraryReference(string source)
     {
-        var compilation = CreateCompilation(source);
+        var compilation = CSharpCompilation.Create(
+            "Library",
+            [CSharpSyntaxTree.ParseText(source, s_parseOptions, path: "Library.cs")],
+            s_references.Value,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable));
+
+        using var stream = new MemoryStream();
+
+        var emitResult = compilation.Emit(stream);
+        Assert.True(emitResult.Success, string.Join(Environment.NewLine, emitResult.Diagnostics));
+
+        return MetadataReference.CreateFromImage(stream.ToArray());
+    }
+
+    public static GeneratorTestResult Run(string source, IIncrementalGenerator? generator = null, params MetadataReference[] additionalReferences)
+    {
+        var compilation = CreateCompilation(source).AddReferences(additionalReferences);
 
         // The test input itself must be valid, so that any error comes from the generated code.
         Assert.Empty(compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error));

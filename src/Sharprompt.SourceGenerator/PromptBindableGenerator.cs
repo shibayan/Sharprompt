@@ -117,12 +117,12 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
                 continue;
             }
 
-            if (property.SetMethod?.DeclaredAccessibility is not (Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal))
+            if (property.SetMethod is not { } setMethod || !IsAccessibleToBinder(compilation, setMethod))
             {
                 continue;
             }
 
-            if (property.SetMethod.IsInitOnly)
+            if (setMethod.IsInitOnly)
             {
                 diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.InitOnlyProperty, property.Locations.FirstOrDefault(), property.Name));
                 continue;
@@ -130,7 +130,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
 
             // The binder passes the current value as the default, so it has to read the property too.
             // A Password prompt has no default value and never reads it.
-            if (property.GetMethod?.DeclaredAccessibility is not (Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal) && !IsPassword(property))
+            if (!IsAccessibleToBinder(compilation, property.GetMethod) && !IsPassword(property))
             {
                 diagnostics.Add(DiagnosticInfo.Create(DiagnosticDescriptors.PropertyNotReadable, property.Locations.FirstOrDefault(), property.Name));
                 continue;
@@ -393,7 +393,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
                 // A property also needs a getter the binder can call.
                 var firstMember = targetType.GetMembers(memberName)
                     .FirstOrDefault(m => m.IsStatic && m.DeclaredAccessibility == Accessibility.Public &&
-                                         m is IPropertySymbol { GetMethod.DeclaredAccessibility: Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal } or IMethodSymbol { Parameters.Length: 0, TypeParameters.Length: 0 } &&
+                                         (m is IPropertySymbol memberProperty ? IsAccessibleToBinder(compilation, memberProperty.GetMethod) : m is IMethodSymbol { Parameters.Length: 0, TypeParameters.Length: 0 }) &&
                                          IsAccessibleFromOtherFiles(m.ContainingType));
 
                 var memberType = firstMember switch
@@ -715,9 +715,16 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             },
             TypedConstantKind.Enum => IsAccessibleFromOtherFiles(constant.Type!),
             // The array is emitted as new T[] { ... }, which names its element type even when it is empty.
-            TypedConstantKind.Array => constant.Type is null || IsAccessibleFromOtherFiles(constant.Type) && (constant.IsNull || constant.Values.All(IsAccessibleFromOtherFiles)),
+            TypedConstantKind.Array => constant.IsNull || constant.Type is null || IsAccessibleFromOtherFiles(constant.Type) && constant.Values.All(IsAccessibleFromOtherFiles),
             _ => true
         };
+    }
+
+    // An accessor the generated binder can call. Its declared accessibility is not enough: an internal or
+    // protected internal accessor inherited from another assembly is not visible from this one.
+    private static bool IsAccessibleToBinder(Compilation compilation, IMethodSymbol? accessor)
+    {
+        return accessor is not null && compilation.IsSymbolAccessibleWithin(accessor, compilation.Assembly);
     }
 
     // Checks the declared accessibility of a type and its containing types, ignoring type arguments.

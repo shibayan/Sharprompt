@@ -336,6 +336,104 @@ public class PromptBindableDiagnosticsTests
         Assert.DoesNotContain("Hidden", source);
     }
 
+    [Fact]
+    public void ValidationAttributeWithNullArrayOfInaccessibleType_IsUsed()
+    {
+        // A null array is emitted as null, which does not name its element type.
+        var result = GeneratorTestHelper.Run(Usings + """
+            public sealed class CheckAttribute(object? value) : ValidationAttribute
+            {
+                public object? Value { get; } = value;
+            }
+
+            [PromptBindable]
+            public class Model
+            {
+                [Check((Hidden[])null!)]
+                public string Value { get; set; } = "";
+
+                private enum Hidden { A }
+            }
+            """);
+
+        var source = result.AssertGeneratedAndCompiles();
+
+        Assert.Empty(result.GeneratorDiagnostics);
+        Assert.Contains("new global::TestApp.CheckAttribute(null)", source);
+    }
+
+    [Theory]
+    [InlineData("public string Name { internal get; set; } = \"\";", "SHARP010")]
+    [InlineData("public string Name { protected internal get; set; } = \"\";", "SHARP010")]
+    [InlineData("public string Name { get; internal set; } = \"\";", null)]
+    [InlineData("[DataType(DataType.Password)] public string Name { internal get; set; } = \"\";", null)]
+    public void InheritedPropertyWithAccessorInternalToOtherAssembly_IsNotAccessedByBinder(string declaration, string? expectedDiagnostic)
+    {
+        // internal accessors are visible from the declaring assembly only, not from the binder in this one.
+        var library = GeneratorTestHelper.CreateLibraryReference($$"""
+            using System.ComponentModel.DataAnnotations;
+
+            namespace Library;
+
+            public class BaseModel
+            {
+                {{declaration}}
+            }
+            """);
+
+        var result = GeneratorTestHelper.Run(Usings + """
+            [PromptBindable]
+            public class Model : Library.BaseModel
+            {
+                public string Other { get; set; } = "";
+            }
+            """, additionalReferences: library);
+
+        var source = result.AssertGeneratedAndCompiles();
+
+        Assert.Equal(expectedDiagnostic is null ? [] : [expectedDiagnostic], result.GeneratorDiagnostics.Select(diagnostic => diagnostic.Id));
+        Assert.Contains("model.Other =", source);
+
+        if (declaration.Contains("Password"))
+        {
+            Assert.Contains("model.Name = global::Sharprompt.Prompt.Password(", source);
+        }
+        else
+        {
+            Assert.DoesNotContain("model.Name", source);
+        }
+    }
+
+    [Theory]
+    [InlineData("public static string[] Items { internal get; set; } = { \"a\" };", "SHARP001")]
+    [InlineData("public static string[] Items { get; internal set; } = { \"a\" };", null)]
+    [InlineData("public static string[] Items { protected internal get; set; } = { \"a\" };", "SHARP001")]
+    public void MemberItemsOnProviderInOtherAssembly_ChecksGetterAccessibility(string member, string? expectedDiagnostic)
+    {
+        var library = GeneratorTestHelper.CreateLibraryReference($$"""
+            namespace Library;
+
+            public class Provider
+            {
+                {{member}}
+            }
+            """);
+
+        var result = GeneratorTestHelper.Run(Usings + """
+            [PromptBindable]
+            public class Model
+            {
+                [MemberItems("Items", typeof(Library.Provider))]
+                public string Value { get; set; } = "";
+            }
+            """, additionalReferences: library);
+
+        var source = result.AssertGeneratedAndCompiles();
+
+        Assert.Equal(expectedDiagnostic is null ? [] : [expectedDiagnostic], result.GeneratorDiagnostics.Select(diagnostic => diagnostic.Id));
+        Assert.Equal(expectedDiagnostic is null, source.Contains("options.Items = global::Library.Provider.Items"));
+    }
+
     [Theory]
     [InlineData("System.Span<char>")]
     [InlineData("System.ReadOnlySpan<int>")]
