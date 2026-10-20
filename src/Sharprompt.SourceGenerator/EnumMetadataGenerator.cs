@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Sharprompt.SourceGenerator;
@@ -103,7 +104,7 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
         for (var i = 0; i < orderedMembers.Length; i++)
         {
             var suffix = i == orderedMembers.Length - 1 ? string.Empty : ",";
-            builder.AppendLine("                " + enumTypeName + "." + orderedMembers[i].Name + suffix);
+            builder.AppendLine("                " + enumTypeName + "." + EscapeIdentifier(orderedMembers[i].Name) + suffix);
         }
 
         builder.AppendLine("            },");
@@ -112,7 +113,7 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
 
         foreach (var member in members)
         {
-            builder.AppendLine("                " + enumTypeName + "." + member.Name + " => " + Quote(member.DisplayName) + ",");
+            builder.AppendLine("                " + enumTypeName + "." + EscapeIdentifier(member.Name) + " => " + Quote(member.DisplayName) + ",");
         }
 
         builder.AppendLine("                _ => value.ToString()");
@@ -147,6 +148,13 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
         }
 
         return new EnumMemberMetadata(field.Name, displayName, order, index);
+    }
+
+    // IFieldSymbol.Name drops the verbatim '@', so members named after a reserved keyword
+    // (for example @default) must be re-escaped to stay valid identifiers in generated code.
+    private static string EscapeIdentifier(string name)
+    {
+        return SyntaxFacts.GetKeywordKind(name) != SyntaxKind.None ? "@" + name : name;
     }
 
     private static string Quote(string text)

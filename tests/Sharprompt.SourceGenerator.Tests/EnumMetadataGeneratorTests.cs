@@ -186,6 +186,26 @@ public class EnumMetadataGeneratorTests
     }
 
     [Fact]
+    public void KeywordMemberNames_AreEscapedInGeneratedCode()
+    {
+        // "default" < "zulu" ordinally, so the verbatim @default becomes the alias representative and
+        // must be emitted as @default; contextual keywords such as value need no escaping.
+        var metadata = AssertMatchesFallback("""
+            public enum Sample
+            {
+                zulu = 0,
+                @default = 0,
+                @class = 1,
+                value = 2
+            }
+            """);
+
+        metadata.AssertValues("default", "class", "value");
+        Assert.Equal(["default", "class", "value"], metadata.Texts);
+        Assert.Equal("default", metadata.TextOf("zulu"));
+    }
+
+    [Fact]
     public void EmptyEnum_GeneratesNothing()
     {
         var result = GeneratorTestHelper.Run(Usings + "public enum Sample { }", new EnumMetadataGenerator());
