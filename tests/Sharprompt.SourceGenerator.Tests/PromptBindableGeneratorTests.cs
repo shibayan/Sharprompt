@@ -401,10 +401,23 @@ public class PromptBindableGeneratorTests
         Assert.Contains(expected, source);
     }
 
-    [Fact]
-    public void MemberItemsOnInaccessibleType_ReportsDiagnostic()
+    private const string ProviderTypes = """
+        public static class GenericProvider<T>
+        {
+            public static IEnumerable<string> Items => new[] { "a" };
+        }
+
+        """;
+
+    [Theory]
+    [InlineData("Provider")]
+    [InlineData("GenericProvider<Secret>")]
+    [InlineData("GenericProvider<Secret[]>")]
+    [InlineData("GenericProvider<List<Secret>>")]
+    [InlineData("GenericProvider<>")]
+    public void MemberItemsOnInaccessibleType_ReportsDiagnostic(string providerType)
     {
-        var result = GeneratorTestHelper.Run(Usings + """
+        var result = GeneratorTestHelper.Run(Usings + ProviderTypes + $$"""
             [PromptBindable]
             public class Model
             {
@@ -413,7 +426,11 @@ public class PromptBindableGeneratorTests
                     public static IEnumerable<string> Items => new[] { "a" };
                 }
 
-                [MemberItems("Items", typeof(Provider))]
+                private class Secret
+                {
+                }
+
+                [MemberItems("Items", typeof({{providerType}}))]
                 public string Value { get; set; } = "";
             }
             """);
@@ -423,6 +440,27 @@ public class PromptBindableGeneratorTests
         var diagnostic = Assert.Single(result.GeneratorDiagnostics);
         Assert.Equal("SHARP001", diagnostic.Id);
         Assert.Contains("model.Value = global::Sharprompt.Prompt.Input<string>(", source);
+    }
+
+    [Theory]
+    [InlineData("GenericProvider<int>", "global::TestApp.GenericProvider<int>")]
+    [InlineData("GenericProvider<MyEnum[]>", "global::TestApp.GenericProvider<global::TestApp.MyEnum[]>")]
+    [InlineData("GenericProvider<List<Model>>", "global::TestApp.GenericProvider<global::System.Collections.Generic.List<global::TestApp.Model>>")]
+    public void MemberItemsOnConstructedGenericType_GeneratesSelect(string providerType, string expected)
+    {
+        var result = GeneratorTestHelper.Run(Usings + ProviderTypes + $$"""
+            [PromptBindable]
+            public class Model
+            {
+                [MemberItems("Items", typeof({{providerType}}))]
+                public string Value { get; set; } = "";
+            }
+            """);
+
+        var source = result.AssertGeneratedAndCompiles();
+
+        Assert.Empty(result.GeneratorDiagnostics);
+        Assert.Contains("options.Items = " + expected + ".Items;", source);
     }
 
     [Fact]
@@ -710,7 +748,9 @@ public class PromptBindableGeneratorTests
 
         Assert.Equal("User name", context.DisplayName);
         Assert.Equal("UserName", context.MemberName);
-        Assert.Equal("The User name field is required.", new RequiredAttribute().GetValidationResult(null, context)!.ErrorMessage);
+        // The default message is localized with CurrentUICulture, so build the expectation the same way.
+        var required = new RequiredAttribute();
+        Assert.Equal(required.FormatErrorMessage("User name"), required.GetValidationResult(null, context)!.ErrorMessage);
     }
 
     [Fact]

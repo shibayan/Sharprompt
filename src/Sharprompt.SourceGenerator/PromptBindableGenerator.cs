@@ -597,19 +597,37 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         return false;
     }
 
-    // The generated binder is a file-local class at the top level of another file in the same assembly.
-    private static bool IsAccessibleFromOtherFiles(INamedTypeSymbol type)
+    // The generated binder is a file-local class at the top level of another file in the same assembly,
+    // so the type, its containing types and all of their type arguments must be visible from there.
+    private static bool IsAccessibleFromOtherFiles(ITypeSymbol type)
     {
-        for (var current = type; current != null; current = current.ContainingType)
+        switch (type)
         {
-            if (current.IsFileLocal ||
-                current.DeclaredAccessibility is not (Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal))
-            {
-                return false;
-            }
-        }
+            case IArrayTypeSymbol arrayType:
+                return IsAccessibleFromOtherFiles(arrayType.ElementType);
 
-        return true;
+            case INamedTypeSymbol namedType:
+                for (var current = namedType; current != null; current = current.ContainingType)
+                {
+                    if (current.IsFileLocal ||
+                        current.DeclaredAccessibility is not (Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal))
+                    {
+                        return false;
+                    }
+
+                    // Unbound type arguments (typeof(Provider<>)) are error types and are rejected below.
+                    if (current.TypeArguments.Any(typeArgument => !IsAccessibleFromOtherFiles(typeArgument)))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+
+            default:
+                // Type parameters, pointers and error types cannot be referenced from the generated file.
+                return false;
+        }
     }
 
     // Members named after a C# keyword (e.g. "@class") must be escaped when emitted as identifiers.
