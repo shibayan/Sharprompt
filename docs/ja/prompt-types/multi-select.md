@@ -56,6 +56,8 @@ var values = Prompt.MultiSelect<MyEnum>("Select enum values", defaultValues: new
 Console.WriteLine($"You picked {string.Join(", ", values)}");
 ```
 
+項目は `Select` と同じ順序で並びます。[項目の並び順](/ja/advanced#項目の並び順) を参照してください。
+
 ## Fluent API
 
 ```csharp

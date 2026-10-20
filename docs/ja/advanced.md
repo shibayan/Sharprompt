@@ -28,6 +28,28 @@ var values = Prompt.MultiSelect<MyEnum>("Select enum values");
 Console.WriteLine($"You picked {string.Join(", ", values)}");
 ```
 
+### 項目の並び順
+
+Enum の項目は、メタデータが Sharprompt のソースジェネレーターから来た場合でも、リフレクションによるフォールバック (別アセンブリの Enum など、ジェネレーターが実行されなかった場合に使用) から来た場合でも、同じ順序で並びます:
+
+1. メンバーは宣言順ではなく、基になる値の順に並びます。符号付きの Enum では負の値が先頭になります。`[Flags]` Enum の組み合わせ値も通常のメンバーとして一緒に並びます。
+2. エイリアス (同じ値を持つ複数のメンバー) は 1 つにまとめられます。名前を序数比較 (ordinal) で並べたときに最初になるメンバーがその値を代表し、そのメンバーの `[Display]` 属性だけが使われます。
+3. `[Display(Order = ...)]` を指定したメンバーが `Order` の順で先に並びます。`Order` を指定していないメンバーは、`Order = int.MaxValue` を含むすべての指定済みメンバーの後に並びます。`Order` が同じメンバー同士、および `Order` を指定していないメンバー同士は値の順を保ちます。
+
+```csharp
+public enum Priority
+{
+    Low = 1,
+    [Display(Name = "High priority", Order = 0)]
+    High = 3,
+    Medium = 2,
+    Normal = 2 // Medium のエイリアス。"Medium" の方が先に並ぶため、こちらが値を代表します。
+}
+
+// 項目: High priority, Low, Medium
+var priority = Prompt.Select<Priority>("Select priority");
+```
+
 ## Unicode サポート
 
 Sharprompt はマルチバイト文字と絵文字をサポートしています。最良の結果を得るには、出力エンコーディングを UTF-8 に設定してください:

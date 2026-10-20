@@ -2,6 +2,8 @@
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Loader;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -32,22 +34,22 @@ internal static class GeneratorTestHelper
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable));
     }
 
-    public static GeneratorDriver CreateDriver()
+    public static GeneratorDriver CreateDriver(IIncrementalGenerator? generator = null)
     {
         return CSharpGeneratorDriver.Create(
-            [new PromptBindableGenerator().AsSourceGenerator()],
+            [(generator ?? new PromptBindableGenerator()).AsSourceGenerator()],
             parseOptions: s_parseOptions,
             driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
     }
 
-    public static GeneratorTestResult Run(string source)
+    public static GeneratorTestResult Run(string source, IIncrementalGenerator? generator = null)
     {
         var compilation = CreateCompilation(source);
 
         // The test input itself must be valid, so that any error comes from the generated code.
         Assert.Empty(compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error));
 
-        CreateDriver().RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
+        CreateDriver(generator).RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
 
         var generatedTree = outputCompilation.SyntaxTrees.Skip(1).SingleOrDefault();
 
@@ -55,12 +57,29 @@ internal static class GeneratorTestHelper
             compilation.SyntaxTrees.Single().GetText(),
             generatedTree?.ToString(),
             generatorDiagnostics,
-            outputCompilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToImmutableArray());
+            outputCompilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToImmutableArray(),
+            outputCompilation);
     }
 }
 
-internal sealed record GeneratorTestResult(SourceText Input, string? Source, ImmutableArray<Diagnostic> GeneratorDiagnostics, ImmutableArray<Diagnostic> CompileErrors)
+internal sealed record GeneratorTestResult(SourceText Input, string? Source, ImmutableArray<Diagnostic> GeneratorDiagnostics, ImmutableArray<Diagnostic> CompileErrors, Compilation OutputCompilation)
 {
+    // Loads the generated code into its own context, so that each test gets distinct types even
+    // though every test compilation shares the same assembly name.
+    public Assembly LoadAssembly()
+    {
+        AssertGeneratedAndCompiles();
+
+        using var stream = new MemoryStream();
+
+        var emitResult = OutputCompilation.Emit(stream);
+        Assert.True(emitResult.Success, string.Join(Environment.NewLine, emitResult.Diagnostics));
+
+        stream.Position = 0;
+
+        return new AssemblyLoadContext(name: null).LoadFromStream(stream);
+    }
+
     public string AssertGeneratedAndCompiles()
     {
         Assert.Empty(CompileErrors);
