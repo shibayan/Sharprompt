@@ -1,5 +1,7 @@
-﻿using System.Globalization;
+﻿using System.Collections;
+using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 using Microsoft.CodeAnalysis;
 
@@ -82,7 +84,8 @@ public class PromptBindableDiagnosticsTests
     [InlineData("int", "\"a\", \"b\"", "\"a\" of type 'string'")]
     [InlineData("long", "1, 2", "1 of type 'int'")]
     [InlineData("int", "1, null", "null")]
-    [InlineData("MyEnum", "0", "0 of type 'int'")]
+    [InlineData("MyEnum", "0L", "0 of type 'long'")]
+    [InlineData("long", "MyEnum.A", "TestApp.MyEnum.A of type 'TestApp.MyEnum'")]
     [InlineData("List<int>", "1, \"b\"", "\"b\" of type 'string'")]
     [InlineData("List<int?>", "1L, 2L", "1 of type 'long'")]
     public void InlineItemsWithIncompatibleValue_ReportsDiagnosticAndIgnoresItems(string propertyType, string items, string invalidValue)
@@ -112,6 +115,11 @@ public class PromptBindableDiagnosticsTests
     [InlineData("HashSet<string>", "\"a\", \"b\"")]
     [InlineData("List<int?>", "1, 2")]
     [InlineData("int?[]", "1, 2")]
+    [InlineData("MyEnum", "0, 2")]
+    [InlineData("MyEnum?", "1")]
+    [InlineData("List<MyEnum>", "0, MyEnum.B")]
+    [InlineData("int", "MyEnum.A, MyEnum.C")]
+    [InlineData("int?", "MyEnum.B")]
     public void InlineItemsWithCompatibleValues_GeneratesItems(string propertyType, string items)
     {
         var result = GeneratorTestHelper.Run(Usings + $$"""
@@ -126,7 +134,12 @@ public class PromptBindableDiagnosticsTests
         var source = result.AssertGeneratedAndCompiles();
 
         Assert.Empty(result.GeneratorDiagnostics);
-        Assert.Contains("options.Items = global::System.Linq.Enumerable.Cast<", source);
+
+        // Run the generated expression: Enumerable.Cast throws for any item it cannot unbox.
+        var itemsExpression = Regex.Match(source, @"options\.Items = (global::System\.Linq\.Enumerable\.Cast<.+>\(new object\[\] \{ .* \}\));").Groups[1].Value;
+        var values = (IEnumerable)result.Evaluate("return System.Linq.Enumerable.ToList(" + itemsExpression + ");")!;
+
+        Assert.Equal(items.Split(',').Length, values.Cast<object>().Count());
     }
 
     [Fact]
@@ -394,6 +407,9 @@ public class PromptBindableDiagnosticsTests
         Assert.Equal(expectedDiagnostic is null ? [] : [expectedDiagnostic], result.GeneratorDiagnostics.Select(diagnostic => diagnostic.Id));
         Assert.Contains("model.Other =", source);
 
+        // The inherited property has no source location, so the warning goes on the model, where #pragma can suppress it.
+        Assert.All(result.GeneratorDiagnostics, diagnostic => Assert.Equal("Model", result.GetLocationText(diagnostic)));
+
         if (declaration.Contains("Password"))
         {
             Assert.Contains("model.Name = global::Sharprompt.Prompt.Password(", source);
@@ -402,6 +418,73 @@ public class PromptBindableDiagnosticsTests
         {
             Assert.DoesNotContain("model.Name", source);
         }
+    }
+
+    [Fact]
+    public void InheritedPropertyWithValidationAttributeInternalToOtherAssembly_ReportsDiagnosticOnModel()
+    {
+        var library = GeneratorTestHelper.CreateLibraryReference("""
+            using System.ComponentModel.DataAnnotations;
+
+            namespace Library;
+
+            internal sealed class CheckAttribute : ValidationAttribute;
+
+            public class BaseModel
+            {
+                [Required]
+                [Check]
+                public string Name { get; set; } = "";
+            }
+            """);
+
+        var result = GeneratorTestHelper.Run(Usings + """
+            [PromptBindable]
+            public class Model : Library.BaseModel;
+            """, additionalReferences: library);
+
+        var source = result.AssertGeneratedAndCompiles();
+
+        var diagnostic = Assert.Single(result.GeneratorDiagnostics);
+        Assert.Equal("SHARP013", diagnostic.Id);
+        Assert.Equal("Model", result.GetLocationText(diagnostic));
+        Assert.Contains("RequiredAttribute()", source);
+        Assert.DoesNotContain("CheckAttribute", source);
+    }
+
+    [Fact]
+    public void ValidationAttributeWithTypeProtectedInternalToOtherAssembly_ReportsDiagnostic()
+    {
+        // The derived model may name the base class's protected internal type, but the binder file cannot.
+        var library = GeneratorTestHelper.CreateLibraryReference("""
+            namespace Library;
+
+            public class BaseModel
+            {
+                protected internal sealed class Nested;
+            }
+            """);
+
+        var result = GeneratorTestHelper.Run(Usings + """
+            public sealed class CheckAttribute(System.Type type) : ValidationAttribute
+            {
+                public System.Type Type { get; } = type;
+            }
+
+            [PromptBindable]
+            public class Model : Library.BaseModel
+            {
+                [Check(typeof(Nested))]
+                public string Value { get; set; } = "";
+            }
+            """, additionalReferences: library);
+
+        var source = result.AssertGeneratedAndCompiles();
+
+        var diagnostic = Assert.Single(result.GeneratorDiagnostics);
+        Assert.Equal("SHARP013", diagnostic.Id);
+        Assert.Equal("Check(typeof(Nested))", result.GetLocationText(diagnostic));
+        Assert.DoesNotContain("Nested", source);
     }
 
     [Theory]
