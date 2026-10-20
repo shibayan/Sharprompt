@@ -11,16 +11,19 @@
     <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)generated/$(TargetFramework)</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
 
-  <ItemGroup>
+  <!-- verify.ps1 always passes SharpromptVersion and tests the packed package. -->
+  <ItemGroup Condition="'$(SharpromptVersion)' != ''">
     <PackageReference Include="Sharprompt" />
+  </ItemGroup>
+
+  <!-- Without it (an IDE, or tools such as dependency submission that restore every project), reference the source so restore still succeeds. -->
+  <ItemGroup Condition="'$(SharpromptVersion)' == ''">
+    <ProjectReference Include="..\..\..\src\Sharprompt\Sharprompt.csproj" />
+    <ProjectReference Include="..\..\..\src\Sharprompt.SourceGenerator\Sharprompt.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Sharprompt.NativeAot.ExternalEnums\Sharprompt.NativeAot.ExternalEnums.csproj" />
   </ItemGroup>
-
-  <Target Name="_RequireSharpromptVersion" BeforeTargets="CollectPackageReferences" Condition="'$(SharpromptVersion)' == ''">
-    <Error Text="SharpromptVersion is not set. Run verify.ps1, which packs Sharprompt and passes the packed version." />
-  </Target>
 
 </Project>

@@ -43,7 +43,7 @@ To check a single target framework:
 pwsh ./tests/Sharprompt.NativeAot/verify.ps1 -Framework net10.0
 ```
 
-These projects are not part of `Sharprompt.slnx` because they restore Sharprompt from the locally packed package, so build them through `verify.ps1` rather than `dotnet build` at the repository root.
+These projects are not part of `Sharprompt.slnx`. `verify.ps1` passes `SharpromptVersion` so that the app restores the packed package. Without it, for example when the app is opened in an IDE or restored by dependency submission, the app references the Sharprompt source projects instead, so restoring it still succeeds. That build does not verify the package, so always use `verify.ps1` for verification.
 
 ## Adding a scenario
 
