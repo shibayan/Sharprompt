@@ -217,6 +217,33 @@ public class PromptBindableGeneratorTests
         Assert.Equal(order.OrderBy(x => x), order);
     }
 
+    [Fact]
+    public void Order_PutsPropertiesWithoutOrderAfterOrderMaxValue()
+    {
+        var result = GeneratorTestHelper.Run(Usings + """
+            [PromptBindable]
+            public class Model
+            {
+                public string Unordered { get; set; } = "";
+
+                [Display(Order = int.MaxValue)]
+                public string Max { get; set; } = "";
+
+                [Display(Order = int.MinValue)]
+                public string Min { get; set; } = "";
+            }
+            """);
+
+        var source = result.AssertGeneratedAndCompiles();
+
+        var order = new[] { "Min", "Max", "Unordered" }
+            .Select(name => source.IndexOf("model." + name + " =", System.StringComparison.Ordinal))
+            .ToArray();
+
+        Assert.DoesNotContain(-1, order);
+        Assert.Equal(order.OrderBy(x => x), order);
+    }
+
     [Theory]
     [InlineData("de-DE")]
     [InlineData("fr-FR")]

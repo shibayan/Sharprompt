@@ -125,9 +125,11 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             return null;
         }
 
-        // Match EnumMetadataRegistry: members without [Display(Order)] come last, in declaration order.
+        // Members without [Display(Order)] come last, in declaration order. Sort on whether an Order is
+        // present first, so they also come after members that explicitly use Order = int.MaxValue.
         properties = properties
-            .OrderBy(p => p.Order ?? int.MaxValue)
+            .OrderBy(p => p.Order is null)
+            .ThenBy(p => p.Order)
             .ThenBy(p => p.Index)
             .ToList();
 
