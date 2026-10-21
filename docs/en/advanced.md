@@ -84,6 +84,20 @@ var name = Prompt.Input<string>("What's your name?");
 Console.WriteLine($"Hello, {name}!");
 ```
 
+### Control Characters
+
+Messages, items, answers, default values, and error messages can come from external data. Before measuring and writing any of them, Sharprompt normalizes control characters, so the prompt keeps its layout and the cursor stays in place:
+
+| Characters | Shown as |
+|------------|----------|
+| Line breaks (`\r\n`, `\n`, `\r`, U+0085, U+2028, U+2029) | A new line. A multi-line message or error message is shown on several lines. |
+| Tab (`\t`) | Spaces up to the next multiple of 8 columns, counted from the start of the line. |
+| ANSI SGR sequences (`ESC [ ... m`), which set colors and styles | Kept as is, taking no width. |
+| Other escape sequences, such as cursor movement, screen clearing, and OSC | Removed, because they would move the cursor or change the terminal's state. |
+| Other control characters | Visible symbols: `␀` to `␟` for U+0000 to U+001F, `␡` for DEL, and `�` for U+0080 to U+009F. |
+
+Only the display changes: `Select` and `MultiSelect` still return the original items, and `Input` returns the text as entered. Keys that produce control characters are not inserted into the input.
+
 ## Fluent Interface
 
 All prompt types support a fluent interface via the `Sharprompt.Fluent` namespace:
