@@ -70,7 +70,7 @@ The property is read each time the items are shown, so the names follow `Culture
 
 - Only `Name`, `ResourceType`, and `Order` of `[Display]` are used. `ShortName`, `Description`, `GroupName`, and `Prompt` are ignored, and so are other attributes such as `[Description]` and `[EnumMember]`.
 - For `[Flags]` enums, each member is a separate item, including composite members. `MultiSelect` returns the selected members as a collection; it does not combine them into a single flags value.
-- The source generator does not generate metadata for enums declared in another assembly, nested in a `private`, `protected`, or generic type, or declared `file`. It also skips enums whose `ResourceType` property it cannot read the way `DisplayAttribute` does. These enums use the reflection fallback, which follows the same rules. In both cases, an invalid resource reference throws when the items are shown, as `DisplayAttribute.GetName` does.
+- The source generator does not generate metadata for enums that use `ResourceType` on any member, since their names are resolved through `DisplayAttribute.GetName`. It also skips enums declared in another assembly, nested in a `private`, `protected`, or generic type, or declared `file`. These enums use the reflection fallback, which follows the same rules and is supported under Native AOT. An invalid resource reference throws when the items are shown, as `DisplayAttribute.GetName` does.
 - To use different items or names, register the enum with `EnumMetadataRegistry.Register` at startup. A registration replaces the metadata from either source.
 
 ## Unicode Support

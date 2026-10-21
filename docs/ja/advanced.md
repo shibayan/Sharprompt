@@ -70,7 +70,7 @@ public enum Priority
 
 - `[Display]` のうち使われるのは `Name`、`ResourceType`、`Order` だけです。`ShortName`、`Description`、`GroupName`、`Prompt` は無視されます。`[Description]` や `[EnumMember]` などのほかの属性も無視されます。
 - `[Flags]` の Enum では、組み合わせ値のメンバーも含めて各メンバーが別々の項目になります。`MultiSelect` は選択されたメンバーをコレクションで返し、1 つのフラグ値には結合しません。
-- 別アセンブリで宣言された Enum、`private`・`protected`・ジェネリック型の入れ子の Enum、`file` で宣言された Enum については、ソースジェネレーターはメタデータを生成しません。`DisplayAttribute` と同じ方法で `ResourceType` のプロパティを読み取れない Enum も同様です。これらの Enum はリフレクションによるフォールバックを使いますが、適用されるルールは同じです。どちらの場合も、不正なリソース参照は `DisplayAttribute.GetName` と同じく、項目を表示するときに例外をスローします。
+- いずれかのメンバーで `ResourceType` を指定した Enum については、表示名を `DisplayAttribute.GetName` で解決するため、ソースジェネレーターはメタデータを生成しません。別アセンブリで宣言された Enum、`private`・`protected`・ジェネリック型の入れ子の Enum、`file` で宣言された Enum も同様です。これらの Enum はリフレクションによるフォールバックを使いますが、適用されるルールは同じで、Native AOT でもサポートされます。不正なリソース参照は、`DisplayAttribute.GetName` と同じく、項目を表示するときに例外をスローします。
 - 項目や表示名を変えたい場合は、起動時に `EnumMetadataRegistry.Register` で Enum を登録してください。登録したメタデータは、どちらの経路のメタデータよりも優先されます。
 
 ## Unicode サポート

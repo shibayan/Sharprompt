@@ -63,7 +63,8 @@ public static class LocalStrings
     public static string Evening => System.Globalization.CultureInfo.CurrentUICulture.Name == "ja-JP" ? "夜" : "Evening";
 }
 
-// Display names come from a resource type. ExternalTimeOfDay is the same enum in another assembly.
+// Display names come from a resource type, so the generator leaves this enum to the reflection fallback.
+// ExternalTimeOfDay is the same enum in another assembly.
 public enum LocalTimeOfDay
 {
     [Display(Name = nameof(LocalStrings.Morning), ResourceType = typeof(LocalStrings))]

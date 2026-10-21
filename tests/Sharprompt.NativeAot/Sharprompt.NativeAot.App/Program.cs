@@ -167,9 +167,10 @@ runner.Run("MultiSelect<string> returns the checked items", driver =>
 MultiSelectsAllEnumItems("generated metadata", [LocalPriority.High, LocalPriority.Medium, LocalPriority.Low]);
 MultiSelectsAllEnumItems("reflection fallback", [ExternalPriority.High, ExternalPriority.Medium, ExternalPriority.Low]);
 
-// Display names from DisplayAttribute.ResourceType are read each time items are shown, on both metadata paths.
-SelectsLocalizedEnum("generated metadata", LocalTimeOfDay.Evening);
-SelectsLocalizedEnum("reflection fallback", ExternalTimeOfDay.Evening);
+// Display names from DisplayAttribute.ResourceType are read each time items are shown. The generator leaves such
+// enums to the reflection fallback, so both of these use it, whichever assembly declares them.
+SelectsLocalizedEnum("this app", LocalTimeOfDay.Evening);
+SelectsLocalizedEnum("another assembly", ExternalTimeOfDay.Evening);
 
 runner.Run("List<int> converts each entry", driver =>
 {
@@ -292,9 +293,9 @@ void MultiSelectsAllEnumItems<TEnum>(string metadataSource, TEnum[] expected) wh
     });
 }
 
-void SelectsLocalizedEnum<TEnum>(string metadataSource, TEnum expected) where TEnum : struct, Enum
+void SelectsLocalizedEnum<TEnum>(string declaringAssembly, TEnum expected) where TEnum : struct, Enum
 {
-    runner.Run($"Select<{typeof(TEnum).Name}> reads display names from resources through the {metadataSource}", driver =>
+    runner.Run($"Select<{typeof(TEnum).Name}> declared in {declaringAssembly} reads display names from resources", driver =>
     {
         driver.Down(2).Enter().Down(2).Enter();
 

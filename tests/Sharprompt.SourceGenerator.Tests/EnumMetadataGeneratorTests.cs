@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -250,325 +249,75 @@ public class EnumMetadataGeneratorTests
         metadata.AssertValues("Min", "Max");
     }
 
-    [Fact]
-    public void ResourceDisplayNames_AreReadFromResourceTypeOnEveryCall()
-    {
-        const string declaration = """
-            public static class Strings
-            {
-                public static string Low => System.Globalization.CultureInfo.CurrentUICulture.Name == "ja-JP" ? "低" : "Low priority";
-
-                public static string? Missing => null;
-
-                public static string @class => "Class";
-            }
-
-            public enum Sample
-            {
-                [Display(Name = nameof(Strings.Low), ResourceType = typeof(Strings))]
-                Low,
-                [Display(Name = nameof(Strings.Missing), ResourceType = typeof(Strings))]
-                Other,
-                [Display(Name = "class", ResourceType = typeof(Strings))]
-                Keyword,
-                [Display(Name = "Plain")]
-                Plain
-            }
-            """;
-
-        var previousCulture = CultureInfo.CurrentUICulture;
-
-        try
-        {
-            CultureInfo.CurrentUICulture = new CultureInfo("en-US");
-
-            var metadata = AssertMatchesFallback(declaration);
-
-            // A null resource value falls back to the member name, as DisplayAttribute.GetName returns null.
-            Assert.Equal(["Low priority", "Other", "Class", "Plain"], metadata.Texts);
-
-            // The same metadata follows a later change of the UI culture: names are not cached.
-            CultureInfo.CurrentUICulture = new CultureInfo("ja-JP");
-
-            Assert.Equal("低", metadata.TextOf("Low"));
-            AssertMatchesFallback(declaration);
-        }
-        finally
-        {
-            CultureInfo.CurrentUICulture = previousCulture;
-        }
-    }
-
-    // DisplayAttribute.GetName throws for these, so the generator leaves the enum to the fallback
-    // rather than emitting code that would behave differently.
+    // DisplayAttribute.GetName reads a localized name each time it is shown. Generated code could only approximate
+    // that lookup (the resource property may be missing, inaccessible, ambiguous or flagged where it is used), so
+    // an enum that uses ResourceType anywhere is left to the reflection fallback, which uses GetName itself.
     [Theory]
-    [InlineData("internal static class Strings { public static string Low => \"Low\"; }")]
-    [InlineData("public static class Strings { internal static string Low => \"Low\"; }")]
-    [InlineData("public static class Strings { public static string Low { private get => \"Low\"; set { } } }")]
-    [InlineData("public static class Strings { public static int Low => 1; }")]
-    [InlineData("public class Strings { public string Low => \"Low\"; }")]
-    [InlineData("public static class Strings { }")]
-    [InlineData("public static class Strings { [Obsolete(\"Old\", true)] public static string Low => \"Low\"; }")]
-    [InlineData("public static class Strings { [Obsolete(\"Old\")] public static string Low => \"Low\"; }")]
-    [InlineData("public static class Strings { private static string s_low = \"Low\"; public static ref string Low => ref s_low; }")]
-    [InlineData("public static class Strings { private static string s_low = \"Low\"; public static ref readonly string Low => ref s_low; }")]
-    [InlineData("public interface Strings { static abstract string Low { get; } }")]
-    [InlineData("public interface Strings { static virtual string Low => \"Low\"; }")]
-    [InlineData("[Obsolete(\"Old\")] public static class Strings { public static string Low => \"Low\"; }")]
-    [InlineData("public static class Strings { public static string Low { [Obsolete(\"Old\", true)] get => \"Low\"; } }")]
-    [InlineData("public static class Strings { public static string Low { [System.Diagnostics.CodeAnalysis.Experimental(\"EXP001\")] get => \"Low\"; } }")]
-    public void UnusableResourceProperty_LeavesEnumToFallback(string resourceType)
+    [InlineData("typeof(Strings)")]
+    [InlineData("typeof(InternalStrings)")]
+    [InlineData("typeof(string[])")]
+    public void ResourceDisplayNames_LeaveEnumToFallback(string resourceType)
     {
-        var result = GeneratorTestHelper.Run(Usings + resourceType + """
-
-            public enum Sample
-            {
-                [Display(Name = "Low", ResourceType = typeof(Strings))]
-                Low
-            }
-            """, new EnumMetadataGenerator());
-
-        Assert.Empty(result.GeneratorDiagnostics);
-        Assert.Empty(result.CompileErrors);
-        Assert.Null(result.Source);
-    }
-
-    // Like [Obsolete], [Experimental] makes a direct reference report a diagnostic (EXP001) that fails the build,
-    // although a literal Name in [Display] does not reference the property in the consumer's code.
-    [Theory]
-    [InlineData("public static class Strings { [System.Diagnostics.CodeAnalysis.Experimental(\"EXP001\")] public static string Low => \"Low\"; }")]
-    [InlineData("[System.Diagnostics.CodeAnalysis.Experimental(\"EXP001\")] public static class Strings { public static string Low => \"Low\"; }")]
-    public void ExperimentalResourceProperty_LeavesEnumToFallback(string resourceType)
-    {
-        var result = GeneratorTestHelper.Run(Usings + resourceType + """
-
-            public enum Sample
-            {
-            #pragma warning disable EXP001
-                [Display(Name = "Low", ResourceType = typeof(Strings))]
-            #pragma warning restore EXP001
-                Low
-            }
-            """, new EnumMetadataGenerator());
-
-        Assert.Empty(result.GeneratorDiagnostics);
-        Assert.Empty(result.CompileErrors);
-        Assert.Null(result.Source);
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void ResourceTypeInExperimentalAssembly_LeavesEnumToFallback(bool experimental)
-    {
-        var library = GeneratorTestHelper.CreateLibraryReference((experimental ? "[assembly: System.Diagnostics.CodeAnalysis.Experimental(\"EXP001\")]\n" : "") + """
-            namespace ResourceLib;
-
+        var result = GeneratorTestHelper.Run(Usings + $$"""
             public static class Strings
             {
                 public static string Low => "Low";
             }
-            """);
 
-        var result = GeneratorTestHelper.Run("#pragma warning disable EXP001\n" + Usings + """
-            public enum Sample
-            {
-                [Display(Name = "Low", ResourceType = typeof(ResourceLib.Strings))]
-                Low
-            }
-            """, new EnumMetadataGenerator(), library);
-
-        Assert.Empty(result.CompileErrors);
-        Assert.Equal(!experimental, result.Source is not null);
-    }
-
-    // The generated file names the resource type through global::, which cannot reach an assembly
-    // that is referenced only through an extern alias.
-    [Theory]
-    [InlineData(new string[] { "res" }, false)]
-    [InlineData(new string[] { "res", "global" }, true)]
-    public void ResourceTypeFromAliasOnlyReference_LeavesEnumToFallback(string[] aliases, bool generated)
-    {
-        var library = GeneratorTestHelper.CreateLibraryReference("""
-            namespace ResourceLib;
-
-            public static class Strings
+            internal static class InternalStrings
             {
                 public static string Low => "Low";
             }
-            """).WithAliases(aliases);
 
-        var result = GeneratorTestHelper.Run("extern alias res;\n" + Usings + """
-            public enum Sample
-            {
-                [Display(Name = "Low", ResourceType = typeof(res::ResourceLib.Strings))]
-                Low
-            }
-            """, new EnumMetadataGenerator(), library);
-
-        Assert.Empty(result.CompileErrors);
-        Assert.Equal(generated, result.Source is not null);
-    }
-
-    // global::ResourceLib.Strings must bind to the resource type itself: another referenced assembly with the
-    // same name makes it ambiguous (CS0433), and a type in the consumer shadows it.
-    [Theory]
-    [InlineData("assembly")]
-    [InlineData("source")]
-    public void ResourceTypeWhoseNameBindsElsewhere_LeavesEnumToFallback(string collision)
-    {
-        const string strings = """
-            namespace ResourceLib
-            {
-                public static class Strings
-                {
-                    public static string Low => "Other";
-                }
-            }
-
-            """;
-
-        var library = GeneratorTestHelper.CreateLibraryReference(strings.Replace("Other", "Low"), "ResourceLib").WithAliases(["res", "global"]);
-        var references = collision == "assembly" ? new[] { library, GeneratorTestHelper.CreateLibraryReference(strings, "OtherLib") } : [library];
-
-        var result = GeneratorTestHelper.Run("""
-            extern alias res;
-
-            using System.ComponentModel.DataAnnotations;
-
-            #pragma warning disable CS0436
-
-            """ + (collision == "source" ? strings : "") + """
-            namespace TestApp
-            {
-                public enum Sample
-                {
-                    [Display(Name = "Low", ResourceType = typeof(res::ResourceLib.Strings))]
-                    Low
-                }
-            }
-            """, new EnumMetadataGenerator(), references);
-
-        Assert.Empty(result.CompileErrors);
-        Assert.Null(result.Source);
-    }
-
-#if NET9_0_OR_GREATER
-    [Theory]
-    [InlineData("Low priority", false)]
-    [InlineData("1st", false)]
-    [InlineData("class", true)]
-    public void ResourcePropertyNameThatIsNotAnIdentifier_LeavesEnumToFallback(string propertyName, bool generated)
-    {
-        // Other languages, such as F#, can declare property names that C# cannot spell; reflection still reads them.
-        var library = CreateResourceLibraryWithProperty(propertyName);
-
-        var result = GeneratorTestHelper.Run(Usings + $$"""
-            public enum Sample
-            {
-                [Display(Name = "{{propertyName}}", ResourceType = typeof(ResourceLib.Strings))]
-                Low
-            }
-            """, new EnumMetadataGenerator(), library);
-
-        Assert.Empty(result.CompileErrors);
-        Assert.Equal(generated, result.Source is not null);
-    }
-
-    private static MetadataReference CreateResourceLibraryWithProperty(string propertyName)
-    {
-        var assembly = new System.Reflection.Emit.PersistedAssemblyBuilder(new AssemblyName("ResourceLib"), typeof(object).Assembly);
-        var module = assembly.DefineDynamicModule("ResourceLib");
-        var type = module.DefineType("ResourceLib.Strings", TypeAttributes.Public | TypeAttributes.Abstract | TypeAttributes.Sealed);
-
-        var getter = type.DefineMethod("get_" + propertyName, MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.SpecialName | MethodAttributes.HideBySig, typeof(string), Type.EmptyTypes);
-        var il = getter.GetILGenerator();
-        il.Emit(System.Reflection.Emit.OpCodes.Ldstr, "Low");
-        il.Emit(System.Reflection.Emit.OpCodes.Ret);
-
-        type.DefineProperty(propertyName, PropertyAttributes.None, typeof(string), Type.EmptyTypes).SetGetMethod(getter);
-        type.CreateType();
-
-        using var stream = new System.IO.MemoryStream();
-        assembly.Save(stream);
-
-        return MetadataReference.CreateFromImage(stream.ToArray());
-    }
-#endif
-
-    [Fact]
-    public void ResourcePropertyHidingBaseProperty_LeavesEnumToFallback()
-    {
-        // Reflection finds both properties named Low, so DisplayAttribute.GetName throws AmbiguousMatchException.
-        var result = GeneratorTestHelper.Run(Usings + """
-            public class BaseStrings
-            {
-                public int Low => 1;
-            }
-
-            public class Strings : BaseStrings
-            {
-                public static new string Low => "Low";
-            }
-
-            public enum Sample
-            {
-                [Display(Name = "Low", ResourceType = typeof(Strings))]
-                Low
-            }
-            """, new EnumMetadataGenerator());
-
-        Assert.Empty(result.CompileErrors);
-        Assert.Null(result.Source);
-    }
-
-    [Fact]
-    public void ResourceTypeInObsoleteType_LeavesEnumToFallback()
-    {
-        // Naming Outer.Strings in generated code would warn about Outer, even where the consumer suppresses it.
-        var result = GeneratorTestHelper.Run(Usings + """
-            [Obsolete("Old")]
-            public static class Outer
-            {
-                public static class Strings
-                {
-                    public static string Low => "Low";
-                }
-            }
-
-            public enum Sample
-            {
-            #pragma warning disable CS0618
-                [Display(Name = "Low", ResourceType = typeof(Outer.Strings))]
-            #pragma warning restore CS0618
-                Low
-            }
-            """, new EnumMetadataGenerator());
-
-        Assert.Empty(result.GeneratorDiagnostics);
-        Assert.Empty(result.CompileErrors);
-        Assert.Null(result.Source);
-    }
-
-    // A resource type that is not a named type has no resource property, so GetName throws for it,
-    // while a null ResourceType means no resource at all.
-    [Theory]
-    [InlineData("typeof(string[])", false)]
-    [InlineData("typeof(int*)", false)]
-    [InlineData("null", true)]
-    public void NonNamedResourceType_LeavesEnumToFallback(string resourceType, bool generated)
-    {
-        var result = GeneratorTestHelper.Run(Usings + $$"""
             public enum Sample
             {
                 [Display(Name = "Low", ResourceType = {{resourceType}})]
-                Low
+                Low,
+                [Display(Name = "High")]
+                High
             }
             """, new EnumMetadataGenerator());
 
         Assert.Empty(result.GeneratorDiagnostics);
         Assert.Empty(result.CompileErrors);
-        Assert.Equal(generated, result.Source is not null);
+        Assert.Null(result.Source);
+    }
+
+    [Fact]
+    public void ResourceDisplayNameOnAlias_LeavesEnumToFallback()
+    {
+        // Only the representative's [Display] is used, but checking every member keeps the rule simple.
+        var result = GeneratorTestHelper.Run(Usings + """
+            public static class Strings
+            {
+                public static string Low => "Low";
+            }
+
+            public enum Sample
+            {
+                Default = 0,
+                [Display(Name = "Low", ResourceType = typeof(Strings))]
+                Low = 0
+            }
+            """, new EnumMetadataGenerator());
+
+        Assert.Empty(result.CompileErrors);
+        Assert.Null(result.Source);
+    }
+
+    [Fact]
+    public void NullResourceType_IsGeneratedLikeAPlainName()
+    {
+        // ResourceType = null means no resource, so Name is the display name itself.
+        var metadata = AssertMatchesFallback("""
+            public enum Sample
+            {
+                [Display(Name = "Low priority", ResourceType = null)]
+                Low
+            }
+            """);
+
+        Assert.Equal(["Low priority"], metadata.Texts);
     }
 
     [Fact]

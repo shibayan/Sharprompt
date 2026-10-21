@@ -61,10 +61,10 @@ internal static class GeneratorTestHelper
     }
 
     // Compiles a separate assembly, for models and providers that come from a referenced library.
-    public static MetadataReference CreateLibraryReference(string source, string assemblyName = "Library")
+    public static MetadataReference CreateLibraryReference(string source)
     {
         var compilation = CSharpCompilation.Create(
-            assemblyName,
+            "Library",
             [CSharpSyntaxTree.ParseText(source, s_parseOptions, path: "Library.cs")],
             s_references.Value,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable));
