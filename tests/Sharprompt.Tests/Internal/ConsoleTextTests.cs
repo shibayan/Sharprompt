@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-using Sharprompt.Internal;
+﻿using Sharprompt.Internal;
 
 using Xunit;
 
@@ -63,76 +61,16 @@ public class ConsoleTextTests
         Assert.Equal(width, ConsoleText.MeasureWidth(line));
     }
 
-    // Each line is written separately and the console driver resets colors after every write, so the
-    // effective SGR state at a line break is restored at the start of the next line, as one sequence.
+    // Each line is written separately and the console driver resets colors after every write, so a style
+    // ends with its line: the next line starts with the prompt's own colors, not with the style.
     [Theory]
-    [InlineData("\x1b[31mfirst\nsecond\x1b[0m", new[] { "\x1b[31mfirst", "\x1b[31msecond\x1b[0m" })]
-    [InlineData("\x1b[1m\x1b[31mA\nB\nC", new[] { "\x1b[1m\x1b[31mA", "\x1b[1;31mB", "\x1b[1;31mC" })]
-    [InlineData("\x1b[31m\x1b[32mA\nB", new[] { "\x1b[31m\x1b[32mA", "\x1b[32mB" })]
-    // The console driver applies its own foreground color to every line, so an explicit reset to the
-    // terminal default (0, or 39 for the foreground) is restored too, rather than left to that color.
-    [InlineData("\x1b[1mA\x1b[0m\nB", new[] { "\x1b[1mA\x1b[0m", "\x1b[0mB" })]
-    [InlineData("\x1b[1mA\x1b[m\nB", new[] { "\x1b[1mA\x1b[m", "\x1b[0mB" })]
-    [InlineData("\x1b[1mA\x1b[0;32m\nB", new[] { "\x1b[1mA\x1b[0;32m", "\x1b[0;32mB" })]
-    [InlineData("\x1b[1;2;31mA\x1b[22;39m\nB", new[] { "\x1b[1;2;31mA\x1b[22;39m", "\x1b[39mB" })]
-    [InlineData("\x1b[39mfirst\nsecond", new[] { "\x1b[39mfirst", "\x1b[39msecond" })]
-    [InlineData("\x1b[44mA\x1b[49m\nB", new[] { "\x1b[44mA\x1b[49m", "\x1b[49mB" })]
-    // Resets that cover several attributes clear them instead of being replayed after them.
-    [InlineData("\x1b[54m\x1b[51mA\nB", new[] { "\x1b[54m\x1b[51mA", "\x1b[51mB" })]
-    [InlineData("\x1b[51mA\x1b[54m\nB", new[] { "\x1b[51mA\x1b[54m", "B" })]
-    [InlineData("\x1b[73mA\x1b[75m\x1b[74m\nB", new[] { "\x1b[73mA\x1b[75m\x1b[74m", "\x1b[74mB" })]
-    [InlineData("\x1b[20mA\x1b[23m\nB", new[] { "\x1b[20mA\x1b[23m", "B" })]
-    // Parameters are numbers, so zero padding does not change their meaning; the restored sequence is canonical.
-    [InlineData("\x1b[38;05;196mA\nB", new[] { "\x1b[38;05;196mA", "\x1b[38;5;196mB" })]
-    [InlineData("\x1b[38;02;255;0;0mA\nB", new[] { "\x1b[38;02;255;0;0mA", "\x1b[38;2;255;0;0mB" })]
-    [InlineData("\x1b[038;5;1;001mA\nB", new[] { "\x1b[038;5;1;001mA", "\x1b[1;38;5;1mB" })]
-    [InlineData("\x1b[38:2:0:0255:00:0mA\nB", new[] { "\x1b[38:2:0:0255:00:0mA", "\x1b[38:2::255:0:0mB" })]
-    [InlineData("\x1b[4:03mA\nB", new[] { "\x1b[4:03mA", "\x1b[4:3mB" })]
-    // Unknown codes are written as is but not carried over.
-    [InlineData("\x1b[1000;1mA\nB", new[] { "\x1b[1000;1mA", "\x1b[1mB" })]
-    [InlineData("\x1b[38;5;208;48;2;1;2;3mA\nB", new[] { "\x1b[38;5;208;48;2;1;2;3mA", "\x1b[38;5;208;48;2;1;2;3mB" })]
-    [InlineData("\x1b[38:2::255:0:0;4:3mA\nB", new[] { "\x1b[38:2::255:0:0;4:3mA", "\x1b[4:3;38:2::255:0:0mB" })]
-    [InlineData("\x1b[3;7;9mA\x1b[23mB\nC", new[] { "\x1b[3;7;9mA\x1b[23mB", "\x1b[7;9mC" })]
-    public void Normalize_SgrStateSpanningLineBreaks_IsRestored(string text, string[] expected)
+    [InlineData("\x1b[31mfirst\nsecond\x1b[0m", new[] { "\x1b[31mfirst", "second\x1b[0m" })]
+    [InlineData("\x1b[1m\x1b[31mA\nB\nC", new[] { "\x1b[1m\x1b[31mA", "B", "C" })]
+    [InlineData("A\x1b[0m\n\x1b[32mB", new[] { "A\x1b[0m", "\x1b[32mB" })]
+    public void Normalize_SgrSequences_EndWithTheirLine(string text, string[] expected)
     {
         Assert.Equal(expected, ConsoleText.Normalize(text, 0));
     }
-
-    [Fact]
-    public void Normalize_RepeatedStyleChanges_DoNotGrowContinuationLines()
-    {
-        // Replaying the whole SGR history made each line longer than the last (quadratic output).
-        var text = string.Concat(Enumerable.Repeat("\x1b[31mx\x1b[39m\n", 1024)) + "\x1b[1;31m" + string.Concat(Enumerable.Repeat("\x1b[32m\x1b[33my\n", 1024));
-
-        var lines = ConsoleText.Normalize(text, 0);
-
-        Assert.True(lines.Sum(line => line.Length) < text.Length * 2);
-        Assert.Equal("\x1b[1;33m", lines[^1]);
-    }
-
-    [Fact]
-    public void Normalize_DistinctUnknownCodes_DoNotGrowContinuationLines()
-    {
-        // Keeping every distinct unknown code made each line restore all of the previous ones.
-        var text = string.Concat(Enumerable.Range(1000, 1024).Select(code => $"\x1b[{code}mx\n"));
-
-        var lines = ConsoleText.Normalize(text, 0);
-
-        Assert.True(lines.Sum(line => line.Length) < text.Length * 2);
-        Assert.Equal("", lines[^1]);
-    }
-
-    [Fact]
-    public void Normalize_OversizedColorParameter_IsRestoredCanonically()
-    {
-        // Restoring the raw parameter on every line made its length count once per line.
-        var text = "\x1b[38:2::" + new string('0', 2048) + "255:0:0mA" + new string('\n', 2048);
-
-        var lines = ConsoleText.Normalize(text, 0);
-
-        Assert.All(lines.Skip(1), line => Assert.Equal("\x1b[38:2::255:0:0m", line));
-    }
-
     [Fact]
     public void Normalize_ManyTabs_ExpandToEightColumnsEach()
     {

@@ -92,7 +92,7 @@ Messages, items, answers, default values, and error messages can come from exter
 |------------|----------|
 | Line breaks (`\r\n`, `\n`, `\r`, U+0085, U+2028, U+2029) | A new line. A multi-line message or error message is shown on several lines. |
 | Tab (`\t`) | Spaces up to the next multiple of 8 columns, counted from the start of the line. |
-| ANSI SGR sequences (`ESC [ ... m` with only digits, `;` and `:` as parameters), which set colors and styles | Kept as is, taking no width. A style that is active at a line break continues on the next line. |
+| ANSI SGR sequences (`ESC [ ... m` with only digits, `;` and `:` as parameters), which set colors and styles | Kept as is, taking no width. A style ends at the end of its line: the next line starts with the prompt's own colors, so repeat the sequence on each line that should keep it. |
 | Other escape sequences, such as cursor movement, screen clearing, and OSC | Removed, because they would move the cursor or change the terminal's state. |
 | Other control characters | Visible symbols: `␀` to `␟` for U+0000 to U+001F, `␡` for DEL, and `�` for U+0080 to U+009F. |
 
