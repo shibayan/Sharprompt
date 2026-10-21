@@ -408,6 +408,75 @@ public class EnumMetadataGeneratorTests
         Assert.Equal(generated, result.Source is not null);
     }
 
+    // global::ResourceLib.Strings must bind to the resource type itself: another referenced assembly with the
+    // same name makes it ambiguous (CS0433), and a type in the consumer shadows it.
+    [Theory]
+    [InlineData("assembly")]
+    [InlineData("source")]
+    public void ResourceTypeWhoseNameBindsElsewhere_LeavesEnumToFallback(string collision)
+    {
+        const string strings = """
+            namespace ResourceLib
+            {
+                public static class Strings
+                {
+                    public static string Low => "Other";
+                }
+            }
+
+            """;
+
+        var library = GeneratorTestHelper.CreateLibraryReference(strings.Replace("Other", "Low"), "ResourceLib").WithAliases(["res", "global"]);
+        var references = collision == "assembly" ? new[] { library, GeneratorTestHelper.CreateLibraryReference(strings, "OtherLib") } : [library];
+
+        var result = GeneratorTestHelper.Run("""
+            extern alias res;
+
+            using System.ComponentModel.DataAnnotations;
+
+            #pragma warning disable CS0436
+
+            """ + (collision == "source" ? strings : "") + """
+            namespace TestApp
+            {
+                public enum Sample
+                {
+                    [Display(Name = "Low", ResourceType = typeof(res::ResourceLib.Strings))]
+                    Low
+                }
+            }
+            """, new EnumMetadataGenerator(), references);
+
+        Assert.Empty(result.CompileErrors);
+        Assert.Null(result.Source);
+    }
+
+    [Fact]
+    public void ResourcePropertyHidingBaseProperty_LeavesEnumToFallback()
+    {
+        // Reflection finds both properties named Low, so DisplayAttribute.GetName throws AmbiguousMatchException.
+        var result = GeneratorTestHelper.Run(Usings + """
+            public class BaseStrings
+            {
+                public int Low => 1;
+            }
+
+            public class Strings : BaseStrings
+            {
+                public static new string Low => "Low";
+            }
+
+            public enum Sample
+            {
+                [Display(Name = "Low", ResourceType = typeof(Strings))]
+                Low
+            }
+            """, new EnumMetadataGenerator());
+
+        Assert.Empty(result.CompileErrors);
+        Assert.Null(result.Source);
+    }
+
     [Fact]
     public void ResourceTypeInObsoleteType_LeavesEnumToFallback()
     {

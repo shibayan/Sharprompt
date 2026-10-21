@@ -248,6 +248,27 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
             return null;
         }
 
+        // The global:: name must bind to this very type: the same name in another referenced assembly makes it
+        // ambiguous (CS0433), and one declared in this compilation shadows it.
+        var candidates = compilation.GetTypesByMetadataName(GetFullMetadataName(resourceType))
+            .Where(type => IsReachableThroughGlobalAlias(compilation, type.ContainingAssembly) && compilation.IsSymbolAccessibleWithin(type, compilation.Assembly))
+            .ToArray();
+
+        if (candidates.Length != 1 || !SymbolEqualityComparer.Default.Equals(candidates[0], resourceType.OriginalDefinition))
+        {
+            return null;
+        }
+
+        // Reflection also sees public properties of the same name on base types, which makes GetName throw an
+        // AmbiguousMatchException, while the generated access would pick the hiding one.
+        for (var baseType = resourceType.BaseType; baseType != null; baseType = baseType.BaseType)
+        {
+            if (baseType.GetMembers(name).Any(member => member is IPropertySymbol { DeclaredAccessibility: Accessibility.Public }))
+            {
+                return null;
+            }
+        }
+
         for (var current = resourceType; current != null; current = current.ContainingType)
         {
             // An obsolete or experimental type, like such a property, makes the generated access warn or fail.
@@ -267,6 +288,18 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
     private static bool HasReferenceDiagnosticAttribute(ISymbol? symbol)
     {
         return symbol is not null && symbol.GetAttributes().Any(attribute => attribute.AttributeClass?.ToDisplayString() is "System.ObsoleteAttribute" or "System.Diagnostics.CodeAnalysis.ExperimentalAttribute");
+    }
+
+    private static string GetFullMetadataName(INamedTypeSymbol type)
+    {
+        if (type.ContainingType is { } containingType)
+        {
+            return GetFullMetadataName(containingType) + "+" + type.MetadataName;
+        }
+
+        return type.ContainingNamespace is { IsGlobalNamespace: false } containingNamespace
+            ? containingNamespace.ToDisplayString() + "." + type.MetadataName
+            : type.MetadataName;
     }
 
     private static bool IsReachableThroughGlobalAlias(Compilation compilation, IAssemblySymbol? assembly)
