@@ -10,23 +10,25 @@ namespace Sharprompt.Forms;
 
 internal class MultiSelectForm<T> : SelectFormBase<T, IEnumerable<T>> where T : notnull
 {
-    public MultiSelectForm(MultiSelectOptions<T> options, PromptConfiguration configuration) : base(configuration)
+    public MultiSelectForm(MultiSelectOptions<T> options, PromptConfiguration configuration) : this(options, Prepare(options), configuration)
     {
-        options.EnsureOptions();
+    }
 
+    private MultiSelectForm(MultiSelectOptions<T> options, T[] items, PromptConfiguration configuration) : base(configuration)
+    {
         _options = options;
 
-        _items = options.Items.ToArray();
+        _items = items;
 
         InitializePaginator(_items, options.PageSize, Optional<T>.Empty, options.TextSelector, options.LoopingSelection);
 
         // Default values that are not in Items can never be returned, so ignore them
         // instead of letting them count towards Minimum.
-        var items = new HashSet<T>(_items);
+        var itemSet = new HashSet<T>(_items);
 
         foreach (var defaultValue in options.DefaultValues)
         {
-            if (items.Contains(defaultValue))
+            if (itemSet.Contains(defaultValue))
             {
                 _selectedItems.Add(defaultValue);
             }
@@ -39,6 +41,24 @@ internal class MultiSelectForm<T> : SelectFormBase<T, IEnumerable<T>> where T : 
 
     private readonly MultiSelectOptions<T> _options;
     private readonly T[] _items;
+
+    // Runs before the base constructor creates the console driver, so invalid options throw without leaving it undisposed.
+    private static T[] Prepare(MultiSelectOptions<T> options)
+    {
+        options.EnsureOptions();
+
+        // Items are enumerated once, and rendering and the result both use this snapshot. Equal items are listed
+        // once, at the position of the first; otherwise checking one would check all of them and return each.
+        var items = options.Items.Distinct().ToArray();
+
+        // Enter would always be rejected, so the prompt could only be canceled.
+        if (options.Minimum > items.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options.Minimum), string.Format(Resource.Validation_Minimum_ExceedsItems, options.Minimum, items.Length));
+        }
+
+        return items;
+    }
 
     private readonly HashSet<T> _selectedItems = [];
 

@@ -49,6 +49,24 @@ var cities = Prompt.MultiSelect(new MultiSelectOptions<string>
 | `TextSelector` | `Func<T, string>` | `x => x.ToString()!` | 表示テキストセレクタ |
 | `LoopingSelection` | `bool` | `true` | リストの先頭/末尾でループするかどうか |
 
+## 選択のルール
+
+- `Items` はプロンプトの開始時に 1 回だけ読み取ります。等しい項目（`EqualityComparer<T>.Default` で比較）は、最初の位置に 1 つだけ表示します。
+- `Items` に含まれない `DefaultValues` は無視されます。
+- 結果には、選択された項目が `Items` の順序で含まれます。
+- `Minimum` と `Maximum` は選択数を制限します:
+
+| 操作 | 結果 |
+|------|------|
+| 選択数が `Maximum` のときに、未選択の項目で <kbd>Space</kbd> | 項目は選択されず、エラーを表示します。 |
+| `Maximum` を超える <kbd>Ctrl</kbd>+<kbd>A</kbd> または <kbd>Ctrl</kbd>+<kbd>I</kbd> | 何も変更せず、エラーを表示します。 |
+| `Maximum` より多い `DefaultValues` | すべて選択された状態で始まります。十分に選択を外すまで <kbd>Enter</kbd> は拒否されます。 |
+| `Minimum` 未満または `Maximum` 超過での <kbd>Enter</kbd> | エラーを表示して拒否します。 |
+
+<kbd>Ctrl</kbd>+<kbd>A</kbd> と <kbd>Ctrl</kbd>+<kbd>I</kbd> は、現在のフィルターに一致する項目だけに作用します。フィルターで隠れている選択済みの項目は、選択されたままです。
+
+`Minimum` が負の値、`Maximum` が `Minimum` より小さい、または `Minimum` が項目数より大きい場合は、プロンプトに回答できないため、表示する前に `ArgumentOutOfRangeException` をスローします。`Items` が空の場合は `Minimum` を `0` にしてください。
+
 ## Enum 型の使用
 
 ```csharp

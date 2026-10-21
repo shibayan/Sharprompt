@@ -158,4 +158,10 @@
   <data name="ConfirmForm_Answer_No" xml:space="preserve">
     <value>No</value>
   </data>
+  <data name="Validation_Items_Empty" xml:space="preserve">
+    <value>至少需要一个可选择的项目</value>
+  </data>
+  <data name="Validation_Minimum_ExceedsItems" xml:space="preserve">
+    <value>最小值 ({0}) 超过了项目数 ({1})</value>
+  </data>
 </root>

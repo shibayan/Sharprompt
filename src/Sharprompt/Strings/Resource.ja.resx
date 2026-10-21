@@ -163,12 +163,18 @@
     <value>{0} 個以上の入力が必須です</value>
   </data>
   <data name="Validation_Minimum_OutOfRange" xml:space="preserve">
-    <value>最小値 ({1}) は不正です</value>
+    <value>最小値 ({0}) は不正です</value>
   </data>
   <data name="Validation_Minimum_SelectionRequired" xml:space="preserve">
     <value>{0} 個以上の選択が必須です</value>
   </data>
   <data name="Validation_Type_NotParameterlessMethod" xml:space="preserve">
     <value>引数を持つメソッドは指定できません</value>
+  </data>
+  <data name="Validation_Items_Empty" xml:space="preserve">
+    <value>選択できる項目が 1 つ以上必要です</value>
+  </data>
+  <data name="Validation_Minimum_ExceedsItems" xml:space="preserve">
+    <value>最小値 ({0}) が項目数 ({1}) を超えています</value>
   </data>
 </root>
