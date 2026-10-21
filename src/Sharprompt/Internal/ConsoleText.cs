@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Sharprompt.Internal;
@@ -32,6 +33,10 @@ internal static class ConsoleText
         var builder = new StringBuilder(text.Length);
         var lineStartColumn = startColumn;
 
+        // Each line is written separately, and the console driver resets colors after every write, so the
+        // SGR sequences in effect at a line break are replayed at the start of the next line.
+        var activeSgr = new StringBuilder();
+
         for (var i = 0; i < text.Length; i++)
         {
             var c = text[i];
@@ -46,12 +51,22 @@ internal static class ConsoleText
 
                     lines.Add(builder.ToString());
                     builder.Clear();
+                    builder.Append(activeSgr);
                     lineStartColumn = 0;
                     break;
 
                 case '\t':
                     var column = lineStartColumn + MeasureWidth(builder.ToString());
                     builder.Append(' ', TabSize - (column % TabSize));
+                    break;
+
+                case Escape when TryReadCsi(text, i, out var end, out var isSgr) && isSgr:
+                    var sgr = text.Substring(i, end - i + 1);
+
+                    builder.Append(sgr);
+                    UpdateActiveSgr(activeSgr, sgr);
+
+                    i = end;
                     break;
 
                 case Escape:
@@ -106,16 +121,30 @@ internal static class ConsoleText
         return false;
     }
 
-    // Returns the index of the last character consumed.
+    // Replaying every SGR sequence since the last full reset (ESC[m, ESC[0m, or one that starts with 0;)
+    // in order reproduces the state, since later parameters override earlier ones.
+    private static void UpdateActiveSgr(StringBuilder activeSgr, string sgr)
+    {
+        var parameters = sgr.AsSpan(2, sgr.Length - 3);
+
+        if (parameters.IsEmpty || parameters is "0" || parameters.StartsWith("0;"))
+        {
+            activeSgr.Clear();
+
+            if (parameters.Length <= 1)
+            {
+                return;
+            }
+        }
+
+        activeSgr.Append(sgr);
+    }
+
+    // Returns the index of the last character consumed. SGR sequences are handled by the caller.
     private static int AppendEscapeSequence(string text, int start, StringBuilder builder)
     {
-        if (TryReadCsi(text, start, out var end, out var isSgr))
+        if (TryReadCsi(text, start, out var end, out _))
         {
-            if (isSgr)
-            {
-                builder.Append(text, start, end - start + 1);
-            }
-
             return end;
         }
 
@@ -177,7 +206,8 @@ internal static class ConsoleText
     }
 
     // CSI: ESC [, parameter bytes (0x30 to 0x3F), intermediate bytes (0x20 to 0x2F) and a final byte (0x40 to 0x7E).
-    // It is SGR when the final byte is m and there are no intermediate bytes.
+    // It is SGR when the final byte is m and the parameters are only digits, semicolons and colons. Private
+    // parameters (<, =, >, ?) make it a different command, such as ESC[>4;2m for xterm's modifyOtherKeys.
     private static bool TryReadCsi(string text, int start, out int end, out bool isSgr)
     {
         end = start;
@@ -189,9 +219,11 @@ internal static class ConsoleText
         }
 
         var index = start + 2;
+        var hasPrivateParameters = false;
 
         while (index < text.Length && text[index] is >= '\x30' and <= '\x3f')
         {
+            hasPrivateParameters |= text[index] is >= '\x3c' and <= '\x3f';
             index++;
         }
 
@@ -208,7 +240,7 @@ internal static class ConsoleText
         }
 
         end = index;
-        isSgr = text[index] == 'm' && parametersEnd == index;
+        isSgr = text[index] == 'm' && parametersEnd == index && !hasPrivateParameters;
 
         return true;
     }

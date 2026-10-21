@@ -84,8 +84,12 @@ internal sealed class FakeConsoleDriver : IConsoleDriver
         _cursorTop++;
     }
 
+    public List<(int Left, int Top)> CursorPositions { get; } = [];
+
     public void SetCursorPosition(int left, int top)
     {
+        CursorPositions.Add((left, top));
+
         _cursorLeft = left;
         _cursorTop = top;
     }

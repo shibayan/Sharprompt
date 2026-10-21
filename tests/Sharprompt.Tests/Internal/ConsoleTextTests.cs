@@ -42,6 +42,10 @@ public class ConsoleTextTests
     [InlineData("\x1b[2Jclear", "clear", 5)]
     [InlineData("\x1b[10;20Hmove", "move", 4)]
     [InlineData("\x1b[?25lhidden", "hidden", 6)]
+    [InlineData("\x1b[>4;2mkeys", "keys", 4)]
+    [InlineData("\x1b[<0;1;1mmouse", "mouse", 5)]
+    [InlineData("\x1b[=5mprivate", "private", 7)]
+    [InlineData("\x1b[38:2::255:0:0mcolon", "\x1b[38:2::255:0:0mcolon", 5)]
     [InlineData("\x1b]0;title\x07text", "text", 4)]
     [InlineData("\x1b]8;;https://example.com\x1b\\link\x1b]8;;\x1b\\", "link", 4)]
     [InlineData("\u001b7saved\u001b8", "saved", 5)]
@@ -55,6 +59,19 @@ public class ConsoleTextTests
 
         Assert.Equal(expected, line);
         Assert.Equal(width, ConsoleText.MeasureWidth(line));
+    }
+
+    // Each line is written separately and the console driver resets colors after every write, so the
+    // SGR state that is active at a line break is replayed at the start of the next line.
+    [Theory]
+    [InlineData("\x1b[31mfirst\nsecond\x1b[0m", new[] { "\x1b[31mfirst", "\x1b[31msecond\x1b[0m" })]
+    [InlineData("\x1b[1m\x1b[31mA\nB\nC", new[] { "\x1b[1m\x1b[31mA", "\x1b[1m\x1b[31mB", "\x1b[1m\x1b[31mC" })]
+    [InlineData("\x1b[1mA\x1b[0m\nB", new[] { "\x1b[1mA\x1b[0m", "B" })]
+    [InlineData("\x1b[1mA\x1b[m\nB", new[] { "\x1b[1mA\x1b[m", "B" })]
+    [InlineData("\x1b[1mA\x1b[0;32m\nB", new[] { "\x1b[1mA\x1b[0;32m", "\x1b[0;32mB" })]
+    public void Normalize_SgrStateSpanningLineBreaks_IsReplayed(string text, string[] expected)
+    {
+        Assert.Equal(expected, ConsoleText.Normalize(text, 0));
     }
 
     [Theory]

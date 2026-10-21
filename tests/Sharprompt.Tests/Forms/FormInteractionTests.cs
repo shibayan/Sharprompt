@@ -458,6 +458,28 @@ public class FormInteractionTests
     }
 
     [Fact]
+    public void InputForm_WrappedLineBeforeInput_PlacesCursorOnInputRow()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<string>
+        {
+            // "? " and 80 characters wrap onto two rows of the 80-column buffer, so the input is on row 2.
+            Message = new string('a', 80) + "\nb"
+        };
+
+        using var form = new InputForm<string>(options, configuration);
+
+        form.Start();
+
+        // After "b: ", the cursor goes to column 3 of row 2. Counting logical lines would put it on row 1.
+        Assert.Contains((3, 2), driver.CursorPositions);
+        Assert.DoesNotContain((3, 1), driver.CursorPositions);
+    }
+
+    [Fact]
     public void SelectForm_ItemsWithControlCharacters_AreShownWithoutThem()
     {
         var (driver, configuration) = CreateTestContext();

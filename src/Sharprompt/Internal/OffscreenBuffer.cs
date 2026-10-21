@@ -136,8 +136,15 @@ internal class OffscreenBuffer
             return;
         }
 
-        var physicalLeft = _pushedCursor.Left % _consoleDriver.BufferWidth;
-        var physicalTop = _pushedCursor.Top + (_pushedCursor.Left / _consoleDriver.BufferWidth);
+        var bufferWidth = _consoleDriver.BufferWidth;
+        var physicalLeft = _pushedCursor.Left % bufferWidth;
+        var physicalTop = _pushedCursor.Left / bufferWidth;
+
+        // Lines before the cursor's line can wrap onto several rows, such as those of a multi-line message.
+        for (var i = 0; i < _pushedCursor.Top; i++)
+        {
+            physicalTop += (GetWidth(_outputBuffer[i]) - 1) / bufferWidth + 1;
+        }
 
         var consoleTop = _cursorBottom - WrittenLineCount + physicalTop;
 
