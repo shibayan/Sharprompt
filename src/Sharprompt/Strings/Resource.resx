@@ -177,4 +177,10 @@
   <data name="ConfirmForm_Answer_No" xml:space="preserve">
     <value>No</value>
   </data>
+  <data name="Validation_Items_Empty" xml:space="preserve">
+    <value>There must be at least one item to select</value>
+  </data>
+  <data name="Validation_Minimum_ExceedsItems" xml:space="preserve">
+    <value>The minimum ({0}) exceeds the number of items ({1})</value>
+  </data>
 </root>

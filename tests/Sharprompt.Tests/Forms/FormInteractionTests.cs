@@ -291,14 +291,9 @@ public class FormInteractionTests
     }
 
     [Fact]
-    public void SelectForm_EmptyItems_RendersWithoutThrowing()
+    public void SelectForm_EmptyItems_ThrowsBeforeCreatingConsoleDriver()
     {
-        var (driver, configuration) = CreateTestContext();
-
-        driver.EnqueueKey(ConsoleKey.DownArrow);
-        driver.EnqueueKey(ConsoleKey.UpArrow);
-        driver.EnqueueEnter();
-        driver.EnqueueKey(ConsoleKey.Escape);
+        var configuration = CreateConfigurationThatMustNotCreateDriver();
 
         var options = new SelectOptions<string>
         {
@@ -306,10 +301,145 @@ public class FormInteractionTests
             Items = []
         };
 
+        // Nothing could be selected, so the prompt could only be canceled.
+        var exception = Assert.Throws<ArgumentException>(() => new SelectForm<string>(options, configuration));
+
+        Assert.Equal("Items", exception.ParamName);
+    }
+
+    [Theory]
+    [InlineData(new[] { "apple", "banana" }, 3)]
+    [InlineData(new[] { "apple", "apple" }, 2)]
+    [InlineData(new string[0], 1)]
+    public void MultiSelectForm_MinimumExceedingItems_ThrowsBeforeCreatingConsoleDriver(string[] items, int minimum)
+    {
+        var configuration = CreateConfigurationThatMustNotCreateDriver();
+
+        var options = new MultiSelectOptions<string>
+        {
+            Message = "message",
+            Items = items,
+            Minimum = minimum
+        };
+
+        // Enter would always be rejected. Duplicates count once, since they are listed once.
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() => new MultiSelectForm<string>(options, configuration));
+
+        Assert.Equal("Minimum", exception.ParamName);
+    }
+
+    [Fact]
+    public void MultiSelectForm_InvalidOptions_ThrowBeforeCreatingConsoleDriver()
+    {
+        var configuration = CreateConfigurationThatMustNotCreateDriver();
+
+        var options = new MultiSelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple"],
+            Minimum = -1
+        };
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => new MultiSelectForm<string>(options, configuration));
+    }
+
+    [Theory]
+    [InlineData("ja-JP")]
+    [InlineData("de-DE")]
+    [InlineData("zh-Hans")]
+    public void MultiSelectForm_LimitErrors_FormatInEveryLanguage(string cultureName)
+    {
+        var previousCulture = Resource.Culture;
+
+        try
+        {
+            Resource.Culture = new CultureInfo(cultureName);
+
+            var configuration = CreateConfigurationThatMustNotCreateDriver();
+
+            // The Japanese message for an invalid minimum used {1} with a single argument, which threw FormatException.
+            Assert.Throws<ArgumentOutOfRangeException>(() => new MultiSelectForm<string>(new MultiSelectOptions<string> { Message = "message", Items = ["apple"], Minimum = -1 }, configuration));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new MultiSelectForm<string>(new MultiSelectOptions<string> { Message = "message", Items = ["apple"], Minimum = 2, Maximum = 1 }, configuration));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new MultiSelectForm<string>(new MultiSelectOptions<string> { Message = "message", Items = ["apple"], Minimum = 2 }, configuration));
+            Assert.Throws<ArgumentException>(() => new SelectForm<string>(new SelectOptions<string> { Message = "message", Items = [] }, configuration));
+        }
+        finally
+        {
+            Resource.Culture = previousCulture;
+        }
+    }
+
+    [Fact]
+    public void SelectForm_DuplicateItems_AreListedOnce()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.DownArrow);
+        driver.EnqueueKey(ConsoleKey.DownArrow);
+        driver.EnqueueEnter();
+
+        var options = new SelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "apple", "banana"]
+        };
+
         using var form = new SelectForm<string>(options, configuration);
 
-        // Nothing can be selected, so Enter keeps prompting until the user cancels.
-        Assert.Throws<PromptCanceledException>(() => form.Start());
+        Assert.Equal("banana", form.Start());
+    }
+
+    [Fact]
+    public void MultiSelectForm_DuplicateItems_AreListedAndReturnedOnce()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.DownArrow);
+        driver.EnqueueKey(ConsoleKey.Spacebar, keyChar: ' ');
+        driver.EnqueueKey(ConsoleKey.DownArrow);
+        driver.EnqueueKey(ConsoleKey.Spacebar, keyChar: ' ');
+        driver.EnqueueEnter();
+
+        var options = new MultiSelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana", "apple"],
+            Maximum = 2
+        };
+
+        using var form = new MultiSelectForm<string>(options, configuration);
+
+        // Checking "apple" once used to return it twice, which exceeded Maximum.
+        Assert.Equal(new[] { "apple", "banana" }, form.Start());
+    }
+
+    [Fact]
+    public void MultiSelectForm_DuplicateItemsWithCtrlA_RespectMaximum()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.A, ConsoleModifiers.Control, '\x01');
+        driver.EnqueueEnter();
+
+        var options = new MultiSelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "apple"],
+            Maximum = 1
+        };
+
+        using var form = new MultiSelectForm<string>(options, configuration);
+
+        Assert.Equal(new[] { "apple" }, form.Start());
+    }
+
+    private static PromptConfiguration CreateConfigurationThatMustNotCreateDriver()
+    {
+        return new PromptConfiguration
+        {
+            ThrowExceptionOnCancel = true,
+            ConsoleDriverFactory = () => throw new InvalidOperationException("The console driver must not be created for invalid options.")
+        };
     }
 
     [Fact]

@@ -50,6 +50,13 @@ var city = Prompt.Select("Select your city",
 Console.WriteLine($"Hello, {city}!");
 ```
 
+## 項目のルール
+
+- `Items` はプロンプトの開始時に 1 回だけ読み取ります。等しい項目（`EqualityComparer<T>.Default` で比較）は、最初の位置に 1 つだけ表示します。
+- `DefaultValue` は、プロンプトの開始時に一致する項目を選択します。`Items` に含まれない場合、`DefaultValue` は何も選択しません。互換性のある型の値（`long` のプロンプトに対する `int` など）は変換され、互換性のない型は `ArgumentException` をスローします。
+- 何も選択されていない状態で <kbd>Enter</kbd> を押すとエラーを表示します。表示される項目が 1 つだけの場合（フィルターの有無にかかわらず）や、フィルターが項目のテキストと完全に一致する場合は、その項目が選択されます。
+- `Items` が空の場合は、何も選択できないため、プロンプトを表示する前に `ArgumentException` をスローします。
+
 ## Enum 型の使用
 
 Enum 型を使用すると、項目が自動的に生成されます:

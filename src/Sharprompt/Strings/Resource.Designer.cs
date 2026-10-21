@@ -176,6 +176,24 @@ namespace Sharprompt.Strings {
                 return ResourceManager.GetString("Validation_Minimum_OutOfRange", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   The minimum ({0}) exceeds the number of items ({1}) に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string Validation_Minimum_ExceedsItems {
+            get {
+                return ResourceManager.GetString("Validation_Minimum_ExceedsItems", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   There must be at least one item to select に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string Validation_Items_Empty {
+            get {
+                return ResourceManager.GetString("Validation_Items_Empty", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   A minimum selection of {0} items is required に類似しているローカライズされた文字列を検索します。

@@ -50,6 +50,13 @@ var city = Prompt.Select("Select your city",
 Console.WriteLine($"Hello, {city}!");
 ```
 
+## Item Rules
+
+- `Items` is read once, when the prompt starts. Equal items (compared with `EqualityComparer<T>.Default`) are listed once, at the position of the first one.
+- `DefaultValue` selects the matching item when the prompt starts. If it is not in `Items`, it does not select anything. A value of a compatible type, such as an `int` for a `long` prompt, is converted; an incompatible one throws `ArgumentException`.
+- <kbd>Enter</kbd> with nothing selected shows an error. When only one item is listed, with or without a filter, or when the filter exactly matches an item's text, that item is selected.
+- An empty `Items` throws `ArgumentException` before the prompt is shown, because nothing could be selected.
+
 ## With Enum Type
 
 When using an enum type, items are automatically generated:

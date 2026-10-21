@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 using Sharprompt.Internal;
 using Sharprompt.Strings;
@@ -9,16 +10,35 @@ namespace Sharprompt.Forms;
 
 internal class SelectForm<T> : SelectFormBase<T, T> where T : notnull
 {
-    public SelectForm(SelectOptions<T> options, PromptConfiguration configuration) : base(configuration)
+    public SelectForm(SelectOptions<T> options, PromptConfiguration configuration) : this(options, Prepare(options), configuration)
     {
-        options.EnsureOptions();
+    }
 
+    private SelectForm(SelectOptions<T> options, (T[] Items, Optional<T> DefaultValue) prepared, PromptConfiguration configuration) : base(configuration)
+    {
         _options = options;
 
-        InitializePaginator(options.Items, options.PageSize, Optional<T>.Create(options.DefaultValue, nameof(options.DefaultValue)), options.TextSelector, options.LoopingSelection);
+        InitializePaginator(prepared.Items, options.PageSize, prepared.DefaultValue, options.TextSelector, options.LoopingSelection);
     }
 
     private readonly SelectOptions<T> _options;
+
+    // Runs before the base constructor creates the console driver, so invalid options throw without leaving it undisposed.
+    private static (T[] Items, Optional<T> DefaultValue) Prepare(SelectOptions<T> options)
+    {
+        options.EnsureOptions();
+
+        // Items are enumerated once; equal items are listed once, at the position of the first.
+        var items = options.Items.Distinct().ToArray();
+
+        // Nothing could be selected, so the prompt could only be canceled.
+        if (items.Length == 0)
+        {
+            throw new ArgumentException(Resource.Validation_Items_Empty, nameof(options.Items));
+        }
+
+        return (items, Optional<T>.Create(options.DefaultValue, nameof(options.DefaultValue)));
+    }
 
     protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
     {

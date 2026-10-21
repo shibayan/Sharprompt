@@ -49,6 +49,24 @@ var cities = Prompt.MultiSelect(new MultiSelectOptions<string>
 | `TextSelector` | `Func<T, string>` | `x => x.ToString()!` | Display text selector |
 | `LoopingSelection` | `bool` | `true` | Whether to loop at the beginning/end of the list |
 
+## Selection Rules
+
+- `Items` is read once, when the prompt starts. Equal items (compared with `EqualityComparer<T>.Default`) are listed once, at the position of the first one.
+- `DefaultValues` that are not in `Items` are ignored.
+- The result contains the selected items in the order of `Items`.
+- `Minimum` and `Maximum` limit the number of selected items:
+
+| Operation | Result |
+|-----------|--------|
+| <kbd>Space</kbd> on an unchecked item at `Maximum` | The item is not checked, and an error is shown. |
+| <kbd>Ctrl</kbd>+<kbd>A</kbd> or <kbd>Ctrl</kbd>+<kbd>I</kbd> that would exceed `Maximum` | Nothing changes, and an error is shown. |
+| More `DefaultValues` than `Maximum` | They are all checked. <kbd>Enter</kbd> is rejected until enough are unchecked. |
+| <kbd>Enter</kbd> below `Minimum` or above `Maximum` | Rejected with an error. |
+
+<kbd>Ctrl</kbd>+<kbd>A</kbd> and <kbd>Ctrl</kbd>+<kbd>I</kbd> only affect the items that match the current filter. Checked items hidden by the filter stay checked.
+
+Before the prompt is shown, `ArgumentOutOfRangeException` is thrown when `Minimum` is negative, when `Maximum` is less than `Minimum`, or when `Minimum` is greater than the number of items, because the prompt could not be answered. For an empty `Items`, set `Minimum` to `0`.
+
 ## With Enum Type
 
 ```csharp
