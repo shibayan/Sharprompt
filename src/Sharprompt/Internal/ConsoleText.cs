@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace Sharprompt.Internal;
@@ -31,11 +32,15 @@ internal static class ConsoleText
 
         var lines = new List<string>();
         var builder = new StringBuilder(text.Length);
-        var lineStartColumn = startColumn;
 
         // Each line is written separately, and the console driver resets colors after every write, so the
-        // SGR sequences in effect at a line break are replayed at the start of the next line.
-        var activeSgr = new StringBuilder();
+        // effective SGR state at a line break is restored at the start of the next line.
+        var sgrState = new SgrState();
+
+        // The display column is accumulated as the line grows: a tab measures only the text appended since the
+        // previous tab, which is safe because a control character always ends a grapheme cluster.
+        var column = startColumn;
+        var measuredLength = 0;
 
         for (var i = 0; i < text.Length; i++)
         {
@@ -51,20 +56,26 @@ internal static class ConsoleText
 
                     lines.Add(builder.ToString());
                     builder.Clear();
-                    builder.Append(activeSgr);
-                    lineStartColumn = 0;
+                    sgrState.AppendTo(builder);
+
+                    column = 0;
+                    measuredLength = builder.Length;
                     break;
 
                 case '\t':
-                    var column = lineStartColumn + MeasureWidth(builder.ToString());
-                    builder.Append(' ', TabSize - (column % TabSize));
+                    column += MeasureWidth(builder.ToString(measuredLength, builder.Length - measuredLength));
+
+                    var spaces = TabSize - (column % TabSize);
+
+                    builder.Append(' ', spaces);
+
+                    column += spaces;
+                    measuredLength = builder.Length;
                     break;
 
                 case Escape when TryReadCsi(text, i, out var end, out var isSgr) && isSgr:
-                    var sgr = text.Substring(i, end - i + 1);
-
-                    builder.Append(sgr);
-                    UpdateActiveSgr(activeSgr, sgr);
+                    builder.Append(text, i, end - i + 1);
+                    sgrState.Apply(text.AsSpan(i + 2, end - i - 2));
 
                     i = end;
                     break;
@@ -119,25 +130,6 @@ internal static class ConsoleText
         }
 
         return false;
-    }
-
-    // Replaying every SGR sequence since the last full reset (ESC[m, ESC[0m, or one that starts with 0;)
-    // in order reproduces the state, since later parameters override earlier ones.
-    private static void UpdateActiveSgr(StringBuilder activeSgr, string sgr)
-    {
-        var parameters = sgr.AsSpan(2, sgr.Length - 3);
-
-        if (parameters.IsEmpty || parameters is "0" || parameters.StartsWith("0;"))
-        {
-            activeSgr.Clear();
-
-            if (parameters.Length <= 1)
-            {
-                return;
-            }
-        }
-
-        activeSgr.Append(sgr);
     }
 
     // Returns the index of the last character consumed. SGR sequences are handled by the caller.
@@ -243,6 +235,107 @@ internal static class ConsoleText
         isSgr = text[index] == 'm' && parametersEnd == index && !hasPrivateParameters;
 
         return true;
+    }
+
+    // The effective SGR state, kept per attribute, so a continuation line restores it with one compact sequence
+    // however many changes came before. Selective resets (22, 23, 39, 49, ...) clear only their attribute.
+    private sealed class SgrState
+    {
+        private const int FontSlot = 10;
+        private const int ForegroundSlot = 30;
+        private const int BackgroundSlot = 40;
+        private const int UnderlineColorSlot = 58;
+        private const int OtherSlot = 1000;
+
+        // Slot to the parameter that sets it; sorted, so the restoring sequence is deterministic.
+        private readonly SortedDictionary<int, string> _attributes = [];
+
+        public void Apply(ReadOnlySpan<char> parameters)
+        {
+            var tokens = parameters.ToString().Split(';');
+
+            for (var i = 0; i < tokens.Length; i++)
+            {
+                var token = tokens[i];
+                var colon = token.IndexOf(':');
+                var codeText = colon < 0 ? token : token[..colon];
+
+                // An empty parameter means 0.
+                if (!int.TryParse(codeText.Length == 0 ? "0" : codeText, NumberStyles.None, CultureInfo.InvariantCulture, out var code))
+                {
+                    continue;
+                }
+
+                // Extended colors in the semicolon form take the next 2 (5;n) or 4 (2;r;g;b) parameters.
+                if (code is 38 or 48 or 58 && colon < 0 && i + 1 < tokens.Length)
+                {
+                    var count = Math.Min(tokens[i + 1] switch { "5" => 2, "2" => 4, _ => 0 }, tokens.Length - 1 - i);
+
+                    token = string.Join(';', tokens, i, count + 1);
+                    i += count;
+                }
+
+                switch (code)
+                {
+                    case 0:
+                        _attributes.Clear();
+                        break;
+                    case 1 or 2 or 3 or 4 or 5 or 7 or 8 or 9 or 53:
+                        _attributes[code] = token;
+                        break;
+                    case 6:
+                        _attributes[5] = token;
+                        break;
+                    case 21:
+                        _attributes[4] = token;
+                        break;
+                    case 22:
+                        _attributes.Remove(1);
+                        _attributes.Remove(2);
+                        break;
+                    case 23 or 24 or 25 or 27 or 28 or 29:
+                        _attributes.Remove(code - 20);
+                        break;
+                    case 55:
+                        _attributes.Remove(53);
+                        break;
+                    case >= 10 and <= 19:
+                        _attributes[FontSlot] = token;
+                        break;
+                    case (>= 30 and <= 38) or (>= 90 and <= 97):
+                        _attributes[ForegroundSlot] = token;
+                        break;
+                    case 39:
+                        _attributes.Remove(ForegroundSlot);
+                        break;
+                    case (>= 40 and <= 48) or (>= 100 and <= 107):
+                        _attributes[BackgroundSlot] = token;
+                        break;
+                    case 49:
+                        _attributes.Remove(BackgroundSlot);
+                        break;
+                    case 58:
+                        _attributes[UnderlineColorSlot] = token;
+                        break;
+                    case 59:
+                        _attributes.Remove(UnderlineColorSlot);
+                        break;
+                    default:
+                        _attributes[OtherSlot + code] = token;
+                        break;
+                }
+            }
+        }
+
+        public void AppendTo(StringBuilder builder)
+        {
+            if (_attributes.Count == 0)
+            {
+                return;
+            }
+
+            builder.Append(Escape).Append('[').AppendJoin(';', _attributes.Values).Append('m');
+        }
     }
 
     private static char ToVisibleSymbol(char c) => c switch

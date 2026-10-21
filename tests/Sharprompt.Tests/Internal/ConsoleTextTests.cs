@@ -1,4 +1,6 @@
-﻿using Sharprompt.Internal;
+﻿using System.Linq;
+
+using Sharprompt.Internal;
 
 using Xunit;
 
@@ -62,16 +64,51 @@ public class ConsoleTextTests
     }
 
     // Each line is written separately and the console driver resets colors after every write, so the
-    // SGR state that is active at a line break is replayed at the start of the next line.
+    // effective SGR state at a line break is restored at the start of the next line, as one sequence.
     [Theory]
     [InlineData("\x1b[31mfirst\nsecond\x1b[0m", new[] { "\x1b[31mfirst", "\x1b[31msecond\x1b[0m" })]
-    [InlineData("\x1b[1m\x1b[31mA\nB\nC", new[] { "\x1b[1m\x1b[31mA", "\x1b[1m\x1b[31mB", "\x1b[1m\x1b[31mC" })]
+    [InlineData("\x1b[1m\x1b[31mA\nB\nC", new[] { "\x1b[1m\x1b[31mA", "\x1b[1;31mB", "\x1b[1;31mC" })]
+    [InlineData("\x1b[31m\x1b[32mA\nB", new[] { "\x1b[31m\x1b[32mA", "\x1b[32mB" })]
     [InlineData("\x1b[1mA\x1b[0m\nB", new[] { "\x1b[1mA\x1b[0m", "B" })]
     [InlineData("\x1b[1mA\x1b[m\nB", new[] { "\x1b[1mA\x1b[m", "B" })]
-    [InlineData("\x1b[1mA\x1b[0;32m\nB", new[] { "\x1b[1mA\x1b[0;32m", "\x1b[0;32mB" })]
-    public void Normalize_SgrStateSpanningLineBreaks_IsReplayed(string text, string[] expected)
+    [InlineData("\x1b[1mA\x1b[0;32m\nB", new[] { "\x1b[1mA\x1b[0;32m", "\x1b[32mB" })]
+    [InlineData("\x1b[1;2;31mA\x1b[22;39m\nB", new[] { "\x1b[1;2;31mA\x1b[22;39m", "B" })]
+    [InlineData("\x1b[38;5;208;48;2;1;2;3mA\nB", new[] { "\x1b[38;5;208;48;2;1;2;3mA", "\x1b[38;5;208;48;2;1;2;3mB" })]
+    [InlineData("\x1b[38:2::255:0:0;4:3mA\nB", new[] { "\x1b[38:2::255:0:0;4:3mA", "\x1b[4:3;38:2::255:0:0mB" })]
+    [InlineData("\x1b[3;7;9mA\x1b[23mB\nC", new[] { "\x1b[3;7;9mA\x1b[23mB", "\x1b[7;9mC" })]
+    public void Normalize_SgrStateSpanningLineBreaks_IsRestored(string text, string[] expected)
     {
         Assert.Equal(expected, ConsoleText.Normalize(text, 0));
+    }
+
+    [Fact]
+    public void Normalize_RepeatedStyleChanges_DoNotGrowContinuationLines()
+    {
+        // Replaying the whole SGR history made each line longer than the last (quadratic output).
+        var text = string.Concat(Enumerable.Repeat("\x1b[31mx\x1b[39m\n", 1024)) + "\x1b[1;31m" + string.Concat(Enumerable.Repeat("\x1b[32m\x1b[33my\n", 1024));
+
+        var lines = ConsoleText.Normalize(text, 0);
+
+        Assert.True(lines.Sum(line => line.Length) < text.Length * 2);
+        Assert.Equal("\x1b[1;33m", lines[^1]);
+    }
+
+    [Fact]
+    public void Normalize_ManyTabs_ExpandToEightColumnsEach()
+    {
+        // Each tab used to remeasure the whole line so far, which was quadratic.
+        var line = Assert.Single(ConsoleText.Normalize(new string('\t', 10_000), 0));
+
+        Assert.Equal(80_000, line.Length);
+    }
+
+    [Theory]
+    [InlineData("\x1b[31mab\x1b[0m\tx", "\x1b[31mab\x1b[0m      x")]
+    [InlineData("あい\tう\tx", "あい    う      x")]
+    [InlineData("👨‍👩‍👧‍👦\tx", "👨‍👩‍👧‍👦      x")]
+    public void Normalize_TabsAfterStylesAndWideText_CountDisplayColumns(string text, string expected)
+    {
+        Assert.Equal([expected], ConsoleText.Normalize(text, 0));
     }
 
     [Theory]

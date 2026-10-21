@@ -458,6 +458,43 @@ public class FormInteractionTests
     }
 
     [Fact]
+    public void InputForm_EscapeSequenceInEditedText_IsShownLiterally()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        // Tab inserts the default value, and LeftArrow puts the cursor inside its reset sequence.
+        // Enter is queued only once those keys are consumed, so the edited text is rendered first.
+        driver.EnqueueKey(ConsoleKey.Tab, keyChar: '\t');
+        driver.EnqueueKey(ConsoleKey.LeftArrow);
+
+        var entered = false;
+
+        driver.KeysExhausted = () =>
+        {
+            if (!entered)
+            {
+                entered = true;
+                driver.EnqueueEnter();
+            }
+        };
+
+        var options = new InputOptions<string>
+        {
+            Message = "message",
+            DefaultValue = "\x1b[31mred\x1b[0m"
+        };
+
+        using var form = new InputForm<string>(options, configuration);
+
+        Assert.Equal("\x1b[31mred\x1b[0m", form.Start());
+
+        // The text before and after the cursor is written separately. Interpreting escape sequences split
+        // the reset there and showed "redm"; while editing, every character is shown, ESC as ␛.
+        Assert.Contains("␛[31mred␛[0m", driver.Output);
+        Assert.DoesNotContain("redm", driver.Output);
+    }
+
+    [Fact]
     public void InputForm_WrappedLineBeforeInput_PlacesCursorOnInputRow()
     {
         var (driver, configuration) = CreateTestContext();

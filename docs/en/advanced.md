@@ -96,7 +96,7 @@ Messages, items, answers, default values, and error messages can come from exter
 | Other escape sequences, such as cursor movement, screen clearing, and OSC | Removed, because they would move the cursor or change the terminal's state. |
 | Other control characters | Visible symbols: `␀` to `␟` for U+0000 to U+001F, `␡` for DEL, and `�` for U+0080 to U+009F. |
 
-Only the display changes: `Select` and `MultiSelect` still return the original items, and `Input` returns the text as entered. Keys that produce control characters are not inserted into the input.
+Only the display changes: `Select` and `MultiSelect` still return the original items, and `Input` returns the text as entered. Keys that produce control characters are not inserted into the input. Text being edited, such as a default value inserted with <kbd>Tab</kbd>, shows `ESC` as `␛` instead of applying escape sequences, so the cursor moves over every character.
 
 ## Fluent Interface
 
