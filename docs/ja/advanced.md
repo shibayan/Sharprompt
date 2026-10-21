@@ -249,6 +249,24 @@ Native AOT では、`[TypeConverter]` が指定するコンバーターのコン
 - `TypeConverter` を持たない型は、`IParsable<T>` を実装していても変換できません（`BigInteger` など）。これらの型への入力はエラーメッセージを表示して拒否されます。
 - 変換には常にインバリアントカルチャを使います。カルチャ固有の形式で入力を受け付けたい場合は、カスタムコンバーターで変換するか、`string` で入力を受け取ってから解析してください。
 
+### 検証属性
+
+`[PromptBindable]` が生成するバインダーは、モデルの検証属性をコードで生成するため、属性を見つけるのにリフレクションを使いません。ただし、一部の属性はコンストラクターに `[RequiresUnreferencedCode]` が付いていて、扱いが分かれます:
+
+| 属性 | トリミングと Native AOT での扱い |
+|------|-------------------------------|
+| `[MinLength]`、`[MaxLength]`、`[Length]` | リフレクションを使うのは、文字列でも `ICollection` でもない値の `Count` を読むときだけです。`string`、配列、`ICollection` の値（またはそれらを入力する `List` プロンプト）であれば、生成されたバインダーは警告を追加しません。 |
+| `[Compare]`、`[Range(Type, string, string)]` | 実際にリフレクションを使うため、警告はそのまま残ります。可能であれば `[Range(int, int)]` や `[Range(double, double)]` を使ってください。 |
+
+`[MinLength]`、`[MaxLength]`、`[Length]` を書いた行には、コンストラクターに `[RequiresUnreferencedCode]` が付いているため、Sharprompt を使うかどうかにかかわらず、トリミングアナライザーが `IL2026` を報告します。`string` やコレクションのプロパティであれば、その場所で抑制してください:
+
+```csharp
+#pragma warning disable IL2026 // MinLength がリフレクションを使うのは、文字列でも ICollection でもない値だけです。
+[MinLength(8)]
+#pragma warning restore IL2026
+public string Password { get; set; } = "";
+```
+
 ### キャンセル
 
 モデルバインディングを含むすべてのプロンプトで `CancellationToken` によるキャンセルをサポートしています。`Prompt.Bind` にトークンを渡します:

@@ -249,6 +249,24 @@ Under Native AOT, the converter that `[TypeConverter]` names keeps its construct
 - A type without a `TypeConverter` cannot be converted, even if it implements `IParsable<T>`. `BigInteger` is one such type. Input for these types is rejected with an error message.
 - Conversion always uses the invariant culture. To accept culture-specific input, convert it yourself with a custom converter, or prompt for a `string` and parse it.
 
+### Validation Attributes
+
+The binder that `[PromptBindable]` generates creates the model's validation attributes in code, so it does not use reflection to find them. Some attribute constructors are marked `[RequiresUnreferencedCode]`, though, and they behave differently:
+
+| Attributes | Under trimming and Native AOT |
+|------------|-------------------------------|
+| `[MinLength]`, `[MaxLength]`, `[Length]` | These only use reflection to read `Count` from values that are neither strings nor `ICollection`. For `string`, array, or `ICollection` values (or a `List` prompt of them), the generated binder adds no warning. |
+| `[Compare]`, `[Range(Type, string, string)]` | These do use reflection, so the warning is kept. Prefer `[Range(int, int)]` or `[Range(double, double)]` where you can. |
+
+The trim analyzer still reports `IL2026` on the line where you apply `[MinLength]`, `[MaxLength]`, or `[Length]`, because their constructors are `[RequiresUnreferencedCode]`. It does so whether or not Sharprompt is used. For a `string` or collection property, suppress it there:
+
+```csharp
+#pragma warning disable IL2026 // MinLength only uses reflection for values that are not strings or ICollection.
+[MinLength(8)]
+#pragma warning restore IL2026
+public string Password { get; set; } = "";
+```
+
 ### Cancellation
 
 All prompts, including model binding, support cancellation via `CancellationToken`. Pass the token to `Prompt.Bind`:

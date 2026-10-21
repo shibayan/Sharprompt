@@ -705,6 +705,70 @@ public class PromptBindableGeneratorTests
     }
 
     [Fact]
+    public void LengthValidators_OnStringsAndCollections_AreTrimSafe()
+    {
+        // MinLength, MaxLength and Length constructors are [RequiresUnreferencedCode] because they read Count
+        // through reflection for values that are neither strings nor ICollection. These values never are, so
+        // the generated binder must not raise IL2026 for them (AssertGeneratedAndCompiles checks).
+        var result = GeneratorTestHelper.Run(Usings + """
+            [PromptBindable]
+            public class Model
+            {
+                [MinLength(3)]
+                [MaxLength(10)]
+                public string Name { get; set; } = "";
+
+                [MaxLength]
+                [DataType(DataType.Password)]
+                public string Secret { get; set; } = "";
+
+                [Length(1, 5)]
+                public string? Nickname { get; set; }
+
+                [MinLength(1)]
+                public List<string> Tags { get; set; } = new();
+
+                [MaxLength(2)]
+                public string[][] Groups { get; set; } = [];
+            }
+            """);
+
+        var source = result.AssertGeneratedAndCompiles();
+
+        Assert.Contains("new global::System.ComponentModel.DataAnnotations.MinLengthAttribute(3)", source);
+        Assert.Contains("new global::System.ComponentModel.DataAnnotations.LengthAttribute(1, 5)", source);
+    }
+
+    [Theory]
+    [InlineData("[MinLength(1)] public Countable Value { get; set; } = new();", "MinLengthAttribute")]
+    [InlineData("[Compare(nameof(Other))] public string Value { get; set; } = \"\"; public string Other { get; set; } = \"\";", "CompareAttribute")]
+    [InlineData("[Range(typeof(decimal), \"1\", \"2\")] public decimal Value { get; set; }", "RangeAttribute")]
+    public void ValidatorsThatReallyUseReflection_KeepTheirWarning(string declaration, string attribute)
+    {
+        // These do use reflection for the values they get, so the warning must reach the consumer.
+        var result = GeneratorTestHelper.Run(Usings + $$"""
+            [System.ComponentModel.TypeConverter(typeof(System.ComponentModel.TypeConverter))]
+            public class Countable
+            {
+                public int Count => 0;
+            }
+
+            [PromptBindable]
+            public class Model
+            {
+                {{declaration}}
+            }
+            """);
+
+        Assert.Empty(result.CompileErrors);
+
+        var generatedTree = result.OutputCompilation.SyntaxTrees.Last();
+        var diagnostics = GeneratorTestHelper.GetTrimAnalyzerDiagnostics(result.OutputCompilation).Where(d => d.Location.SourceTree == generatedTree);
+
+        Assert.Contains(diagnostics, diagnostic => diagnostic.Id == "IL2026" && diagnostic.GetMessage(CultureInfo.InvariantCulture).Contains(attribute));
+    }
+
+    [Fact]
     public void Validators_UseTrimSafeValidationContextWithDisplayName()
     {
         var result = GeneratorTestHelper.Run(Usings + """
