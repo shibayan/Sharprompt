@@ -281,7 +281,9 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
         return resourceType.GetMembers(name)
             .OfType<IPropertySymbol>()
             .FirstOrDefault(property => property is { IsStatic: true, IsIndexer: false, IsAbstract: false, IsVirtual: false, ReturnsByRef: false, ReturnsByRefReadonly: false, DeclaredAccessibility: Accessibility.Public, GetMethod.DeclaredAccessibility: Accessibility.Public, Type.SpecialType: SpecialType.System_String } &&
-                                        !HasReferenceDiagnosticAttribute(property));
+                                        !HasReferenceDiagnosticAttribute(property) && !HasReferenceDiagnosticAttribute(property.GetMethod) &&
+                                        // Other languages can declare names C# cannot spell, such as "Low priority", even with @.
+                                        SyntaxFacts.IsValidIdentifier(property.Name));
     }
 
     // Attributes that make the compiler report a diagnostic wherever the symbol is referenced.

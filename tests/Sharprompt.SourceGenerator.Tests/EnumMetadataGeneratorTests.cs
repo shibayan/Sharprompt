@@ -315,6 +315,8 @@ public class EnumMetadataGeneratorTests
     [InlineData("public interface Strings { static abstract string Low { get; } }")]
     [InlineData("public interface Strings { static virtual string Low => \"Low\"; }")]
     [InlineData("[Obsolete(\"Old\")] public static class Strings { public static string Low => \"Low\"; }")]
+    [InlineData("public static class Strings { public static string Low { [Obsolete(\"Old\", true)] get => \"Low\"; } }")]
+    [InlineData("public static class Strings { public static string Low { [System.Diagnostics.CodeAnalysis.Experimental(\"EXP001\")] get => \"Low\"; } }")]
     public void UnusableResourceProperty_LeavesEnumToFallback(string resourceType)
     {
         var result = GeneratorTestHelper.Run(Usings + resourceType + """
@@ -450,6 +452,49 @@ public class EnumMetadataGeneratorTests
         Assert.Empty(result.CompileErrors);
         Assert.Null(result.Source);
     }
+
+#if NET9_0_OR_GREATER
+    [Theory]
+    [InlineData("Low priority", false)]
+    [InlineData("1st", false)]
+    [InlineData("class", true)]
+    public void ResourcePropertyNameThatIsNotAnIdentifier_LeavesEnumToFallback(string propertyName, bool generated)
+    {
+        // Other languages, such as F#, can declare property names that C# cannot spell; reflection still reads them.
+        var library = CreateResourceLibraryWithProperty(propertyName);
+
+        var result = GeneratorTestHelper.Run(Usings + $$"""
+            public enum Sample
+            {
+                [Display(Name = "{{propertyName}}", ResourceType = typeof(ResourceLib.Strings))]
+                Low
+            }
+            """, new EnumMetadataGenerator(), library);
+
+        Assert.Empty(result.CompileErrors);
+        Assert.Equal(generated, result.Source is not null);
+    }
+
+    private static MetadataReference CreateResourceLibraryWithProperty(string propertyName)
+    {
+        var assembly = new System.Reflection.Emit.PersistedAssemblyBuilder(new AssemblyName("ResourceLib"), typeof(object).Assembly);
+        var module = assembly.DefineDynamicModule("ResourceLib");
+        var type = module.DefineType("ResourceLib.Strings", TypeAttributes.Public | TypeAttributes.Abstract | TypeAttributes.Sealed);
+
+        var getter = type.DefineMethod("get_" + propertyName, MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.SpecialName | MethodAttributes.HideBySig, typeof(string), Type.EmptyTypes);
+        var il = getter.GetILGenerator();
+        il.Emit(System.Reflection.Emit.OpCodes.Ldstr, "Low");
+        il.Emit(System.Reflection.Emit.OpCodes.Ret);
+
+        type.DefineProperty(propertyName, PropertyAttributes.None, typeof(string), Type.EmptyTypes).SetGetMethod(getter);
+        type.CreateType();
+
+        using var stream = new System.IO.MemoryStream();
+        assembly.Save(stream);
+
+        return MetadataReference.CreateFromImage(stream.ToArray());
+    }
+#endif
 
     [Fact]
     public void ResourcePropertyHidingBaseProperty_LeavesEnumToFallback()
