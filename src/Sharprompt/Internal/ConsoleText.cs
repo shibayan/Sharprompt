@@ -237,15 +237,23 @@ internal static class ConsoleText
         return true;
     }
 
-    // The effective SGR state, kept per attribute, so a continuation line restores it with one compact sequence
-    // however many changes came before. Selective resets (22, 23, 39, 49, ...) clear only their attribute.
+    // The effective SGR state, kept per known attribute, so a continuation line restores it with one compact
+    // sequence however many changes came before. Resets of an attribute (22, 23, 54, ...) clear it, except
+    // that the default colors (39, 49) and the full reset (0) are kept, since they override the driver's color.
     private sealed class SgrState
     {
+        // Each attribute is stored under one slot, and its resets clear that slot. The slots are ordered so
+        // that the full reset comes first.
+        private const int ResetSlot = 0;
+        private const int ItalicSlot = 3;
         private const int FontSlot = 10;
+        private const int ProportionalSpacingSlot = 26;
         private const int ForegroundSlot = 30;
         private const int BackgroundSlot = 40;
+        private const int FrameSlot = 51;
         private const int UnderlineColorSlot = 58;
-        private const int OtherSlot = 1000;
+        private const int IdeogramSlot = 60;
+        private const int ScriptSlot = 73;
 
         // Slot to the parameter that sets it; sorted, so the restoring sequence is deterministic.
         private readonly SortedDictionary<int, string> _attributes = [];
@@ -277,11 +285,17 @@ internal static class ConsoleText
 
                 switch (code)
                 {
+                    // The console driver applies its own foreground color to every line, so a reset to the
+                    // terminal defaults is kept as state of its own and restored first.
                     case 0:
                         _attributes.Clear();
+                        _attributes[ResetSlot] = "0";
                         break;
-                    case 1 or 2 or 3 or 4 or 5 or 7 or 8 or 9 or 53:
+                    case 1 or 2 or 4 or 5 or 7 or 8 or 9 or 53:
                         _attributes[code] = token;
+                        break;
+                    case 3 or 20:
+                        _attributes[ItalicSlot] = token;
                         break;
                     case 6:
                         _attributes[5] = token;
@@ -299,20 +313,30 @@ internal static class ConsoleText
                     case 55:
                         _attributes.Remove(53);
                         break;
-                    case >= 10 and <= 19:
+                    case 10:
+                        _attributes.Remove(FontSlot);
+                        break;
+                    case >= 11 and <= 19:
                         _attributes[FontSlot] = token;
                         break;
-                    case (>= 30 and <= 38) or (>= 90 and <= 97):
+                    case 26:
+                        _attributes[ProportionalSpacingSlot] = token;
+                        break;
+                    case 50:
+                        _attributes.Remove(ProportionalSpacingSlot);
+                        break;
+                    // The default colors are kept too (39 and 49), for the same reason as a full reset.
+                    case (>= 30 and <= 39) or (>= 90 and <= 97):
                         _attributes[ForegroundSlot] = token;
                         break;
-                    case 39:
-                        _attributes.Remove(ForegroundSlot);
-                        break;
-                    case (>= 40 and <= 48) or (>= 100 and <= 107):
+                    case (>= 40 and <= 49) or (>= 100 and <= 107):
                         _attributes[BackgroundSlot] = token;
                         break;
-                    case 49:
-                        _attributes.Remove(BackgroundSlot);
+                    case 51 or 52:
+                        _attributes[FrameSlot] = token;
+                        break;
+                    case 54:
+                        _attributes.Remove(FrameSlot);
                         break;
                     case 58:
                         _attributes[UnderlineColorSlot] = token;
@@ -320,9 +344,21 @@ internal static class ConsoleText
                     case 59:
                         _attributes.Remove(UnderlineColorSlot);
                         break;
-                    default:
-                        _attributes[OtherSlot + code] = token;
+                    case >= 60 and <= 64:
+                        _attributes[IdeogramSlot] = token;
                         break;
+                    case 65:
+                        _attributes.Remove(IdeogramSlot);
+                        break;
+                    case 73 or 74:
+                        _attributes[ScriptSlot] = token;
+                        break;
+                    case 75:
+                        _attributes.Remove(ScriptSlot);
+                        break;
+
+                        // Unknown codes are written where they appear but not carried over, so the restoring
+                        // sequence stays bounded by the known attributes.
                 }
             }
         }
