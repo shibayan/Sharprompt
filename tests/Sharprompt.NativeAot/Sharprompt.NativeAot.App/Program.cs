@@ -181,7 +181,7 @@ runner.Run("List<int> converts each entry", driver =>
 
 runner.Run("Bind<SignupModel> uses the generated binder and validation attributes", driver =>
 {
-    driver.Enter().Type("Ada").Enter();                     // Name: [Required] rejects empty input
+    driver.Enter().Type("A").Enter().Backspace().Type("Ada").Enter(); // Name: [Required] and [MinLength(2)] reject
     driver.Type("200").Enter().Backspace(3).Type("36").Enter(); // Age: [Range(0, 150)] rejects 200
     driver.Type("hunter2").Enter();                         // Secret: [DataType(DataType.Password)]
     driver.Enter();                                         // Priority: the default value is preselected
@@ -201,6 +201,7 @@ runner.Run("Bind<SignupModel> uses the generated binder and validation attribute
     Check.SequenceEqual(["aot"], model.Tags);
     Check.Equal(true, model.Subscribe);
     Check.Contains("The Name field is required.", driver.Output);
+    Check.Contains("minimum length of '2'", driver.Output);
     Check.Contains("The field Age must be between 0 and 150.", driver.Output);
     Check.Contains("? Secret: *******", driver.Output);
     Check.DoesNotContain("hunter2", driver.Output);

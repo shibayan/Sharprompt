@@ -163,6 +163,14 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
             .ThenBy(p => p.Index)
             .ToList();
 
+        // Validators that need a trimming suppression are created in methods of their own, which carry it.
+        var factoryIndex = 0;
+
+        foreach (var validator in properties.SelectMany(p => p.Validators).Where(v => v.IsTrimSafeLengthCheck))
+        {
+            validator.FactoryName = "CreateLengthValidator" + factoryIndex++;
+        }
+
         var fullTypeName = typeSymbol.ToDisplayString(s_fullyQualifiedFormat);
 
         var builder = new StringBuilder();
@@ -194,6 +202,12 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         {
             builder.AppendLine();
             EmitCreateValidationContext(builder, HasTrimSafeValidationContextConstructor(compilation));
+        }
+
+        foreach (var validator in properties.SelectMany(p => p.Validators).Where(v => v.FactoryName is not null))
+        {
+            builder.AppendLine();
+            EmitTrimSafeValidatorFactory(builder, validator);
         }
 
         builder.AppendLine("}");
@@ -328,7 +342,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
                     continue;
                 }
 
-                metadata.Validators.Add(GenerateNewExpression(attribute));
+                metadata.Validators.Add(new ValidatorMetadata(GenerateNewExpression(attribute), IsTrimSafeLengthCheck(compilation, attribute.AttributeClass, elementType ?? metadata.UnderlyingType)));
             }
         }
 
@@ -608,11 +622,41 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         foreach (var validator in property.Validators)
         {
             builder.AppendLine(indent + "    {");
-            builder.AppendLine(indent + "        var __v = " + validator + ";");
+            builder.AppendLine(indent + "        var __v = " + (validator.FactoryName is null ? validator.Expression : validator.FactoryName + "()") + ";");
             builder.AppendLine(indent + "        var __c = CreateValidationContext(model, " + Quote(property.DisplayName) + ", " + Quote(property.Name) + ");");
             builder.AppendLine(indent + "        options.Validators.Add(input => __v.GetValidationResult(input, __c));");
             builder.AppendLine(indent + "    }");
         }
+    }
+
+    private static void EmitTrimSafeValidatorFactory(StringBuilder builder, ValidatorMetadata validator)
+    {
+        builder.AppendLine("    [global::System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(\"Trimming\", \"IL2026:RequiresUnreferencedCode\", Justification = \"Length is only read through reflection for values that are neither strings nor ICollection, and the validated values always are one of those.\")]");
+        builder.AppendLine("    private static global::System.ComponentModel.DataAnnotations.ValidationAttribute " + validator.FactoryName + "() => " + validator.Expression + ";");
+    }
+
+    // MinLengthAttribute, MaxLengthAttribute and LengthAttribute constructors are [RequiresUnreferencedCode]
+    // because IsValid reads Count through reflection for values that are neither strings nor ICollection.
+    // When the validated values (the property's type, or its element type for a List prompt) are strings or
+    // ICollection, that path cannot run, so the generated code may suppress the warning. Other attributes
+    // with such constructors, like Compare and Range(Type, ...), do use reflection and keep their warning.
+    private static bool IsTrimSafeLengthCheck(Compilation compilation, INamedTypeSymbol attributeClass, ITypeSymbol validatedType)
+    {
+        if (attributeClass.ToDisplayString() is not ("System.ComponentModel.DataAnnotations.MinLengthAttribute" or "System.ComponentModel.DataAnnotations.MaxLengthAttribute" or "System.ComponentModel.DataAnnotations.LengthAttribute"))
+        {
+            return false;
+        }
+
+        if (validatedType.SpecialType == SpecialType.System_String || validatedType is IArrayTypeSymbol)
+        {
+            return true;
+        }
+
+        var collection = compilation.GetTypeByMetadataName("System.Collections.ICollection");
+
+        // AllInterfaces does not include the type itself, so ICollection is compared directly.
+        return collection is not null &&
+               (SymbolEqualityComparer.Default.Equals(validatedType, collection) || validatedType.AllInterfaces.Contains(collection, SymbolEqualityComparer.Default));
     }
 
     // ValidationContext reflects over the instance to look up the display name, so its constructors that
@@ -1175,6 +1219,13 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
 
     private sealed record BinderResult(string HintName, string Source, EquatableArray<DiagnosticInfo> Diagnostics);
 
+    private sealed class ValidatorMetadata(string expression, bool isTrimSafeLengthCheck)
+    {
+        public string Expression { get; } = expression;
+        public bool IsTrimSafeLengthCheck { get; } = isTrimSafeLengthCheck;
+        public string? FactoryName { get; set; }
+    }
+
     private sealed class PropertyMetadata
     {
         public string Name { get; set; } = "";
@@ -1195,7 +1246,7 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
         public bool IsPassword { get; set; }
         public FormKind FormType { get; set; }
         public string? TypeArg { get; set; }
-        public List<string> Validators { get; set; } = [];
+        public List<ValidatorMetadata> Validators { get; set; } = [];
         public string? ItemsExpression { get; set; }
         public bool HasItemsProvider { get; set; }
         public AttributeData? ItemsAttribute { get; set; }

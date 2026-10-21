@@ -22,12 +22,17 @@ public enum LocalPriority
     High = 2
 }
 
+// The trim analyzer reports IL2026 wherever MinLength, MaxLength or Length is applied, whether or not Sharprompt
+// is used, because their constructors are [RequiresUnreferencedCode]. It is suppressed here so that the check is
+// that the binder Sharprompt generates for these attributes adds no warning of its own.
+#pragma warning disable IL2026
 [PromptBindable]
 public class SignupModel
 {
     [Display(Name = "Name", Order = 1)]
     [Required]
     [StringLength(20)]
+    [MinLength(2)]
     public string? Name { get; set; }
 
     [Display(Name = "Age", Order = 2)]
@@ -37,6 +42,7 @@ public class SignupModel
     [Display(Name = "Secret", Order = 3)]
     [DataType(DataType.Password)]
     [Required]
+    [MaxLength(16)]
     public string? Secret { get; set; }
 
     [Display(Name = "Priority", Order = 4)]
@@ -50,11 +56,13 @@ public class SignupModel
     public string[]? Languages { get; set; }
 
     [Display(Name = "Tags", Order = 7)]
+    [Length(1, 8)]
     public List<string>? Tags { get; set; }
 
     [Display(Name = "Subscribe", Order = 8)]
     public bool Subscribe { get; set; }
 }
+#pragma warning restore IL2026
 
 public static class LocalStrings
 {

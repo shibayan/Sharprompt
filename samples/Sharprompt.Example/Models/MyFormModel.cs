@@ -19,7 +19,11 @@ public class MyFormModel
     [Display(Name = "Type new password", Order = 2)]
     [DataType(DataType.Password)]
     [Required]
+    // MinLength reads Count through reflection only for values that are neither strings nor ICollection, so the
+    // trim analyzer flags every use of it. A string property never takes that path.
+#pragma warning disable IL2026
     [MinLength(8)]
+#pragma warning restore IL2026
     public string Password { get; set; } = null!;
 
     [Display(Name = "Select enum value", Order = 3)]
