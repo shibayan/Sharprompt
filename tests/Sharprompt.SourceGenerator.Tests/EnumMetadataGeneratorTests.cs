@@ -314,6 +314,7 @@ public class EnumMetadataGeneratorTests
     [InlineData("public static class Strings { private static string s_low = \"Low\"; public static ref readonly string Low => ref s_low; }")]
     [InlineData("public interface Strings { static abstract string Low { get; } }")]
     [InlineData("public interface Strings { static virtual string Low => \"Low\"; }")]
+    [InlineData("[Obsolete(\"Old\")] public static class Strings { public static string Low => \"Low\"; }")]
     public void UnusableResourceProperty_LeavesEnumToFallback(string resourceType)
     {
         var result = GeneratorTestHelper.Run(Usings + resourceType + """
@@ -321,6 +322,34 @@ public class EnumMetadataGeneratorTests
             public enum Sample
             {
                 [Display(Name = "Low", ResourceType = typeof(Strings))]
+                Low
+            }
+            """, new EnumMetadataGenerator());
+
+        Assert.Empty(result.GeneratorDiagnostics);
+        Assert.Empty(result.CompileErrors);
+        Assert.Null(result.Source);
+    }
+
+    [Fact]
+    public void ResourceTypeInObsoleteType_LeavesEnumToFallback()
+    {
+        // Naming Outer.Strings in generated code would warn about Outer, even where the consumer suppresses it.
+        var result = GeneratorTestHelper.Run(Usings + """
+            [Obsolete("Old")]
+            public static class Outer
+            {
+                public static class Strings
+                {
+                    public static string Low => "Low";
+                }
+            }
+
+            public enum Sample
+            {
+            #pragma warning disable CS0618
+                [Display(Name = "Low", ResourceType = typeof(Outer.Strings))]
+            #pragma warning restore CS0618
                 Low
             }
             """, new EnumMetadataGenerator());

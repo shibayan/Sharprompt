@@ -242,7 +242,8 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
     {
         for (var current = resourceType; current != null; current = current.ContainingType)
         {
-            if (current.DeclaredAccessibility != Accessibility.Public || current.TypeParameters.Length > 0)
+            // An obsolete type, like an obsolete property, makes the generated access warn or fail.
+            if (current.DeclaredAccessibility != Accessibility.Public || current.TypeParameters.Length > 0 || IsObsolete(current))
             {
                 return null;
             }
@@ -251,7 +252,12 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
         return resourceType.GetMembers(name)
             .OfType<IPropertySymbol>()
             .FirstOrDefault(property => property is { IsStatic: true, IsIndexer: false, IsAbstract: false, IsVirtual: false, ReturnsByRef: false, ReturnsByRefReadonly: false, DeclaredAccessibility: Accessibility.Public, GetMethod.DeclaredAccessibility: Accessibility.Public, Type.SpecialType: SpecialType.System_String } &&
-                                        !property.GetAttributes().Any(attribute => attribute.AttributeClass?.ToDisplayString() == "System.ObsoleteAttribute"));
+                                        !IsObsolete(property));
+    }
+
+    private static bool IsObsolete(ISymbol symbol)
+    {
+        return symbol.GetAttributes().Any(attribute => attribute.AttributeClass?.ToDisplayString() == "System.ObsoleteAttribute");
     }
 
     private static string EscapeIdentifier(string name)
