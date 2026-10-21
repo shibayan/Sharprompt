@@ -24,10 +24,14 @@ internal static class OffscreenBufferExtensions
 
     public static void WriteInput(this OffscreenBuffer offscreenBuffer, TextInputBuffer textInputBuffer)
     {
-        offscreenBuffer.Write(textInputBuffer.ToBackwardString());
+        // The text before and after the cursor is written separately, which would split an escape sequence
+        // the cursor is inside. Text being edited shows ESC as ␛ instead, so every character stays visible.
+        offscreenBuffer.Write(ShowEscape(textInputBuffer.ToBackwardString()));
 
         offscreenBuffer.PushCursor();
 
-        offscreenBuffer.Write(textInputBuffer.ToForwardString());
+        offscreenBuffer.Write(ShowEscape(textInputBuffer.ToForwardString()));
     }
+
+    private static string ShowEscape(string text) => text.Replace('\x1b', (char)0x241b);
 }

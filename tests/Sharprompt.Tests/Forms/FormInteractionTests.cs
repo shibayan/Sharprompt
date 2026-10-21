@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Threading;
 
@@ -431,6 +432,137 @@ public class FormInteractionTests
         using var form = new MultiSelectForm<string>(options, configuration);
 
         Assert.Equal(new[] { "apple" }, form.Start());
+    }
+
+    [Fact]
+    public void InputForm_MultiLineMessage_RedrawClearsEveryLine()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("x");
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<string>
+        {
+            Message = "first\nsecond"
+        };
+
+        using var form = new InputForm<string>(options, configuration);
+
+        Assert.Equal("x", form.Start());
+
+        // The message takes two lines, so redrawing after "x" clears row 1 as well as row 0. When the
+        // line break was written as is, it was not counted and the redraw left the first line behind.
+        Assert.Contains(1, driver.ClearedLines);
+        Assert.Contains("? first\nsecond: ", driver.Output);
+    }
+
+    [Fact]
+    public void InputForm_EscapeSequenceInEditedText_IsShownLiterally()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        // Tab inserts the default value, and LeftArrow puts the cursor inside its reset sequence.
+        // Enter is queued only once those keys are consumed, so the edited text is rendered first.
+        driver.EnqueueKey(ConsoleKey.Tab, keyChar: '\t');
+        driver.EnqueueKey(ConsoleKey.LeftArrow);
+
+        var entered = false;
+
+        driver.KeysExhausted = () =>
+        {
+            if (!entered)
+            {
+                entered = true;
+                driver.EnqueueEnter();
+            }
+        };
+
+        var options = new InputOptions<string>
+        {
+            Message = "message",
+            DefaultValue = "\x1b[31mred\x1b[0m"
+        };
+
+        using var form = new InputForm<string>(options, configuration);
+
+        Assert.Equal("\x1b[31mred\x1b[0m", form.Start());
+
+        // The text before and after the cursor is written separately. Interpreting escape sequences split
+        // the reset there and showed "redm"; while editing, every character is shown, ESC as ␛.
+        Assert.Contains("␛[31mred␛[0m", driver.Output);
+        Assert.DoesNotContain("redm", driver.Output);
+    }
+
+    [Fact]
+    public void InputForm_WrappedLineBeforeInput_PlacesCursorOnInputRow()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<string>
+        {
+            // "? " and 80 characters wrap onto two rows of the 80-column buffer, so the input is on row 2.
+            Message = new string('a', 80) + "\nb"
+        };
+
+        using var form = new InputForm<string>(options, configuration);
+
+        form.Start();
+
+        // After "b: ", the cursor goes to column 3 of row 2. Counting logical lines would put it on row 1.
+        Assert.Contains((3, 2), driver.CursorPositions);
+        Assert.DoesNotContain((3, 1), driver.CursorPositions);
+    }
+
+    [Fact]
+    public void SelectForm_ItemsWithControlCharacters_AreShownWithoutThem()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.DownArrow);
+        driver.EnqueueEnter();
+
+        var options = new SelectOptions<string>
+        {
+            Message = "message",
+            Items = ["Name\tValue", "bell\a", "\x1b[2Jclear", "\x1b[32mgreen\x1b[0m"]
+        };
+
+        using var form = new SelectForm<string>(options, configuration);
+
+        // Only the display is normalized; the selected value is returned as is.
+        Assert.Equal("Name\tValue", form.Start());
+
+        Assert.DoesNotContain('\t', driver.Output);
+        Assert.DoesNotContain('\a', driver.Output);
+        Assert.DoesNotContain("\x1b[2J", driver.Output);
+        Assert.Contains("bell␇", driver.Output);
+        Assert.Contains("\x1b[32mgreen\x1b[0m", driver.Output);
+    }
+
+    [Fact]
+    public void InputForm_MultiLineErrorMessage_RedrawClearsEveryLine()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueEnter();
+        driver.EnqueueText("ok");
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<string>
+        {
+            Message = "message",
+            Validators = { input => string.IsNullOrEmpty(input as string) ? new ValidationResult("first\nsecond") : ValidationResult.Success }
+        };
+
+        using var form = new InputForm<string>(options, configuration);
+
+        Assert.Equal("ok", form.Start());
+
+        // Prompt and two error lines: the redraw after the error clears rows 0 to 2.
+        Assert.Contains(2, driver.ClearedLines);
     }
 
     private static PromptConfiguration CreateConfigurationThatMustNotCreateDriver()

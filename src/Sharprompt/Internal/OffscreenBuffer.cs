@@ -42,14 +42,7 @@ internal class OffscreenBuffer
 
             foreach (var line in _outputBuffer)
             {
-                var lineWidth = 0;
-
-                foreach (var textInfo in line)
-                {
-                    lineWidth += textInfo.Width;
-                }
-
-                count += (lineWidth - 1) / bufferWidth + 1;
+                count += (GetWidth(line) - 1) / bufferWidth + 1;
             }
 
             _cachedBufferWidth = bufferWidth;
@@ -69,7 +62,23 @@ internal class OffscreenBuffer
             return;
         }
 
-        _outputBuffer[^1].Add(new TextInfo(text, color));
+        // Control characters are normalized before measuring, so the line count and the cursor position
+        // match what the terminal shows; line breaks in the text become lines of the buffer.
+        var lines = ConsoleText.Normalize(text, GetWidth(_outputBuffer[^1]));
+
+        for (var i = 0; i < lines.Count; i++)
+        {
+            if (i > 0)
+            {
+                _outputBuffer.Add([]);
+            }
+
+            if (lines[i].Length > 0)
+            {
+                _outputBuffer[^1].Add(new TextInfo(lines[i], color));
+            }
+        }
+
         _isWrittenLineCountDirty = true;
     }
 
@@ -86,15 +95,19 @@ internal class OffscreenBuffer
             return;
         }
 
-        var lastLine = _outputBuffer[^1];
+        _pushedCursor = new Cursor(GetWidth(_outputBuffer[^1]), _outputBuffer.Count - 1);
+    }
+
+    private static int GetWidth(List<TextInfo> line)
+    {
         var width = 0;
 
-        foreach (var textInfo in lastLine)
+        foreach (var textInfo in line)
         {
             width += textInfo.Width;
         }
 
-        _pushedCursor = new Cursor(width, _outputBuffer.Count - 1);
+        return width;
     }
 
     public IDisposable BeginRender() => new RenderScope(this, _consoleDriver, _cursorBottom, WrittenLineCount);
@@ -123,8 +136,15 @@ internal class OffscreenBuffer
             return;
         }
 
-        var physicalLeft = _pushedCursor.Left % _consoleDriver.BufferWidth;
-        var physicalTop = _pushedCursor.Top + (_pushedCursor.Left / _consoleDriver.BufferWidth);
+        var bufferWidth = _consoleDriver.BufferWidth;
+        var physicalLeft = _pushedCursor.Left % bufferWidth;
+        var physicalTop = _pushedCursor.Left / bufferWidth;
+
+        // Lines before the cursor's line can wrap onto several rows, such as those of a multi-line message.
+        for (var i = 0; i < _pushedCursor.Top; i++)
+        {
+            physicalTop += (GetWidth(_outputBuffer[i]) - 1) / bufferWidth + 1;
+        }
 
         var consoleTop = _cursorBottom - WrittenLineCount + physicalTop;
 
@@ -177,7 +197,7 @@ internal class OffscreenBuffer
 
             Text = text;
             Color = color;
-            Width = text.GetWidth();
+            Width = ConsoleText.MeasureWidth(text);
         }
 
         public string Text { get; }
