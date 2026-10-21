@@ -331,6 +331,83 @@ public class EnumMetadataGeneratorTests
         Assert.Null(result.Source);
     }
 
+    // Like [Obsolete], [Experimental] makes a direct reference report a diagnostic (EXP001) that fails the build,
+    // although a literal Name in [Display] does not reference the property in the consumer's code.
+    [Theory]
+    [InlineData("public static class Strings { [System.Diagnostics.CodeAnalysis.Experimental(\"EXP001\")] public static string Low => \"Low\"; }")]
+    [InlineData("[System.Diagnostics.CodeAnalysis.Experimental(\"EXP001\")] public static class Strings { public static string Low => \"Low\"; }")]
+    public void ExperimentalResourceProperty_LeavesEnumToFallback(string resourceType)
+    {
+        var result = GeneratorTestHelper.Run(Usings + resourceType + """
+
+            public enum Sample
+            {
+            #pragma warning disable EXP001
+                [Display(Name = "Low", ResourceType = typeof(Strings))]
+            #pragma warning restore EXP001
+                Low
+            }
+            """, new EnumMetadataGenerator());
+
+        Assert.Empty(result.GeneratorDiagnostics);
+        Assert.Empty(result.CompileErrors);
+        Assert.Null(result.Source);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ResourceTypeInExperimentalAssembly_LeavesEnumToFallback(bool experimental)
+    {
+        var library = GeneratorTestHelper.CreateLibraryReference((experimental ? "[assembly: System.Diagnostics.CodeAnalysis.Experimental(\"EXP001\")]\n" : "") + """
+            namespace ResourceLib;
+
+            public static class Strings
+            {
+                public static string Low => "Low";
+            }
+            """);
+
+        var result = GeneratorTestHelper.Run("#pragma warning disable EXP001\n" + Usings + """
+            public enum Sample
+            {
+                [Display(Name = "Low", ResourceType = typeof(ResourceLib.Strings))]
+                Low
+            }
+            """, new EnumMetadataGenerator(), library);
+
+        Assert.Empty(result.CompileErrors);
+        Assert.Equal(!experimental, result.Source is not null);
+    }
+
+    // The generated file names the resource type through global::, which cannot reach an assembly
+    // that is referenced only through an extern alias.
+    [Theory]
+    [InlineData(new string[] { "res" }, false)]
+    [InlineData(new string[] { "res", "global" }, true)]
+    public void ResourceTypeFromAliasOnlyReference_LeavesEnumToFallback(string[] aliases, bool generated)
+    {
+        var library = GeneratorTestHelper.CreateLibraryReference("""
+            namespace ResourceLib;
+
+            public static class Strings
+            {
+                public static string Low => "Low";
+            }
+            """).WithAliases(aliases);
+
+        var result = GeneratorTestHelper.Run("extern alias res;\n" + Usings + """
+            public enum Sample
+            {
+                [Display(Name = "Low", ResourceType = typeof(res::ResourceLib.Strings))]
+                Low
+            }
+            """, new EnumMetadataGenerator(), library);
+
+        Assert.Empty(result.CompileErrors);
+        Assert.Equal(generated, result.Source is not null);
+    }
+
     [Fact]
     public void ResourceTypeInObsoleteType_LeavesEnumToFallback()
     {

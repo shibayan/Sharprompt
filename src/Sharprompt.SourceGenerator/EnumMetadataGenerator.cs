@@ -45,7 +45,7 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
             return null;
         }
 
-        var source = GenerateSource(enumSymbol);
+        var source = GenerateSource(enumSymbol, syntaxContext.SemanticModel.Compilation);
         if (source.Length == 0)
         {
             return null;
@@ -108,7 +108,7 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
         return hash;
     }
 
-    private static string GenerateSource(INamedTypeSymbol enumSymbol)
+    private static string GenerateSource(INamedTypeSymbol enumSymbol, Compilation compilation)
     {
         // These rules must match EnumMetadataRegistry.CreateFallbackMetadata exactly, so that an enum
         // lists the same items whether or not the generator ran. The base order is the underlying
@@ -122,7 +122,7 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
             .ThenBy(field => field.Name, StringComparer.Ordinal)
             .GroupBy(field => field.ConstantValue)
             .Select(group => group.First())
-            .Select((field, index) => AnalyzeMember(field, index))
+            .Select((field, index) => AnalyzeMember(field, index, compilation))
             .ToArray();
 
         // A display name the generated code cannot read the same way DisplayAttribute.GetName does is left to
@@ -184,7 +184,7 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
         return builder.ToString();
     }
 
-    private static EnumMemberMetadata? AnalyzeMember(IFieldSymbol field, int index)
+    private static EnumMemberMetadata? AnalyzeMember(IFieldSymbol field, int index, Compilation compilation)
     {
         string? displayName = null;
         ITypeSymbol? resourceType = null;
@@ -221,7 +221,7 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
 
         // With one, Name is a property of the resource type, which DisplayAttribute.GetName reads on every call,
         // so the current UI culture applies. Read the same property each time an item is shown.
-        var resourceProperty = resourceType is INamedTypeSymbol namedResourceType ? GetResourceProperty(namedResourceType, displayName) : null;
+        var resourceProperty = resourceType is INamedTypeSymbol namedResourceType ? GetResourceProperty(compilation, namedResourceType, displayName) : null;
 
         if (resourceProperty is null)
         {
@@ -237,13 +237,21 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
     // Anything else (a missing or inaccessible property, which makes GetName throw) is left to the fallback, and so
     // are properties that reflection can read but the generated code should not name directly: ref returns (whose
     // reflected type is string&, which GetName rejects), static abstract or virtual interface members (CS8926), and
-    // obsolete properties (CS0619, or a warning that fails a warnings-as-errors build).
-    private static IPropertySymbol? GetResourceProperty(INamedTypeSymbol resourceType, string name)
+    // obsolete or experimental members (CS0619 or EXP diagnostics, or warnings that fail a warnings-as-errors build).
+    private static IPropertySymbol? GetResourceProperty(Compilation compilation, INamedTypeSymbol resourceType, string name)
     {
+        // The generated file names the type through global::, which cannot reach an assembly referenced only
+        // through an extern alias, and an [Experimental] assembly or module flags every reference to its types.
+        if (!IsReachableThroughGlobalAlias(compilation, resourceType.ContainingAssembly) ||
+            HasReferenceDiagnosticAttribute(resourceType.ContainingAssembly) || HasReferenceDiagnosticAttribute(resourceType.ContainingModule))
+        {
+            return null;
+        }
+
         for (var current = resourceType; current != null; current = current.ContainingType)
         {
-            // An obsolete type, like an obsolete property, makes the generated access warn or fail.
-            if (current.DeclaredAccessibility != Accessibility.Public || current.TypeParameters.Length > 0 || IsObsolete(current))
+            // An obsolete or experimental type, like such a property, makes the generated access warn or fail.
+            if (current.DeclaredAccessibility != Accessibility.Public || current.TypeParameters.Length > 0 || HasReferenceDiagnosticAttribute(current))
             {
                 return null;
             }
@@ -252,12 +260,25 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
         return resourceType.GetMembers(name)
             .OfType<IPropertySymbol>()
             .FirstOrDefault(property => property is { IsStatic: true, IsIndexer: false, IsAbstract: false, IsVirtual: false, ReturnsByRef: false, ReturnsByRefReadonly: false, DeclaredAccessibility: Accessibility.Public, GetMethod.DeclaredAccessibility: Accessibility.Public, Type.SpecialType: SpecialType.System_String } &&
-                                        !IsObsolete(property));
+                                        !HasReferenceDiagnosticAttribute(property));
     }
 
-    private static bool IsObsolete(ISymbol symbol)
+    // Attributes that make the compiler report a diagnostic wherever the symbol is referenced.
+    private static bool HasReferenceDiagnosticAttribute(ISymbol? symbol)
     {
-        return symbol.GetAttributes().Any(attribute => attribute.AttributeClass?.ToDisplayString() == "System.ObsoleteAttribute");
+        return symbol is not null && symbol.GetAttributes().Any(attribute => attribute.AttributeClass?.ToDisplayString() is "System.ObsoleteAttribute" or "System.Diagnostics.CodeAnalysis.ExperimentalAttribute");
+    }
+
+    private static bool IsReachableThroughGlobalAlias(Compilation compilation, IAssemblySymbol? assembly)
+    {
+        if (assembly is null || SymbolEqualityComparer.Default.Equals(assembly, compilation.Assembly))
+        {
+            return true;
+        }
+
+        var aliases = compilation.GetMetadataReference(assembly)?.Properties.Aliases ?? default;
+
+        return aliases.IsDefaultOrEmpty || aliases.Contains("global");
     }
 
     private static string EscapeIdentifier(string name)
