@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Linq;
 
 using Xunit;
@@ -68,6 +69,31 @@ public class EnumMetadataRegistryTests
         Assert.Equal("The First", metadata.TextSelector(AnnotatedEnum.First));
         Assert.Equal("Second", metadata.TextSelector(AnnotatedEnum.Second));
         Assert.Equal("The Third", metadata.TextSelector(AnnotatedEnum.Third));
+    }
+
+    [Fact]
+    public void CreateFallbackMetadata_ResourceDisplayNames_FollowCurrentUICulture()
+    {
+        var previousCulture = CultureInfo.CurrentUICulture;
+
+        try
+        {
+            CultureInfo.CurrentUICulture = new CultureInfo("en-US");
+
+            var metadata = EnumMetadataRegistry.CreateFallbackMetadata<ResourceAnnotatedEnum>();
+
+            Assert.Equal("Low priority", metadata.TextSelector(ResourceAnnotatedEnum.Low));
+            Assert.Equal("Other", metadata.TextSelector(ResourceAnnotatedEnum.Other));
+
+            // Names are resolved each time, not when the metadata is created.
+            CultureInfo.CurrentUICulture = new CultureInfo("ja-JP");
+
+            Assert.Equal("低", metadata.TextSelector(ResourceAnnotatedEnum.Low));
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previousCulture;
+        }
     }
 
     [Fact]
@@ -183,6 +209,21 @@ public class EnumMetadataRegistryTests
     {
         First,
         Second
+    }
+
+    public static class ResourceStrings
+    {
+        public static string Low => CultureInfo.CurrentUICulture.Name == "ja-JP" ? "低" : "Low priority";
+
+        public static string? Missing => null;
+    }
+
+    public enum ResourceAnnotatedEnum
+    {
+        [Display(Name = nameof(ResourceStrings.Low), ResourceType = typeof(ResourceStrings))]
+        Low,
+        [Display(Name = nameof(ResourceStrings.Missing), ResourceType = typeof(ResourceStrings))]
+        Other
     }
 
     public enum AnnotatedEnum

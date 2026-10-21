@@ -249,6 +249,77 @@ public class EnumMetadataGeneratorTests
         metadata.AssertValues("Min", "Max");
     }
 
+    // DisplayAttribute.GetName reads a localized name each time it is shown. Generated code could only approximate
+    // that lookup (the resource property may be missing, inaccessible, ambiguous or flagged where it is used), so
+    // an enum that uses ResourceType anywhere is left to the reflection fallback, which uses GetName itself.
+    [Theory]
+    [InlineData("typeof(Strings)")]
+    [InlineData("typeof(InternalStrings)")]
+    [InlineData("typeof(string[])")]
+    public void ResourceDisplayNames_LeaveEnumToFallback(string resourceType)
+    {
+        var result = GeneratorTestHelper.Run(Usings + $$"""
+            public static class Strings
+            {
+                public static string Low => "Low";
+            }
+
+            internal static class InternalStrings
+            {
+                public static string Low => "Low";
+            }
+
+            public enum Sample
+            {
+                [Display(Name = "Low", ResourceType = {{resourceType}})]
+                Low,
+                [Display(Name = "High")]
+                High
+            }
+            """, new EnumMetadataGenerator());
+
+        Assert.Empty(result.GeneratorDiagnostics);
+        Assert.Empty(result.CompileErrors);
+        Assert.Null(result.Source);
+    }
+
+    [Fact]
+    public void ResourceDisplayNameOnAlias_LeavesEnumToFallback()
+    {
+        // Only the representative's [Display] is used, but checking every member keeps the rule simple.
+        var result = GeneratorTestHelper.Run(Usings + """
+            public static class Strings
+            {
+                public static string Low => "Low";
+            }
+
+            public enum Sample
+            {
+                Default = 0,
+                [Display(Name = "Low", ResourceType = typeof(Strings))]
+                Low = 0
+            }
+            """, new EnumMetadataGenerator());
+
+        Assert.Empty(result.CompileErrors);
+        Assert.Null(result.Source);
+    }
+
+    [Fact]
+    public void NullResourceType_IsGeneratedLikeAPlainName()
+    {
+        // ResourceType = null means no resource, so Name is the display name itself.
+        var metadata = AssertMatchesFallback("""
+            public enum Sample
+            {
+                [Display(Name = "Low priority", ResourceType = null)]
+                Low
+            }
+            """);
+
+        Assert.Equal(["Low priority"], metadata.Texts);
+    }
+
     [Fact]
     public void EmptyEnum_GeneratesNothing()
     {

@@ -61,8 +61,9 @@ foreach ($tfm in $Framework) {
         }
     }
 
-    if (Get-ChildItem $generatedDirectory -Recurse -Filter '*ExternalPriority*' -ErrorAction Ignore) {
-        throw "ExternalPriority is expected to use the reflection fallback, but metadata was generated for it."
+    # Enums from another assembly, and enums with resource display names, use the reflection fallback.
+    if (Get-ChildItem $generatedDirectory -Recurse -Include '*External*', '*TimeOfDay*' -ErrorAction Ignore) {
+        throw "ExternalPriority, ExternalTimeOfDay and LocalTimeOfDay are expected to use the reflection fallback, but metadata was generated for them."
     }
 
     $executable = Join-Path $publishDirectory ($IsWindows ? 'Sharprompt.NativeAot.App.exe' : 'Sharprompt.NativeAot.App')

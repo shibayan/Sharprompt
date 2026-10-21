@@ -21,6 +21,7 @@ namespace Sharprompt;
 /// <item><description>Members are first ordered by their underlying constant value, not by declaration order.</description></item>
 /// <item><description>Aliases (members sharing a value) collapse into one item, represented by the alias whose name sorts first ordinally; that member's <see cref="DisplayAttribute"/> provides the display name.</description></item>
 /// <item><description>Members with <see cref="DisplayAttribute.Order"/> come first, sorted by it. Members without it come after every ordered member, including one using <see cref="int.MaxValue"/>. Ties keep the value order.</description></item>
+/// <item><description>The display name is <see cref="DisplayAttribute.GetName"/>, or the member name without one. It is resolved each time an item is shown, so a name read from <see cref="DisplayAttribute.ResourceType"/> follows the current UI culture.</description></item>
 /// </list>
 /// </remarks>
 public static class EnumMetadataRegistry
@@ -80,14 +81,16 @@ public static class EnumMetadataRegistry
 
         // Always map through the representative's field name: Enum.ToString picks
         // an implementation-defined alias, which would defeat the determinism above.
-        var displayNames = new Dictionary<TEnum, string>();
+        // GetName is called each time, like the generated code reads a resource property each time,
+        // so a name from DisplayAttribute.ResourceType follows the current UI culture.
+        var displayMembers = new Dictionary<TEnum, (string Name, DisplayAttribute? DisplayAttribute)>();
 
         foreach (var member in members)
         {
-            displayNames.TryAdd(member.value, member.displayAttribute?.GetName() ?? member.Name);
+            displayMembers.TryAdd(member.value, (member.Name, member.displayAttribute));
         }
 
-        return new EnumMetadata<TEnum>(values, value => displayNames.TryGetValue(value, out var displayName) ? displayName : value.ToString()!);
+        return new EnumMetadata<TEnum>(values, value => displayMembers.TryGetValue(value, out var member) ? member.DisplayAttribute?.GetName() ?? member.Name : value.ToString()!);
     }
 
     internal sealed record EnumMetadata<TEnum>(IReadOnlyList<TEnum> Values, Func<TEnum, string> TextSelector);

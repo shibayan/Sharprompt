@@ -109,6 +109,13 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
 
     private static string GenerateSource(INamedTypeSymbol enumSymbol)
     {
+        // A localized name ([Display(ResourceType = ...)]) is read through DisplayAttribute.GetName each time it is
+        // shown. Generated code could only approximate that lookup, so such enums are left to the reflection fallback.
+        if (enumSymbol.GetMembers().OfType<IFieldSymbol>().Any(HasDisplayResourceType))
+        {
+            return string.Empty;
+        }
+
         // These rules must match EnumMetadataRegistry.CreateFallbackMetadata exactly, so that an enum
         // lists the same items whether or not the generator ran. The base order is the underlying
         // constant value (not declaration order, which reflection cannot observe reliably). Aliased
@@ -177,6 +184,13 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
         builder.AppendLine("}");
 
         return builder.ToString();
+    }
+
+    private static bool HasDisplayResourceType(IFieldSymbol field)
+    {
+        return field.GetAttributes().Any(attribute =>
+            attribute.AttributeClass?.ToDisplayString() == "System.ComponentModel.DataAnnotations.DisplayAttribute" &&
+            attribute.NamedArguments.Any(argument => argument.Key == "ResourceType" && !argument.Value.IsNull));
     }
 
     private static EnumMemberMetadata AnalyzeMember(IFieldSymbol field, int index)
