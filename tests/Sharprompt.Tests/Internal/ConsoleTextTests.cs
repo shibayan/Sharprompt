@@ -82,6 +82,12 @@ public class ConsoleTextTests
     [InlineData("\x1b[51mA\x1b[54m\nB", new[] { "\x1b[51mA\x1b[54m", "B" })]
     [InlineData("\x1b[73mA\x1b[75m\x1b[74m\nB", new[] { "\x1b[73mA\x1b[75m\x1b[74m", "\x1b[74mB" })]
     [InlineData("\x1b[20mA\x1b[23m\nB", new[] { "\x1b[20mA\x1b[23m", "B" })]
+    // Parameters are numbers, so zero padding does not change their meaning; the restored sequence is canonical.
+    [InlineData("\x1b[38;05;196mA\nB", new[] { "\x1b[38;05;196mA", "\x1b[38;5;196mB" })]
+    [InlineData("\x1b[38;02;255;0;0mA\nB", new[] { "\x1b[38;02;255;0;0mA", "\x1b[38;2;255;0;0mB" })]
+    [InlineData("\x1b[038;5;1;001mA\nB", new[] { "\x1b[038;5;1;001mA", "\x1b[1;38;5;1mB" })]
+    [InlineData("\x1b[38:2:0:0255:00:0mA\nB", new[] { "\x1b[38:2:0:0255:00:0mA", "\x1b[38:2::255:0:0mB" })]
+    [InlineData("\x1b[4:03mA\nB", new[] { "\x1b[4:03mA", "\x1b[4:3mB" })]
     // Unknown codes are written as is but not carried over.
     [InlineData("\x1b[1000;1mA\nB", new[] { "\x1b[1000;1mA", "\x1b[1mB" })]
     [InlineData("\x1b[38;5;208;48;2;1;2;3mA\nB", new[] { "\x1b[38;5;208;48;2;1;2;3mA", "\x1b[38;5;208;48;2;1;2;3mB" })]
@@ -114,6 +120,17 @@ public class ConsoleTextTests
 
         Assert.True(lines.Sum(line => line.Length) < text.Length * 2);
         Assert.Equal("", lines[^1]);
+    }
+
+    [Fact]
+    public void Normalize_OversizedColorParameter_IsRestoredCanonically()
+    {
+        // Restoring the raw parameter on every line made its length count once per line.
+        var text = "\x1b[38:2::" + new string('0', 2048) + "255:0:0mA" + new string('\n', 2048);
+
+        var lines = ConsoleText.Normalize(text, 0);
+
+        Assert.All(lines.Skip(1), line => Assert.Equal("\x1b[38:2::255:0:0m", line));
     }
 
     [Fact]

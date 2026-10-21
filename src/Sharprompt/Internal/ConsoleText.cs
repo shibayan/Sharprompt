@@ -264,23 +264,31 @@ internal static class ConsoleText
 
             for (var i = 0; i < tokens.Length; i++)
             {
-                var token = tokens[i];
-                var colon = token.IndexOf(':');
-                var codeText = colon < 0 ? token : token[..colon];
+                // Parameters are parsed as numbers and stored in canonical form, so zero padding neither changes
+                // their meaning nor makes the restoring sequence longer than the attributes it sets.
+                var parts = tokens[i].Split(':');
 
-                // An empty parameter means 0.
-                if (!int.TryParse(codeText.Length == 0 ? "0" : codeText, NumberStyles.None, CultureInfo.InvariantCulture, out var code))
+                if (!TryParseParameter(parts[0], out var code))
                 {
                     continue;
                 }
 
-                // Extended colors in the semicolon form take the next 2 (5;n) or 4 (2;r;g;b) parameters.
-                if (code is 38 or 48 or 58 && colon < 0 && i + 1 < tokens.Length)
-                {
-                    var count = Math.Min(tokens[i + 1] switch { "5" => 2, "2" => 4, _ => 0 }, tokens.Length - 1 - i);
+                string token;
 
-                    token = string.Join(';', tokens, i, count + 1);
-                    i += count;
+                if (code is 38 or 48 or 58)
+                {
+                    if (!TryReadExtendedColor(code, tokens, parts, ref i, out token))
+                    {
+                        continue;
+                    }
+                }
+                else if (code == 4 && parts.Length > 1 && TryParseParameter(parts[1], out var underlineStyle))
+                {
+                    token = "4:" + Format(underlineStyle);
+                }
+                else
+                {
+                    token = Format(code);
                 }
 
                 switch (code)
@@ -362,6 +370,99 @@ internal static class ConsoleText
                 }
             }
         }
+
+        // Extended colors: 38;5;n or 38;2;r;g;b take the following parameters, and 38:5:n or 38:2:[space]:r:g:b
+        // carry them as sub-parameters. Any parameter that is not a number leaves the color out of the state.
+        private static bool TryReadExtendedColor(int code, string[] tokens, string[] parts, ref int index, out string token)
+        {
+            token = "";
+
+            if (parts.Length > 1)
+            {
+                if (!TryParseParameter(parts[1], out var colonMode))
+                {
+                    return false;
+                }
+
+                if (colonMode == 5 && parts.Length >= 3 && TryParseParameter(parts[2], out var colorIndex))
+                {
+                    token = Format(code) + ":5:" + Format(colorIndex);
+                    return true;
+                }
+
+                if (colonMode == 2 && parts.Length >= 5 && TryParseRgb(parts[^3], parts[^2], parts[^1], out var colonRgb))
+                {
+                    token = Format(code) + ":2::" + colonRgb.Replace(';', ':');
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (index + 1 >= tokens.Length || !TryParseParameter(tokens[index + 1], out var mode))
+            {
+                return false;
+            }
+
+            var count = mode switch { 5 => 2, 2 => 4, _ => 0 };
+
+            if (count == 0)
+            {
+                return false;
+            }
+
+            var available = Math.Min(count, tokens.Length - 1 - index);
+            var start = index;
+
+            index += available;
+
+            if (available < count)
+            {
+                return false;
+            }
+
+            if (mode == 5 && TryParseParameter(tokens[start + 2], out var semicolonIndex))
+            {
+                token = Format(code) + ";5;" + Format(semicolonIndex);
+                return true;
+            }
+
+            if (mode == 2 && TryParseRgb(tokens[start + 2], tokens[start + 3], tokens[start + 4], out var semicolonRgb))
+            {
+                token = Format(code) + ";2;" + semicolonRgb;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TryParseRgb(string red, string green, string blue, out string rgb)
+        {
+            rgb = "";
+
+            if (!TryParseParameter(red, out var r) || !TryParseParameter(green, out var g) || !TryParseParameter(blue, out var b))
+            {
+                return false;
+            }
+
+            rgb = Format(r) + ";" + Format(g) + ";" + Format(b);
+
+            return true;
+        }
+
+        // An empty parameter means 0.
+        private static bool TryParseParameter(string text, out int value)
+        {
+            if (text.Length == 0)
+            {
+                value = 0;
+                return true;
+            }
+
+            return int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out value);
+        }
+
+        private static string Format(int value) => value.ToString(CultureInfo.InvariantCulture);
 
         public void AppendTo(StringBuilder builder)
         {
