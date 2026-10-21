@@ -654,7 +654,9 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
 
         var collection = compilation.GetTypeByMetadataName("System.Collections.ICollection");
 
-        return collection is not null && validatedType.AllInterfaces.Contains(collection, SymbolEqualityComparer.Default);
+        // AllInterfaces does not include the type itself, so ICollection is compared directly.
+        return collection is not null &&
+               (SymbolEqualityComparer.Default.Equals(validatedType, collection) || validatedType.AllInterfaces.Contains(collection, SymbolEqualityComparer.Default));
     }
 
     // ValidationContext reflects over the instance to look up the display name, so its constructors that

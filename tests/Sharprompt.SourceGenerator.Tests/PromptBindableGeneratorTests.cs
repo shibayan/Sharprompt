@@ -730,6 +730,10 @@ public class PromptBindableGeneratorTests
 
                 [MaxLength(2)]
                 public string[][] Groups { get; set; } = [];
+
+                // The element type is ICollection itself, which is not among its own AllInterfaces.
+                [MinLength(1)]
+                public List<System.Collections.ICollection> Collections { get; set; } = new();
             }
             """);
 
