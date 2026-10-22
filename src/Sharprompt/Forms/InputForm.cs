@@ -36,7 +36,7 @@ internal class InputForm<T> : TextFormBase<T>
             offscreenBuffer.WriteHint($"({defaultValueText}) ");
         }
 
-        if (InputBuffer.Length == 0 && !string.IsNullOrEmpty(_options.Placeholder))
+        else if (InputBuffer.Length == 0 && !string.IsNullOrEmpty(_options.Placeholder))
         {
             offscreenBuffer.PushCursor();
             offscreenBuffer.WriteHint(_options.Placeholder);

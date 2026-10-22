@@ -1006,6 +1006,85 @@ public class FormInteractionTests
     }
 
     [Fact]
+    public void InputForm_DefaultValueAndPlaceholder_RendersDefaultOnly()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<string>
+        {
+            Message = "message",
+            DefaultValue = "blue",
+            Placeholder = "type a color"
+        };
+
+        using var form = new InputForm<string>(options, configuration);
+
+        Assert.Equal("blue", form.Start());
+
+        // The default value is the stronger hint: the placeholder must not be drawn next to it.
+        Assert.Contains("(blue)", driver.Output);
+        Assert.DoesNotContain("type a color", driver.Output);
+    }
+
+    [Fact]
+    public void InputForm_BackspaceDismissesDefaultValue_RevealsPlaceholder()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueKey(ConsoleKey.Backspace);
+
+        var entered = false;
+
+        driver.KeysExhausted = () =>
+        {
+            if (!entered)
+            {
+                entered = true;
+                driver.EnqueueEnter();
+            }
+        };
+
+        var options = new InputOptions<string>
+        {
+            Message = "message",
+            DefaultValue = "blue",
+            Placeholder = "type a color"
+        };
+
+        using var form = new InputForm<string>(options, configuration);
+
+        Assert.Null(form.Start());
+
+        // The frame after Backspace must show the placeholder instead of the dismissed default.
+        var lastPrompt = driver.Output.LastIndexOf("? message: ", StringComparison.Ordinal);
+
+        Assert.True(lastPrompt >= 0);
+        Assert.Contains("type a color", driver.Output[lastPrompt..]);
+        Assert.DoesNotContain("(blue)", driver.Output[lastPrompt..]);
+    }
+
+    [Fact]
+    public void InputForm_EmptyInputWithDefaultValueAndPlaceholder_ReturnsDefaultValue()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueEnter();
+
+        var options = new InputOptions<string>
+        {
+            Message = "message",
+            DefaultValue = "blue",
+            Placeholder = "type a color"
+        };
+
+        using var form = new InputForm<string>(options, configuration);
+
+        Assert.Equal("blue", form.Start());
+    }
+
+    [Fact]
     public void InputForm_DismissedDefaultValue_RequiresInputForNonNullable()
     {
         var (driver, configuration) = CreateTestContext();
