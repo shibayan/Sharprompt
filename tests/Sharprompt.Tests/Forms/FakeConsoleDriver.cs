@@ -75,7 +75,14 @@ internal sealed class FakeConsoleDriver : IConsoleDriver
 
             _cursorLeft += width;
         }
+
+        Written?.Invoke(value);
     }
+
+    // Invoked after each write, letting tests react to rendered output (for example, a validation
+    // error) by queueing the next keys. Unlike KeysExhausted, this fires after a failed Enter has
+    // returned from TryGetResult, so the recovery keys are read on the next loop iteration.
+    public Action<string>? Written { get; set; }
 
     public void WriteLine()
     {

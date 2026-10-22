@@ -28,6 +28,12 @@ public class SelectOptions<T> : PromptOptions where T : notnull
 
     public bool LoopingSelection { get; set; } = true;
 
+    /// <summary>
+    /// Creates an item from the text typed when Enter cannot resolve a listed item.
+    /// When <see langword="null"/> (the default), <c>Select</c> only returns items from <see cref="Items"/>.
+    /// </summary>
+    public Func<string, T>? CreateCustomItem { get; set; }
+
     internal override void EnsureOptions()
     {
         base.EnsureOptions();

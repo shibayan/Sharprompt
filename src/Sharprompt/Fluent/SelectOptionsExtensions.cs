@@ -46,4 +46,14 @@ public static class SelectOptionsExtensions
 
         return options;
     }
+
+    public static SelectOptions<T> WithCreateCustomItem<T>(this SelectOptions<T> options, Func<string, T> createCustomItem) where T : notnull
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(createCustomItem);
+
+        options.CreateCustomItem = createCustomItem;
+
+        return options;
+    }
 }

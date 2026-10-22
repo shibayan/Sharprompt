@@ -23,6 +23,10 @@ internal class SelectForm<T> : SelectFormBase<T, T> where T : notnull
 
     private readonly SelectOptions<T> _options;
 
+    // Rendering and Enter must use the same policy, otherwise the highlighted row can contradict the result.
+    // With a creation callback, a lone substring match must not be treated as an explicit choice.
+    private bool AutoSelectSingleItem => _options.CreateCustomItem is null || string.IsNullOrEmpty(Paginator.FilterKeyword);
+
     // Runs before the base constructor creates the console driver, so invalid options throw without leaving it undisposed.
     private static (T[] Items, Optional<T> DefaultValue) Prepare(SelectOptions<T> options)
     {
@@ -31,8 +35,9 @@ internal class SelectForm<T> : SelectFormBase<T, T> where T : notnull
         // Items are enumerated once; equal items are listed once, at the position of the first.
         var items = options.Items.Distinct().ToArray();
 
-        // Nothing could be selected, so the prompt could only be canceled.
-        if (items.Length == 0)
+        // Nothing could be selected, so the prompt could only be canceled. A creation callback
+        // makes an empty list meaningful: every answer comes from the typed text.
+        if (items.Length == 0 && options.CreateCustomItem is null)
         {
             throw new ArgumentException(Resource.Validation_Items_Empty, nameof(options.Items));
         }
@@ -49,7 +54,7 @@ internal class SelectForm<T> : SelectFormBase<T, T> where T : notnull
 
         offscreenBuffer.PushCursor();
 
-        var hasSelected = Paginator.TryGetSelectedItem(out var selectedItem);
+        var hasSelected = Paginator.TryGetSelectedItem(AutoSelectSingleItem, out var selectedItem);
         var comparer = EqualityComparer<T>.Default;
 
         foreach (var item in Paginator.CurrentItems)
@@ -79,9 +84,38 @@ internal class SelectForm<T> : SelectFormBase<T, T> where T : notnull
 
     protected override bool HandleEnter([NotNullWhen(true)] out T? result)
     {
-        if (Paginator.TryGetSelectedItem(out result))
+        if (Paginator.TryGetSelectedItem(AutoSelectSingleItem, out result))
         {
             return true;
+        }
+
+        var filter = Paginator.FilterKeyword;
+
+        if (_options.CreateCustomItem is { } createCustomItem && !string.IsNullOrEmpty(filter))
+        {
+            try
+            {
+                var createdItem = createCustomItem(filter);
+
+                if (createdItem is null)
+                {
+                    SetError(Resource.Validation_Invalid);
+                    result = default;
+
+                    return false;
+                }
+
+                result = createdItem;
+
+                return true;
+            }
+            catch (Exception exception)
+            {
+                SetError(exception);
+                result = default;
+
+                return false;
+            }
         }
 
         SetError(Resource.Validation_Required);

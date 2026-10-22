@@ -106,6 +106,160 @@ public class FormInteractionTests
     }
 
     [Fact]
+    public void SelectForm_CreateCustomItem_NoMatch_ReturnsCreatedItem()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("cherry");
+        driver.EnqueueEnter();
+
+        var receivedText = "";
+
+        var options = new SelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana"],
+            CreateCustomItem = text =>
+            {
+                receivedText = text;
+
+                return text;
+            }
+        };
+
+        using var form = new SelectForm<string>(options, configuration);
+
+        Assert.Equal("cherry", form.Start());
+        Assert.Equal("cherry", receivedText);
+    }
+
+    [Fact]
+    public void SelectForm_CreateCustomItem_ExactMatch_ReturnsListedItem()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("apple");
+        driver.EnqueueEnter();
+
+        var createCalled = false;
+
+        var options = new SelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana"],
+            CreateCustomItem = text =>
+            {
+                createCalled = true;
+
+                return text;
+            }
+        };
+
+        using var form = new SelectForm<string>(options, configuration);
+
+        Assert.Equal("apple", form.Start());
+        Assert.False(createCalled);
+    }
+
+    [Fact]
+    public void SelectForm_CreateCustomItem_HighlightedItem_ReturnsHighlightedItem()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("ap");
+        driver.EnqueueKey(ConsoleKey.DownArrow);
+        driver.EnqueueKey(ConsoleKey.DownArrow);
+        driver.EnqueueEnter();
+
+        var createCalled = false;
+
+        var options = new SelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "apricot"],
+            CreateCustomItem = text =>
+            {
+                createCalled = true;
+
+                return text;
+            }
+        };
+
+        using var form = new SelectForm<string>(options, configuration);
+
+        Assert.Equal("apricot", form.Start());
+        Assert.False(createCalled);
+    }
+
+    [Fact]
+    public void SelectForm_CreateCustomItem_SinglePartialMatch_CreatesWithoutHighlightingIt()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        configuration.Symbols.Selector = new Symbol("SEL", "SEL");
+
+        var receivedText = "";
+
+        var options = new SelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana"],
+            CreateCustomItem = text =>
+            {
+                receivedText = text;
+
+                return text;
+            }
+        };
+
+        // Let the filter render before Enter is queued, so a wrongly highlighted row would be visible in the output.
+        driver.EnqueueText("app");
+        driver.KeysExhausted = () => driver.EnqueueEnter();
+
+        using var form = new SelectForm<string>(options, configuration);
+
+        Assert.Equal("app", form.Start());
+        Assert.Equal("app", receivedText);
+
+        // The single partial match must not be drawn as the current selection when Enter creates the typed text.
+        Assert.DoesNotContain("SEL apple", driver.Output);
+    }
+
+    [Fact]
+    public void SelectForm_CreateCustomItem_EmptyItems_AllowsCreation()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("new");
+        driver.EnqueueEnter();
+
+        var options = new SelectOptions<string>
+        {
+            Message = "message",
+            Items = [],
+            CreateCustomItem = text => text
+        };
+
+        using var form = new SelectForm<string>(options, configuration);
+
+        Assert.Equal("new", form.Start());
+    }
+
+    [Fact]
+    public void SelectForm_WithoutCreateCustomItem_EmptyItems_Throws()
+    {
+        var (_, configuration) = CreateTestContext();
+
+        var options = new SelectOptions<string>
+        {
+            Message = "message",
+            Items = []
+        };
+
+        Assert.Throws<ArgumentException>(() => new SelectForm<string>(options, configuration));
+    }
+
+    [Fact]
     public void MultiSelectForm_SpacebarToggle_ReturnsCheckedItems()
     {
         var (driver, configuration) = CreateTestContext();
@@ -951,6 +1105,162 @@ public class FormInteractionTests
         Assert.Contains("  7", driver.Output);
         Assert.Contains("message: 7", driver.Output);
     }
+
+    [Fact]
+    public void SelectForm_CreateCustomItem_FactoryThrows_ShowsErrorAndContinues()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("bad");
+        driver.EnqueueEnter();
+
+        QueueRecoveryAfter(driver, "creation failed", "ok");
+
+        var options = new SelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple"],
+            CreateCustomItem = text => text == "bad" ? throw new InvalidOperationException("creation failed") : text
+        };
+
+        using var form = new SelectForm<string>(options, configuration);
+
+        Assert.Equal("ok", form.Start());
+        Assert.Contains("creation failed", driver.Output);
+    }
+
+    [Fact]
+    public void SelectForm_CreateCustomItem_ReturnsNull_ShowsInvalidErrorAndContinues()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("bad");
+        driver.EnqueueEnter();
+
+        QueueRecoveryAfter(driver, "Value is invalid", "ok");
+
+        var options = new SelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple"],
+            CreateCustomItem = text => text == "bad" ? null! : text
+        };
+
+        using var form = new SelectForm<string>(options, configuration);
+
+        Assert.Equal("ok", form.Start());
+        Assert.Contains("Value is invalid", driver.Output);
+    }
+
+    [Fact]
+    public void SelectForm_CreateCustomItem_EmptyFilter_DoesNotCreate()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueEnter();
+
+        var createCalled = false;
+
+        QueueRecoveryAfter(driver, "Value is required", backspaces: 0);
+
+        var options = new SelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple", "banana"],
+            CreateCustomItem = text =>
+            {
+                createCalled = true;
+
+                return text;
+            }
+        };
+
+        using var form = new SelectForm<string>(options, configuration);
+
+        Assert.Equal("apple", form.Start());
+        Assert.False(createCalled);
+        Assert.Contains("Value is required", driver.Output);
+    }
+
+    [Fact]
+    public void SelectForm_WithoutCreateCustomItem_NoMatch_ShowsRequiredErrorAndContinues()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("zzz");
+        driver.EnqueueEnter();
+
+        QueueRecoveryAfter(driver, "Value is required");
+
+        var options = new SelectOptions<string>
+        {
+            Message = "message",
+            Items = ["apple"]
+        };
+
+        using var form = new SelectForm<string>(options, configuration);
+
+        Assert.Equal("apple", form.Start());
+        Assert.Contains("Value is required", driver.Output);
+    }
+
+    [Fact]
+    public void SelectForm_CreateCustomItem_CustomTextSelector_ShowsCreatedValue()
+    {
+        var (driver, configuration) = CreateTestContext();
+
+        driver.EnqueueText("cherry");
+        driver.EnqueueEnter();
+
+        var options = new SelectOptions<CustomFruit>
+        {
+            Message = "message",
+            Items = [new CustomFruit("apple")],
+            TextSelector = fruit => fruit.Name,
+            CreateCustomItem = text => new CustomFruit(text)
+        };
+
+        using var form = new SelectForm<CustomFruit>(options, configuration);
+
+        var result = form.Start();
+
+        Assert.Equal("cherry", result.Name);
+        Assert.Contains("message: cherry", driver.Output);
+    }
+
+    // After the preceding Enter fails validation, clear the typed text and submit the recovery keys.
+    // The hook runs while the error is being rendered, so the keys are read on the next loop
+    // iteration instead of being consumed in the same batch as the failed Enter.
+    private static void QueueRecoveryAfter(FakeConsoleDriver driver, string errorText, string? text = null, int backspaces = 3)
+    {
+        driver.Written = value =>
+        {
+            if (!value.Contains(errorText, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            driver.Written = null;
+
+            for (var i = 0; i < backspaces; i++)
+            {
+                driver.EnqueueKey(ConsoleKey.Backspace);
+            }
+
+            if (text is not null)
+            {
+                driver.EnqueueText(text);
+            }
+            else
+            {
+                driver.EnqueueKey(ConsoleKey.DownArrow);
+            }
+
+            driver.EnqueueEnter();
+        };
+    }
+
+    private sealed record CustomFruit(string Name);
 
     [TypeConverter(typeof(TemperatureConverter))]
     private readonly record struct Temperature(double Celsius);
