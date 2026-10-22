@@ -401,4 +401,59 @@ public class PaginatorTests
         Assert.Equal(1, paginator.PageCount);
         Assert.False(paginator.TryGetSelectedItem(out _));
     }
+
+    [Fact]
+    public void TryGetSelectedItem_WithAutoSelect_SinglePartialMatch_ReturnsItem()
+    {
+        var paginator = new Paginator<string>(["apple"], 5, Optional<string>.Empty, x => x);
+
+        paginator.UpdateFilter("app");
+
+        Assert.True(paginator.TryGetSelectedItem(autoSelectSingleItem: true, out var selectedItem));
+        Assert.Equal("apple", selectedItem);
+    }
+
+    [Fact]
+    public void TryGetSelectedItem_WithoutAutoSelect_SinglePartialMatch_ReturnsFalse()
+    {
+        var paginator = new Paginator<string>(["apple"], 5, Optional<string>.Empty, x => x);
+
+        paginator.UpdateFilter("app");
+
+        Assert.False(paginator.TryGetSelectedItem(autoSelectSingleItem: false, out _));
+    }
+
+    [Fact]
+    public void TryGetSelectedItem_WithoutAutoSelect_ExactMatch_ReturnsItem()
+    {
+        var items = new[] { "Select", "SelectWithEnum" };
+        var paginator = new Paginator<string>(items, items.Length, Optional<string>.Empty, x => x);
+
+        paginator.UpdateFilter("select");
+
+        Assert.True(paginator.TryGetSelectedItem(autoSelectSingleItem: false, out var selectedItem));
+        Assert.Equal("Select", selectedItem);
+    }
+
+    [Fact]
+    public void TryGetSelectedItem_WithoutAutoSelect_HighlightedItem_ReturnsItem()
+    {
+        var items = new[] { "apple", "apricot" };
+        var paginator = new Paginator<string>(items, items.Length, Optional<string>.Empty, x => x);
+
+        paginator.UpdateFilter("ap");
+        paginator.NextItem();
+        paginator.NextItem();
+
+        Assert.True(paginator.TryGetSelectedItem(autoSelectSingleItem: false, out var selectedItem));
+        Assert.Equal("apricot", selectedItem);
+    }
+
+    [Fact]
+    public void TryGetSelectedItem_WithoutAutoSelect_EmptyItems_ReturnsFalse()
+    {
+        var paginator = new Paginator<string>([], 5, Optional<string>.Empty, x => x);
+
+        Assert.False(paginator.TryGetSelectedItem(autoSelectSingleItem: false, out _));
+    }
 }

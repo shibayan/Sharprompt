@@ -157,6 +157,23 @@ public class FluentExtensionsTests
     }
 
     [Fact]
+    public void SelectOptions_WithCreateCustomItem()
+    {
+        Func<string, string> createCustomItem = text => text.ToUpperInvariant();
+        var options = new SelectOptions<string>().WithCreateCustomItem(createCustomItem);
+
+        Assert.Same(createCustomItem, options.CreateCustomItem);
+    }
+
+    [Fact]
+    public void SelectOptions_WithCreateCustomItem_Null_ThrowsArgumentNullException()
+    {
+        var options = new SelectOptions<string>();
+
+        Assert.Throws<ArgumentNullException>(() => options.WithCreateCustomItem(null!));
+    }
+
+    [Fact]
     public void MultiSelectOptions_WithMessage()
     {
         var options = new MultiSelectOptions<string>().WithMessage("Select items");

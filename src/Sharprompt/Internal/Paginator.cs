@@ -39,8 +39,11 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
     public bool LoopingSelection { get; set; }
 
     public bool TryGetSelectedItem([NotNullWhen(true)] out T? selectedItem)
+        => TryGetSelectedItem(autoSelectSingleItem: true, out selectedItem);
+
+    internal bool TryGetSelectedItem(bool autoSelectSingleItem, [NotNullWhen(true)] out T? selectedItem)
     {
-        if (_filteredItems.Length == 1)
+        if (autoSelectSingleItem && _filteredItems.Length == 1)
         {
             selectedItem = _filteredItems[0];
 
