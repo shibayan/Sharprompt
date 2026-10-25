@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "docs:dev": "vitepress dev",
-    "docs:build": "vitepress build",
+    "docs:build": "vitepress build && node scripts/export-markdown.mjs",
     "docs:preview": "vitepress preview"
   },
   "devDependencies": {

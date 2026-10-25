@@ -3,23 +3,81 @@ using System.Threading;
 
 namespace Sharprompt.Drivers;
 
+/// <summary>
+/// Terminal input, output, and cursor operations used by prompts. A prompt owns and disposes its driver.
+/// </summary>
+/// <remarks>Use Prompt.ConsoleDriverFactory to replace the terminal in tests. Implement accurate dimensions and cursor positions, and invoke CancellationCallback for Ctrl+C.</remarks>
 public interface IConsoleDriver : IDisposable
 {
+    /// <summary>
+    /// Signals an invalid key or operation.
+    /// </summary>
     void Beep();
+    /// <summary>
+    /// Restores terminal state after a prompt.
+    /// </summary>
     void Reset();
+    /// <summary>
+    /// Clears the buffer row at the given zero-based position.
+    /// </summary>
+    /// <param name="top">The zero-based buffer row.</param>
     void ClearLine(int top);
+    /// <summary>
+    /// Reads a key without echoing it. Invoke CancellationCallback when Ctrl+C is read.
+    /// </summary>
+    /// <returns>The key that was read.</returns>
     ConsoleKeyInfo ReadKey();
+    /// <summary>
+    /// Writes text in the given color and updates cursor positions.
+    /// </summary>
+    /// <param name="value">The text to display.</param>
+    /// <param name="color">The foreground color.</param>
     void Write(string value, ConsoleColor color);
+    /// <summary>
+    /// Starts a new line and updates cursor positions.
+    /// </summary>
     void WriteLine();
+    /// <summary>
+    /// Moves the cursor to zero-based buffer coordinates.
+    /// </summary>
+    /// <param name="left">The zero-based buffer column.</param>
+    /// <param name="top">The zero-based buffer row.</param>
     void SetCursorPosition(int left, int top);
+    /// <summary>
+    /// Whether a key can be read without blocking. The default cancelable ReadKey implementation polls this property.
+    /// </summary>
     bool KeyAvailable { get; }
+    /// <summary>
+    /// Sets whether the cursor is visible.
+    /// </summary>
     bool CursorVisible { set; }
+    /// <summary>
+    /// The zero-based cursor column in the buffer.
+    /// </summary>
     int CursorLeft { get; }
+    /// <summary>
+    /// The zero-based cursor row in the buffer.
+    /// </summary>
     int CursorTop { get; }
+    /// <summary>
+    /// The buffer width in terminal columns.
+    /// </summary>
     int BufferWidth { get; }
+    /// <summary>
+    /// The buffer height in rows.
+    /// </summary>
     int BufferHeight { get; }
+    /// <summary>
+    /// The visible terminal width in columns.
+    /// </summary>
     int WindowWidth { get; }
+    /// <summary>
+    /// The visible terminal height in rows.
+    /// </summary>
     int WindowHeight { get; }
+    /// <summary>
+    /// The cancellation action assigned by the prompt. Invoke it when Ctrl+C is read.
+    /// </summary>
     Action CancellationCallback { get; set; }
 
     /// <summary>

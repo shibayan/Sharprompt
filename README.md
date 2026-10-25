@@ -32,6 +32,8 @@ dotnet add package Sharprompt
 ## Quick start
 
 ```csharp
+using Sharprompt;
+
 // Simple input
 var name = Prompt.Input<string>("What's your name?");
 Console.WriteLine($"Hello, {name}!");
@@ -53,6 +55,14 @@ The project in the folder `samples/Sharprompt.Example` contains all the samples.
 dotnet run --project samples/Sharprompt.Example
 ```
 
+For API selection, model constraints, cancellation, and common mistakes, see the [usage guide](https://shibayan.github.io/Sharprompt/usage-guide). See [automated testing](https://shibayan.github.io/Sharprompt/testing) for a complete example that runs without a terminal:
+
+```sh
+dotnet run --project samples/Sharprompt.Automation -f net10.0
+```
+
+The documentation is also available as [Markdown](https://shibayan.github.io/Sharprompt/usage-guide.md), with an [llms.txt index](https://shibayan.github.io/Sharprompt/llms.txt). Public API XML documentation is included in the NuGet package.
+
 ## Prompt types
 
 ### Input
@@ -60,6 +70,8 @@ dotnet run --project samples/Sharprompt.Example
 Takes a generic type parameter and performs type conversion as appropriate.
 
 ```csharp
+using Sharprompt;
+
 var name = Prompt.Input<string>("What's your name?");
 Console.WriteLine($"Hello, {name}!");
 
@@ -74,6 +86,8 @@ When a default value is provided, pressing <kbd>Enter</kbd> with nothing typed a
 ### Confirm
 
 ```csharp
+using Sharprompt;
+
 var answer = Prompt.Confirm("Are you ready?");
 Console.WriteLine($"Your answer is {answer}");
 ```
@@ -83,6 +97,8 @@ Console.WriteLine($"Your answer is {answer}");
 ### Password
 
 ```csharp
+using Sharprompt;
+
 var secret = Prompt.Password("Type new password");
 Console.WriteLine("Password OK");
 ```
@@ -92,6 +108,8 @@ Console.WriteLine("Password OK");
 ### Select
 
 ```csharp
+using Sharprompt;
+
 var city = Prompt.Select("Select your city", new[] { "Seattle", "London", "Tokyo" });
 Console.WriteLine($"Hello, {city}!");
 ```
@@ -101,6 +119,8 @@ Console.WriteLine($"Hello, {city}!");
 ### MultiSelect (Checkbox)
 
 ```csharp
+using Sharprompt;
+
 var cities = Prompt.MultiSelect("Which cities would you like to visit?", new[] { "Seattle", "London", "Tokyo", "New York", "Singapore", "Shanghai" }, pageSize: 3);
 Console.WriteLine($"You picked {string.Join(", ", cities)}");
 ```
@@ -110,6 +130,8 @@ Console.WriteLine($"You picked {string.Join(", ", cities)}");
 ### List
 
 ```csharp
+using Sharprompt;
+
 var value = Prompt.List<string>("Please add item(s)");
 Console.WriteLine($"You picked {string.Join(", ", value)}");
 ```
@@ -125,36 +147,36 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Sharprompt;
 
+var result = Prompt.Bind<MyFormModel>();
+
 // Input model definition
 [PromptBindable]
 public class MyFormModel
 {
     [Display(Name = "What's your name?")]
     [Required]
-    public string Name { get; set; }
+    public string Name { get; set; } = "";
 
     [Display(Name = "Type new password")]
     [DataType(DataType.Password)]
     [Required]
     [MinLength(8)]
-    public string Password { get; set; }
+    public string Password { get; set; } = "";
 
     [Display(Name = "Select your city")]
     [Required]
     [InlineItems("Seattle", "London", "Tokyo")]
-    public string City { get; set; }
+    public string City { get; set; } = "";
 
     [Display(Name = "Select favorite fruit")]
     [MemberItems(nameof(Fruits))]
-    public string Fruit { get; set; }
+    public string Fruit { get; set; } = "";
 
     [Display(Name = "Are you ready?")]
     public bool? Ready { get; set; }
 
     public static IEnumerable<string> Fruits => new[] { "Apple", "Banana", "Orange" };
 }
-
-var result = Prompt.Bind<MyFormModel>();
 ```
 
 ## Configuration
@@ -162,6 +184,8 @@ var result = Prompt.Bind<MyFormModel>();
 ### Symbols
 
 ```csharp
+using Sharprompt;
+
 Prompt.Symbols.Prompt = new Symbol("🤔", "?");
 Prompt.Symbols.Done = new Symbol("😎", "V");
 Prompt.Symbols.Error = new Symbol("😱", ">>");
@@ -173,6 +197,8 @@ Console.WriteLine($"Hello, {name}!");
 ### Color schema
 
 ```csharp
+using Sharprompt;
+
 Prompt.ColorSchema.Answer = ConsoleColor.DarkRed;
 Prompt.ColorSchema.Select = ConsoleColor.DarkCyan;
 
@@ -183,6 +209,8 @@ Console.WriteLine($"Hello, {name}!");
 ### Cancellation support
 
 ```csharp
+using Sharprompt;
+
 // Throw an exception when canceling with Ctrl-C
 Prompt.ThrowExceptionOnCancel = true;
 
@@ -191,7 +219,7 @@ try
     var name = Prompt.Input<string>("What's your name?");
     Console.WriteLine($"Hello, {name}!");
 }
-catch (PromptCanceledException ex)
+catch (PromptCanceledException)
 {
     Console.WriteLine("Prompt canceled");
 }
@@ -207,6 +235,8 @@ var answer = Prompt.Confirm(options => options.Message = "Are you ready?", cts.T
 Sharprompt provides built-in validators that can be used with the `validators` parameter.
 
 ```csharp
+using Sharprompt;
+
 var secret = Prompt.Password("Type new password", validators: new[] { Validators.Required(), Validators.MinLength(8) });
 ```
 
@@ -222,6 +252,12 @@ var secret = Prompt.Password("Type new password", validators: new[] { Validators
 ### Enum type support
 
 ```csharp
+using Sharprompt;
+using System.ComponentModel.DataAnnotations;
+
+var value = Prompt.Select<MyEnum>("Select enum value");
+Console.WriteLine($"You selected {value}");
+
 public enum MyEnum
 {
     [Display(Name = "First value")]
@@ -231,14 +267,14 @@ public enum MyEnum
     [Display(Name = "Third value")]
     Third
 }
-
-var value = Prompt.Select<MyEnum>("Select enum value");
-Console.WriteLine($"You selected {value}");
 ```
 
 ### Unicode support
 
 ```csharp
+using Sharprompt;
+using System.Text;
+
 // Prefer UTF-8 as the output encoding
 Console.OutputEncoding = Encoding.UTF8;
 
@@ -251,6 +287,8 @@ Console.WriteLine($"Hello, {name}!");
 ### Fluent interface support
 
 ```csharp
+using Sharprompt;
+
 using Sharprompt.Fluent;
 
 // Use fluent interface

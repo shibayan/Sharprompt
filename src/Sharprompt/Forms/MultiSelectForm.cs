@@ -8,8 +8,17 @@ using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
+/// <summary>
+/// Tracks checked items across filtering and pagination and enforces the permitted selection count.
+/// </summary>
+/// <typeparam name="T">The result type returned by the prompt or template.</typeparam>
 internal class MultiSelectForm<T> : SelectFormBase<T, IEnumerable<T>> where T : notnull
 {
+    /// <summary>
+    /// Validates and snapshots distinct items before creating the driver and restoring valid preselected items.
+    /// </summary>
+    /// <param name="options">The settings to validate and use for this prompt.</param>
+    /// <param name="configuration">The symbols, colors, console factory, and cancellation settings to use.</param>
     public MultiSelectForm(MultiSelectOptions<T> options, PromptConfiguration configuration) : this(options, Prepare(options), configuration)
     {
     }
@@ -62,6 +71,10 @@ internal class MultiSelectForm<T> : SelectFormBase<T, IEnumerable<T>> where T : 
 
     private readonly HashSet<T> _selectedItems = [];
 
+    /// <summary>
+    /// Writes the filter, visible checkboxes, selection markers, and pagination hint.
+    /// </summary>
+    /// <param name="offscreenBuffer">The pending output buffer to write or render.</param>
     protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
     {
         Paginator.UpdatePageSize(Math.Min(_options.PageSize, Height - 2));
@@ -106,12 +119,22 @@ internal class MultiSelectForm<T> : SelectFormBase<T, IEnumerable<T>> where T : 
         RenderPagination(offscreenBuffer, _options.Pagination);
     }
 
+    /// <summary>
+    /// Writes the completed prompt with display text for the selected items.
+    /// </summary>
+    /// <param name="offscreenBuffer">The pending output buffer to write or render.</param>
+    /// <param name="result">The accepted result used to render the completed prompt.</param>
     protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, IEnumerable<T> result)
     {
         offscreenBuffer.WriteDone(_options.Message);
         offscreenBuffer.WriteAnswer(string.Join(", ", result.Select(_options.TextSelector)));
     }
 
+    /// <summary>
+    /// Checks the selection count and returns selected items in their original item order.
+    /// </summary>
+    /// <param name="result">Receives the accepted result when the method returns true; otherwise it must not be consumed.</param>
+    /// <returns>True when the prompt can finish with the result; otherwise false to continue prompting.</returns>
     protected override bool HandleEnter([NotNullWhen(true)] out IEnumerable<T>? result)
     {
         if (_selectedItems.Count < _options.Minimum)

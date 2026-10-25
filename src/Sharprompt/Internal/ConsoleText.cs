@@ -13,6 +13,9 @@ namespace Sharprompt.Internal;
 //   Other escape sequences, which can move the cursor or change the terminal's state, are removed.
 // - Other control characters are shown as visible symbols: C0 controls and DEL as their Control
 //   Pictures (␀ to ␟ and ␡), and C1 controls as U+FFFD.
+/// <summary>
+/// Normalizes display control characters and measures terminal text without counting ANSI SGR sequences.
+/// </summary>
 internal static class ConsoleText
 {
     private const char Escape = '\x1b';
@@ -22,6 +25,12 @@ internal static class ConsoleText
 
     // Splits text into normalized lines. startColumn is the width already written on the current line,
     // which tab expansion counts from.
+    /// <summary>
+    /// Splits display text into lines, expands tabs, preserves SGR styles, and removes or visualizes other controls.
+    /// </summary>
+    /// <param name="text">The text to normalize, measure, or buffer.</param>
+    /// <param name="startColumn">The terminal columns already occupied on the first line, used when expanding tabs.</param>
+    /// <returns>Normalized logical lines, preserving empty lines.</returns>
     public static IReadOnlyList<string> Normalize(string text, int startColumn)
     {
         if (!NeedsNormalization(text))
@@ -89,6 +98,11 @@ internal static class ConsoleText
     }
 
     // Measures normalized text, in which the only escape sequences left are SGR sequences.
+    /// <summary>
+    /// Measures terminal columns of normalized single-line text, ignoring its SGR style sequences.
+    /// </summary>
+    /// <param name="text">The text to normalize, measure, or buffer.</param>
+    /// <returns>The number of terminal columns occupied by the normalized text.</returns>
     public static int MeasureWidth(string text)
     {
         if (!text.Contains(Escape))

@@ -28,11 +28,23 @@ public static class EnumMetadataRegistry
 {
     private static readonly ConcurrentDictionary<Type, object> s_metadata = new();
 
+    /// <summary>
+    /// Registers or replaces the items and display names used by selection prompts for a type.
+    /// </summary>
+    /// <typeparam name="TEnum">The enum or item type.</typeparam>
+    /// <param name="values">The items in display order.</param>
+    /// <param name="textSelector">Formats each item for display and filtering.</param>
     public static void Register<TEnum>(IReadOnlyList<TEnum> values, Func<TEnum, string> textSelector) where TEnum : notnull
     {
         s_metadata[typeof(TEnum)] = new EnumMetadata<TEnum>(values, textSelector);
     }
-
+    /// <summary>
+    /// Retrieves registered item metadata or creates fallback metadata for an enum on first use.
+    /// </summary>
+    /// <typeparam name="TEnum">The enum or registered item type.</typeparam>
+    /// <param name="values">Receives the ordered items when metadata is available.</param>
+    /// <param name="textSelector">Receives the display-text resolver when metadata is available.</param>
+    /// <returns>True when registered or enum fallback metadata is available; otherwise false.</returns>
     internal static bool TryGet<TEnum>(out IReadOnlyList<TEnum> values, out Func<TEnum, string> textSelector) where TEnum : notnull
     {
         if (!s_metadata.TryGetValue(typeof(TEnum), out var metadata))
@@ -54,7 +66,11 @@ public static class EnumMetadataRegistry
 
         return true;
     }
-
+    /// <summary>
+    /// Builds enum metadata through reflection with deterministic alias selection, ordering, and culture-sensitive display names.
+    /// </summary>
+    /// <typeparam name="TEnum">The enum or registered item type.</typeparam>
+    /// <returns>The enum items and their display-text resolver.</returns>
     [UnconditionalSuppressMessage("Trimming", "IL2090", Justification = "This method is only invoked for enum types, and the trimmer always preserves the fields of enum types it keeps.")]
     internal static EnumMetadata<TEnum> CreateFallbackMetadata<TEnum>() where TEnum : notnull
     {
@@ -93,5 +109,11 @@ public static class EnumMetadataRegistry
         return new EnumMetadata<TEnum>(values, value => displayMembers.TryGetValue(value, out var member) ? member.DisplayAttribute?.GetName() ?? member.Name : value.ToString()!);
     }
 
+    /// <summary>
+    /// Stores ordered items and the delegate used to resolve each item display name.
+    /// </summary>
+    /// <typeparam name="TEnum">The enum or registered item type.</typeparam>
+    /// <param name="Values">The items in their display order.</param>
+    /// <param name="TextSelector">Resolves display text for each item.</param>
     internal sealed record EnumMetadata<TEnum>(IReadOnlyList<TEnum> Values, Func<TEnum, string> TextSelector);
 }

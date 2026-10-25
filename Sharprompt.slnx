@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/samples/">
+    <Project Path="samples/Sharprompt.Automation/Sharprompt.Automation.csproj" />
     <Project Path="samples/Sharprompt.Example/Sharprompt.Example.csproj" />
   </Folder>
   <Folder Name="/src/">

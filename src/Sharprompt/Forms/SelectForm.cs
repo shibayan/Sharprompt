@@ -8,8 +8,17 @@ using Sharprompt.Strings;
 
 namespace Sharprompt.Forms;
 
+/// <summary>
+/// Selects one original item from a filtered, paginated snapshot of distinct items.
+/// </summary>
+/// <typeparam name="T">The result type returned by the prompt or template.</typeparam>
 internal class SelectForm<T> : SelectFormBase<T, T> where T : notnull
 {
+    /// <summary>
+    /// Validates and snapshots distinct items before creating the driver and initializing selection.
+    /// </summary>
+    /// <param name="options">The settings to validate and use for this prompt.</param>
+    /// <param name="configuration">The symbols, colors, console factory, and cancellation settings to use.</param>
     public SelectForm(SelectOptions<T> options, PromptConfiguration configuration) : this(options, Prepare(options), configuration)
     {
     }
@@ -40,6 +49,10 @@ internal class SelectForm<T> : SelectFormBase<T, T> where T : notnull
         return (items, Optional<T>.Create(options.DefaultValue, nameof(options.DefaultValue)));
     }
 
+    /// <summary>
+    /// Writes the filter, visible page, highlighted item, and pagination hint.
+    /// </summary>
+    /// <param name="offscreenBuffer">The pending output buffer to write or render.</param>
     protected override void InputTemplate(OffscreenBuffer offscreenBuffer)
     {
         Paginator.UpdatePageSize(Math.Min(_options.PageSize, Height - 2));
@@ -71,12 +84,22 @@ internal class SelectForm<T> : SelectFormBase<T, T> where T : notnull
         RenderPagination(offscreenBuffer, _options.Pagination);
     }
 
+    /// <summary>
+    /// Writes the completed prompt with the selected item display text.
+    /// </summary>
+    /// <param name="offscreenBuffer">The pending output buffer to write or render.</param>
+    /// <param name="result">The accepted result used to render the completed prompt.</param>
     protected override void FinishTemplate(OffscreenBuffer offscreenBuffer, T result)
     {
         offscreenBuffer.WriteDone(_options.Message);
         offscreenBuffer.WriteAnswer(_options.TextSelector(result));
     }
 
+    /// <summary>
+    /// Accepts the highlighted or uniquely matched item, otherwise reports that a selection is required.
+    /// </summary>
+    /// <param name="result">Receives the accepted result when the method returns true; otherwise it must not be consumed.</param>
+    /// <returns>True when the prompt can finish with the result; otherwise false to continue prompting.</returns>
     protected override bool HandleEnter([NotNullWhen(true)] out T? result)
     {
         if (Paginator.TryGetSelectedItem(out result))

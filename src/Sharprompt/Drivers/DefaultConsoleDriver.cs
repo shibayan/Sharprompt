@@ -7,6 +7,9 @@ using Sharprompt.Strings;
 
 namespace Sharprompt.Drivers;
 
+/// <summary>
+/// Uses System.Console to read keys and render prompts in an interactive terminal.
+/// </summary>
 public sealed class DefaultConsoleDriver : IConsoleDriver
 {
     // Must never throw: an exception here would surface as TypeInitializationException
@@ -26,6 +29,10 @@ public sealed class DefaultConsoleDriver : IConsoleDriver
         }
     }
 
+    /// <summary>
+    /// Creates a terminal driver and saves the previous Ctrl+C input mode.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Standard input or output is redirected, or the terminal cannot enable Ctrl+C input.</exception>
     public DefaultConsoleDriver()
     {
         if (Console.IsInputRedirected || Console.IsOutputRedirected)
@@ -49,6 +56,9 @@ public sealed class DefaultConsoleDriver : IConsoleDriver
 
     #region IDisposable
 
+    /// <summary>
+    /// Restores cursor visibility, console colors, and the Ctrl+C input mode saved by the constructor.
+    /// </summary>
     public void Dispose() => Reset();
 
     #endregion
@@ -56,8 +66,10 @@ public sealed class DefaultConsoleDriver : IConsoleDriver
     #region IConsoleDriver
 
     // ReSharper disable once LocalizableElement
+    /// <inheritdoc cref="IConsoleDriver.Beep"/>
     public void Beep() => Console.Write("\a");
 
+    /// <inheritdoc cref="IConsoleDriver.Reset"/>
     public void Reset()
     {
         Console.CursorVisible = true;
@@ -66,6 +78,7 @@ public sealed class DefaultConsoleDriver : IConsoleDriver
         Console.TreatControlCAsInput = _previousTreatControlCAsInput;
     }
 
+    /// <inheritdoc cref="IConsoleDriver.ClearLine"/>
     public void ClearLine(int top)
     {
         SetCursorPosition(0, top);
@@ -74,6 +87,7 @@ public sealed class DefaultConsoleDriver : IConsoleDriver
         Console.Write("\x1b[2K");
     }
 
+    /// <inheritdoc cref="IConsoleDriver.ReadKey()"/>
     public ConsoleKeyInfo ReadKey()
     {
         var keyInfo = Console.ReadKey(true);
@@ -86,6 +100,7 @@ public sealed class DefaultConsoleDriver : IConsoleDriver
         return keyInfo;
     }
 
+    /// <inheritdoc cref="IConsoleDriver.Write"/>
     public void Write(string value, ConsoleColor color)
     {
         Console.ForegroundColor = color;
@@ -93,8 +108,10 @@ public sealed class DefaultConsoleDriver : IConsoleDriver
         Console.ResetColor();
     }
 
+    /// <inheritdoc cref="IConsoleDriver.WriteLine"/>
     public void WriteLine() => Console.WriteLine();
 
+    /// <inheritdoc cref="IConsoleDriver.SetCursorPosition"/>
     public void SetCursorPosition(int left, int top)
     {
         // The window may have been resized after the coordinates were calculated,
@@ -113,25 +130,34 @@ public sealed class DefaultConsoleDriver : IConsoleDriver
         }
     }
 
+    /// <inheritdoc cref="IConsoleDriver.KeyAvailable"/>
     public bool KeyAvailable => Console.KeyAvailable;
 
+    /// <inheritdoc cref="IConsoleDriver.CursorVisible"/>
     public bool CursorVisible
     {
         set => Console.CursorVisible = value;
     }
 
+    /// <inheritdoc cref="IConsoleDriver.CursorLeft"/>
     public int CursorLeft => Console.CursorLeft;
 
+    /// <inheritdoc cref="IConsoleDriver.CursorTop"/>
     public int CursorTop => Console.CursorTop;
 
+    /// <inheritdoc cref="IConsoleDriver.BufferWidth"/>
     public int BufferWidth => Console.BufferWidth;
 
+    /// <inheritdoc cref="IConsoleDriver.BufferHeight"/>
     public int BufferHeight => Console.BufferHeight;
 
+    /// <inheritdoc cref="IConsoleDriver.WindowWidth"/>
     public int WindowWidth => Console.WindowWidth;
 
+    /// <inheritdoc cref="IConsoleDriver.WindowHeight"/>
     public int WindowHeight => Console.WindowHeight;
 
+    /// <inheritdoc cref="IConsoleDriver.CancellationCallback"/>
     public Action CancellationCallback { get; set; } = () => { };
 
     #endregion

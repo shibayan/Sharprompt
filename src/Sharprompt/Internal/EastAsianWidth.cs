@@ -3,10 +3,18 @@ using System.Text;
 
 namespace Sharprompt.Internal;
 
+/// <summary>
+/// Estimates terminal column widths for Unicode text elements, including combining characters and emoji sequences.
+/// </summary>
 internal static class EastAsianWidth
 {
     private const char ZeroWidthJoiner = '\u200D';
 
+    /// <summary>
+    /// Measures Unicode text elements in terminal columns, treating supported emoji sequences as a single wide element.
+    /// </summary>
+    /// <param name="value">The Unicode text to measure.</param>
+    /// <returns>The estimated number of occupied terminal columns.</returns>
     public static int GetWidth(this string value)
     {
         var width = 0;
@@ -435,5 +443,11 @@ internal static class EastAsianWidth
         new(1048576, 65533, true)
     ];
 
+    /// <summary>
+    /// Describes a contiguous Unicode range used to determine terminal column width.
+    /// </summary>
+    /// <param name="Start">The first Unicode code point in the range.</param>
+    /// <param name="Count">The offset from Start to the inclusive last code point; zero represents a single code point.</param>
+    /// <param name="Ambiguous">Whether the range has ambiguous East Asian width rather than unconditional full width.</param>
     public readonly record struct EastAsianWidthRange(uint Start, ushort Count, bool Ambiguous);
 }
