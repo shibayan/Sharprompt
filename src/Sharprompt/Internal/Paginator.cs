@@ -6,8 +6,19 @@ using System.Linq;
 
 namespace Sharprompt.Internal;
 
+/// <summary>
+/// Snapshots items and maintains filtered pages, navigation, and an optional highlighted item.
+/// </summary>
+/// <typeparam name="T">The stored, converted, or selected value type.</typeparam>
 internal class Paginator<T> : IEnumerable<T> where T : notnull
 {
+    /// <summary>
+    /// Snapshots the items, normalizes page size, and applies the optional initial selection.
+    /// </summary>
+    /// <param name="items">The items to snapshot and display in their supplied order.</param>
+    /// <param name="pageSize">The requested items per page, normalized to at least one item.</param>
+    /// <param name="defaultValue">The optional item to highlight initially.</param>
+    /// <param name="textSelector">Formats items for display, filtering, and exact-match selection.</param>
     public Paginator(IEnumerable<T> items, int pageSize, Optional<T> defaultValue, Func<T, string> textSelector)
     {
         _items = items.ToArray();
@@ -24,20 +35,46 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
     private T[] _filteredItems = [];
     private int _selectedIndex = -1;
 
+    /// <summary>
+    /// The filtered items displayed on the current page.
+    /// </summary>
     public ReadOnlySpan<T> CurrentItems => new(_filteredItems, _pageSize * CurrentPage, Count);
 
+    /// <summary>
+    /// The number of filtered pages; an empty result still has one page.
+    /// </summary>
     public int PageCount { get; private set; }
 
+    /// <summary>
+    /// The zero-based index of the current page.
+    /// </summary>
     public int CurrentPage { get; private set; }
 
+    /// <summary>
+    /// The number of items on the current filtered page.
+    /// </summary>
     public int Count => Math.Min(_filteredItems.Length - (_pageSize * CurrentPage), _pageSize);
 
+    /// <summary>
+    /// The total number of items matching the current filter across all pages.
+    /// </summary>
     public int TotalCount => _filteredItems.Length;
 
+    /// <summary>
+    /// The case-insensitive substring filter currently applied to item display text.
+    /// </summary>
     public string FilterKeyword { get; private set; } = "";
 
+    /// <summary>
+    /// Whether moving past a page boundary wraps within that page rather than changing pages.
+    /// </summary>
     public bool LoopingSelection { get; set; }
 
+    /// <summary>
+    /// Resolves the highlighted item, the sole filtered item, or an exact display-text match when no item is highlighted.
+    /// </summary>
+    /// <param name="selectedItem">Receives the resolved item, or the type default when no item can be resolved.</param>
+    /// <returns>True when an item is resolved; otherwise false.</returns>
     public bool TryGetSelectedItem([NotNullWhen(true)] out T? selectedItem)
     {
         if (_filteredItems.Length == 1)
@@ -72,6 +109,9 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
         return true;
     }
 
+    /// <summary>
+    /// Moves the highlight forward, wrapping within the page or advancing pages according to the looping setting.
+    /// </summary>
     public void NextItem()
     {
         if (_selectedIndex >= Count - 1)
@@ -89,6 +129,9 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
         }
     }
 
+    /// <summary>
+    /// Moves the highlight backward, wrapping within the page or changing pages according to the looping setting.
+    /// </summary>
     public void PreviousItem()
     {
         if (_selectedIndex <= 0)
@@ -108,6 +151,9 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
         }
     }
 
+    /// <summary>
+    /// Advances to the next filtered page, wrapping to the first and clearing the item highlight.
+    /// </summary>
     public void NextPage()
     {
         if (PageCount == 1)
@@ -119,6 +165,9 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
         CurrentPage = CurrentPage >= PageCount - 1 ? 0 : CurrentPage + 1;
     }
 
+    /// <summary>
+    /// Moves to the previous filtered page, wrapping to the last and clearing the item highlight.
+    /// </summary>
     public void PreviousPage()
     {
         if (PageCount == 1)
@@ -130,6 +179,10 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
         CurrentPage = CurrentPage <= 0 ? PageCount - 1 : CurrentPage - 1;
     }
 
+    /// <summary>
+    /// Applies a new display-text filter, clears the item highlight, and recalculates valid pages.
+    /// </summary>
+    /// <param name="keyword">The case-insensitive substring to match against item display text.</param>
     public void UpdateFilter(string keyword)
     {
         FilterKeyword = keyword;
@@ -139,6 +192,10 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
         UpdateFilteredItems();
     }
 
+    /// <summary>
+    /// Changes page size while preserving the selected item when it can still be resolved.
+    /// </summary>
+    /// <param name="newPageSize">The new requested item count per page, normalized to at least one.</param>
     public void UpdatePageSize(int newPageSize)
     {
         newPageSize = NormalizePageSize(newPageSize);
@@ -155,6 +212,10 @@ internal class Paginator<T> : IEnumerable<T> where T : notnull
         InitializeDefaults(hasSelected ? new Optional<T>(selectedItem!) : Optional<T>.Empty);
     }
 
+    /// <summary>
+    /// Enumerates all filtered items, including items outside the current page.
+    /// </summary>
+    /// <returns>An enumerator over all filtered items in their original order.</returns>
     public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_filteredItems).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

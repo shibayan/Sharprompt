@@ -5,6 +5,7 @@ on:
     branches: [master]
     paths:
       - 'docs/**'
+      - 'samples/Sharprompt.Automation/**'
       - '.github/workflows/docs-ci.yml'
 
 permissions:

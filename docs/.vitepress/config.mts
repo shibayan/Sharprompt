@@ -5,9 +5,16 @@ export default defineConfig({
   description: 'Interactive command-line based application framework for C#',
   base: '/Sharprompt/',
   cleanUrls: true,
+  srcExclude: ['README.md'],
   head: [
-    ['link', { rel: 'icon', href: '/Sharprompt/icon.svg' }]
+    ['link', { rel: 'icon', href: '/Sharprompt/icon.svg' }],
+    ['link', { rel: 'describedby', href: '/Sharprompt/llms.txt' }]
   ],
+  transformHead({ pageData }) {
+    if (pageData.frontmatter.layout === 'home' || pageData.relativePath === '404.md') return []
+    const path = pageData.relativePath.replace(/^en\//, '')
+    return [['link', { rel: 'alternate', type: 'text/markdown', href: `/Sharprompt/${path}` }]]
+  },
   rewrites: {
     'en/:rest*': ':rest*'
   },
@@ -24,7 +31,9 @@ export default defineConfig({
           {
             text: 'Introduction',
             items: [
-              { text: 'Getting Started', link: '/getting-started' }
+              { text: 'Getting Started', link: '/getting-started' },
+              { text: 'Usage Guide', link: '/usage-guide' },
+              { text: 'Automated Testing', link: '/testing' }
             ]
           },
           {
@@ -62,7 +71,9 @@ export default defineConfig({
           {
             text: 'Introduction',
             items: [
-              { text: 'Getting Started', link: '/ja/getting-started' }
+              { text: 'Getting Started', link: '/ja/getting-started' },
+              { text: '利用ガイド', link: '/ja/usage-guide' },
+              { text: '自動テスト', link: '/ja/testing' }
             ]
           },
           {

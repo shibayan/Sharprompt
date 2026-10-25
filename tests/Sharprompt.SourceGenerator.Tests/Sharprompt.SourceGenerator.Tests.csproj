@@ -32,4 +32,10 @@
     <ProjectReference Include="..\..\src\Sharprompt.SourceGenerator\Sharprompt.SourceGenerator.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\..\README.md" Link="Examples\README.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\docs\en\usage-guide.md" Link="Examples\usage-guide.en.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\docs\ja\usage-guide.md" Link="Examples\usage-guide.ja.md" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

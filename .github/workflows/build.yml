@@ -4,8 +4,9 @@ on:
   push:
     branches: [ master ]
     paths-ignore:
-      - 'docs/**'
-      - '*.md'
+      - 'docs/.vitepress/**'
+      - 'docs/scripts/**'
+      - 'docs/package*.json'
       - 'LICENSE'
       - '.github/workflows/docs.yml'
       - '.github/workflows/docs-ci.yml'
@@ -13,8 +14,9 @@ on:
   pull_request:
     branches: [ master ]
     paths-ignore:
-      - 'docs/**'
-      - '*.md'
+      - 'docs/.vitepress/**'
+      - 'docs/scripts/**'
+      - 'docs/package*.json'
       - 'LICENSE'
       - '.github/workflows/docs.yml'
       - '.github/workflows/docs-ci.yml'
@@ -41,6 +43,31 @@ jobs:
 
     - name: Run test cases
       run: dotnet test -c Release --no-build
+
+    - name: Run automation examples without a terminal
+      shell: pwsh
+      run: |
+        foreach ($framework in 'net8.0', 'net10.0') {
+          dotnet run --project samples/Sharprompt.Automation -c Release -f $framework --no-build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        }
+
+    - name: Verify packaged API documentation
+      shell: pwsh
+      run: |
+        dotnet pack src/Sharprompt -c Release --no-build -o artifacts/packages
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        $package = Get-ChildItem artifacts/packages/Sharprompt.*.nupkg | Select-Object -First 1
+        $archive = [System.IO.Compression.ZipFile]::OpenRead($package.FullName)
+        try {
+          foreach ($framework in 'net8.0', 'net10.0') {
+            if (-not $archive.GetEntry("lib/$framework/Sharprompt.xml")) {
+              throw "Missing XML API documentation for $framework."
+            }
+          }
+        } finally {
+          $archive.Dispose()
+        }
 
     - name: Lint C# code
       run: dotnet format --verify-no-changes --verbosity detailed --no-restore

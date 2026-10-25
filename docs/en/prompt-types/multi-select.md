@@ -47,7 +47,7 @@ var cities = Prompt.MultiSelect(new MultiSelectOptions<string>
 | `Minimum` | `int` | `1` | Minimum number of selections required |
 | `Maximum` | `int` | `int.MaxValue` | Maximum number of selections allowed |
 | `TextSelector` | `Func<T, string>` | `x => x.ToString()!` | Display text selector |
-| `LoopingSelection` | `bool` | `true` | Whether to loop at the beginning/end of the list |
+| `LoopingSelection` | `bool` | `true` | Whether Up/Down wraps within the current page (`true`) or moves between pages (`false`); page navigation still wraps between the first and last pages |
 
 ## Selection Rules
 

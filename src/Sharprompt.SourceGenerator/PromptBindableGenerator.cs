@@ -11,6 +11,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Sharprompt.SourceGenerator;
 
+/// <summary>
+/// Generates model binders for classes and records annotated with <c>Sharprompt.PromptBindableAttribute</c>.
+/// </summary>
+/// <remarks>
+/// Generated code registers binders with <c>Sharprompt.ModelBinderRegistry</c> through a module initializer,
+/// avoiding runtime reflection to discover model properties. Unsupported model declarations and properties
+/// produce compiler diagnostics.
+/// </remarks>
 [Generator(LanguageNames.CSharp)]
 public sealed class PromptBindableGenerator : IIncrementalGenerator
 {
@@ -22,6 +30,10 @@ public sealed class PromptBindableGenerator : IIncrementalGenerator
 
     internal const string SourceTrackingName = "PromptBindable.Source";
 
+    /// <summary>
+    /// Registers the incremental pipelines that discover bindable models, emit binders, and report diagnostics.
+    /// </summary>
+    /// <param name="context">The initialization context supplied by the compiler.</param>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var provider = context.SyntaxProvider

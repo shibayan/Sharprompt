@@ -5,17 +5,34 @@ using System.Globalization;
 
 namespace Sharprompt.Internal;
 
+/// <summary>
+/// Converts prompt values to and from invariant-culture text using the target type converter.
+/// </summary>
+/// <typeparam name="T">The stored, converted, or selected value type.</typeparam>
 internal static class TypeHelper<T>
 {
     private static readonly Type s_targetType = typeof(T);
     private static readonly Type? s_underlyingType = Nullable.GetUnderlyingType(typeof(T));
 
+    /// <summary>
+    /// Whether the target is a reference type or a nullable value type and can therefore accept an omitted value.
+    /// </summary>
     public static bool IsNullable => !s_targetType.IsValueType || s_underlyingType is not null;
 
     // Parsing and formatting both use the invariant culture, so every text a prompt shows for a value
     // (a default value hint, the inserted default value, the answer) can be typed back as input.
+    /// <summary>
+    /// Converts invariant-culture text using the converter for the target type or its nullable underlying type.
+    /// </summary>
+    /// <param name="value">The invariant-culture text to parse.</param>
+    /// <returns>The converted value returned by the type converter.</returns>
     public static T? ConvertTo(string value) => (T?)GetConverter().ConvertFromInvariantString(value);
 
+    /// <summary>
+    /// Formats a value as invariant-culture text, preserving round-trippable enum and minimum date/time representations.
+    /// </summary>
+    /// <param name="value">The value to format.</param>
+    /// <returns>Invariant-culture text suitable for a default hint, editing, or an answer.</returns>
     public static string ConvertToString(T value)
     {
         var converter = GetConverter();

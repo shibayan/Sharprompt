@@ -10,6 +10,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Sharprompt.SourceGenerator;
 
+/// <summary>
+/// Generates enum values, display names, and ordering metadata for selection prompts.
+/// </summary>
+/// <remarks>
+/// Generated code registers metadata with <c>Sharprompt.EnumMetadataRegistry</c> through a module initializer.
+/// Enums that cannot be referenced by the generated code are left to the runtime metadata fallback.
+/// </remarks>
 [Generator(LanguageNames.CSharp)]
 public sealed class EnumMetadataGenerator : IIncrementalGenerator
 {
@@ -17,6 +24,10 @@ public sealed class EnumMetadataGenerator : IIncrementalGenerator
 
     internal const string TransformTrackingName = "EnumMetadata.Transform";
 
+    /// <summary>
+    /// Registers the incremental pipeline that discovers enum declarations and emits their metadata.
+    /// </summary>
+    /// <param name="context">The initialization context supplied by the compiler.</param>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // The transform returns only strings, so an unrelated edit re-runs it but the result

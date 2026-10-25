@@ -39,7 +39,7 @@ var city = Prompt.Select(new SelectOptions<string>
 | `DefaultValue` | `object?` | `null` | デフォルトの選択値 |
 | `PageSize` | `int` | `int.MaxValue` | 1 ページあたりの項目数 |
 | `TextSelector` | `Func<T, string>` | `x => x.ToString()!` | 表示テキストセレクタ |
-| `LoopingSelection` | `bool` | `true` | リストの先頭/末尾でループするかどうか |
+| `LoopingSelection` | `bool` | `true` | 上下キーで現在のページ内を循環する（`true`）か、前後のページへ移動する（`false`）か。ページ移動では先頭ページと最終ページの間も循環する |
 
 ## ページネーション付き
 

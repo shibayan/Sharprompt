@@ -132,13 +132,21 @@ var city = Prompt.Select("Select your city",
 
 ## ループ選択
 
-デフォルトでは、選択リストは先頭または末尾に到達するとループします。これはオプションクラスで無効にできます:
+`Select` と `MultiSelect` の `LoopingSelection` は、上下キーがページ境界でどう動作するかを指定します。
+
+- `true`（既定値）: 現在のページ内の先頭と末尾の項目を循環します。
+- `false`: 前後のページへ移動し、先頭ページと最終ページの間でも循環します。
+
+1 ページだけの場合は、どちらの設定でもそのページ内を循環します。左右キーによるページ移動は、この設定にかかわらず先頭ページと最終ページの間を循環します。
+
+例えば、1 ページを 2 項目にすると、上下キーでページをまたいで移動できます。
 
 ```csharp
 var city = Prompt.Select(new SelectOptions<string>
 {
     Message = "Select your city",
     Items = new[] { "Seattle", "London", "Tokyo" },
+    PageSize = 2,
     LoopingSelection = false
 });
 ```

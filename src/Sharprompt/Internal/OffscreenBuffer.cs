@@ -5,8 +5,16 @@ using Sharprompt.Drivers;
 
 namespace Sharprompt.Internal;
 
+/// <summary>
+/// Accumulates colored, normalized text and maps its logical cursor to physical terminal coordinates.
+/// </summary>
 internal class OffscreenBuffer
 {
+    /// <summary>
+    /// Creates a pending output buffer anchored at the driver current cursor row.
+    /// </summary>
+    /// <param name="consoleDriver">The console input, output, and cursor operations used for rendering.</param>
+    /// <param name="configuration">The symbols, colors, console factory, and cancellation settings to use.</param>
     public OffscreenBuffer(IConsoleDriver consoleDriver, PromptConfiguration configuration)
     {
         _consoleDriver = consoleDriver;
@@ -25,6 +33,9 @@ internal class OffscreenBuffer
     private int _cachedWrittenLineCount;
     private int _cachedBufferWidth;
 
+    /// <summary>
+    /// The symbols and colors used by prompt-component writers.
+    /// </summary>
     internal PromptConfiguration Configuration => _configuration;
 
     private int WrittenLineCount
@@ -53,8 +64,17 @@ internal class OffscreenBuffer
         }
     }
 
+    /// <summary>
+    /// Appends normalized text using the current console foreground color.
+    /// </summary>
+    /// <param name="text">The text to normalize, measure, or buffer.</param>
     public void Write(string text) => Write(text, Console.ForegroundColor);
 
+    /// <summary>
+    /// Appends normalized text in the supplied color, splitting embedded line breaks into logical lines.
+    /// </summary>
+    /// <param name="text">The text to normalize, measure, or buffer.</param>
+    /// <param name="color">The foreground color to associate with the buffered text.</param>
     public void Write(string text, ConsoleColor color)
     {
         if (string.IsNullOrEmpty(text))
@@ -82,12 +102,18 @@ internal class OffscreenBuffer
         _isWrittenLineCountDirty = true;
     }
 
+    /// <summary>
+    /// Starts a new logical output line and invalidates the cached physical line count.
+    /// </summary>
     public void WriteLine()
     {
         _outputBuffer.Add([]);
         _isWrittenLineCountDirty = true;
     }
 
+    /// <summary>
+    /// Records the first requested edit-cursor position in the pending output.
+    /// </summary>
     public void PushCursor()
     {
         if (_pushedCursor is not null)
@@ -110,8 +136,15 @@ internal class OffscreenBuffer
         return width;
     }
 
+    /// <summary>
+    /// Starts a render scope that clears the pending buffer and redraws the previous prompt region on disposal.
+    /// </summary>
+    /// <returns>A scope that redraws the prompt when disposed.</returns>
     public IDisposable BeginRender() => new RenderScope(this, _consoleDriver, _cursorBottom, WrittenLineCount);
 
+    /// <summary>
+    /// Writes buffered colored lines and translates the saved logical cursor into physical terminal coordinates.
+    /// </summary>
     public void RenderToConsole()
     {
         for (var i = 0; i < _outputBuffer.Count; i++)
@@ -162,6 +195,11 @@ internal class OffscreenBuffer
         _consoleDriver.SetCursorPosition(physicalLeft, consoleTop);
     }
 
+    /// <summary>
+    /// Clears the previous prompt rows upwards from its bottom buffer row, including both endpoints.
+    /// </summary>
+    /// <param name="cursorBottom">The zero-based bottom row of the previous prompt in buffer coordinates.</param>
+    /// <param name="writtenLineCount">The zero-based span of rows occupied by the previous prompt, excluding its first row.</param>
     public void ClearConsole(int cursorBottom, int writtenLineCount)
     {
         for (var i = 0; i <= writtenLineCount; i++)
@@ -170,6 +208,9 @@ internal class OffscreenBuffer
         }
     }
 
+    /// <summary>
+    /// Discards pending text and the saved edit cursor while retaining the buffer configuration.
+    /// </summary>
     public void ClearBuffer()
     {
         _outputBuffer.Clear();
@@ -179,6 +220,9 @@ internal class OffscreenBuffer
         _isWrittenLineCountDirty = true;
     }
 
+    /// <summary>
+    /// Resets terminal state and starts a new line at the bottom of the canceled prompt.
+    /// </summary>
     public void Cancel()
     {
         _consoleDriver.Reset();
