@@ -39,7 +39,7 @@ var city = Prompt.Select(new SelectOptions<string>
 | `DefaultValue` | `object?` | `null` | Default selected value |
 | `PageSize` | `int` | `int.MaxValue` | Number of items per page |
 | `TextSelector` | `Func<T, string>` | `x => x.ToString()!` | Display text selector |
-| `LoopingSelection` | `bool` | `true` | Whether to loop at the beginning/end of the list |
+| `LoopingSelection` | `bool` | `true` | Whether Up/Down wraps within the current page (`true`) or moves between pages (`false`); page navigation still wraps between the first and last pages |
 
 ## With Pagination
 

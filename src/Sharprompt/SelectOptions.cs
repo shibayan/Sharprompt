@@ -49,8 +49,12 @@ public class SelectOptions<T> : PromptOptions where T : notnull
     public Func<int, int, int, string> Pagination { get; set; } = (count, current, total) => string.Format(Resource.Message_Pagination, count, current, total);
 
     /// <summary>
-    /// Whether navigation wraps at the beginning and end of the list. Defaults to true.
+    /// Whether Up/Down navigation wraps within the current page instead of moving between pages. Defaults to true.
     /// </summary>
+    /// <remarks>
+    /// When false, Up/Down navigation crosses page boundaries and still wraps between the first and last pages.
+    /// Left/Right page navigation also wraps between the first and last pages.
+    /// </remarks>
     public bool LoopingSelection { get; set; } = true;
 
     /// <summary>

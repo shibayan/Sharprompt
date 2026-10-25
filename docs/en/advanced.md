@@ -132,13 +132,21 @@ var city = Prompt.Select("Select your city",
 
 ## Looping Selection
 
-By default, selection lists loop when reaching the beginning or end. This can be disabled via the options class:
+For both `Select` and `MultiSelect`, `LoopingSelection` controls how Up/Down navigation behaves at page boundaries:
+
+- `true` (the default): wraps between the first and last items within the current page.
+- `false`: moves to the previous or next page, still wrapping between the first and last pages.
+
+With a single page, both settings wrap within that page. Left/Right page navigation wraps between the first and last pages regardless of this setting.
+
+For example, use a page size of two to navigate across pages with Up/Down:
 
 ```csharp
 var city = Prompt.Select(new SelectOptions<string>
 {
     Message = "Select your city",
     Items = new[] { "Seattle", "London", "Tokyo" },
+    PageSize = 2,
     LoopingSelection = false
 });
 ```
